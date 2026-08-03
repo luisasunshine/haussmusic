@@ -8,6 +8,30 @@ const router = express.Router({ mergeParams: true });
 
 const ADMIN_ONLY_ENTITIES = new Set(['Banner', 'Label', 'Artist', 'AppSettings']);
 const nowIso = () => new Date().toISOString();
+// Files survived the Railway domain change, but URLs already saved in SQLite
+// still point at the old public domain.  Rewrite only those legacy upload URLs
+// as rows are returned; this keeps existing covers/audio working without
+// needing a one-off database migration.
+const LEGACY_UPLOAD_ORIGINS = ['https://haussmusic-production.up.railway.app'];
+
+function publicOrigin(req) {
+  return (process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+}
+
+function repairLegacyUploadUrls(value, req) {
+  if (Array.isArray(value)) return value.map((item) => repairLegacyUploadUrls(item, req));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, repairLegacyUploadUrls(item, req)]));
+  }
+  if (typeof value !== 'string') return value;
+
+  const oldOrigin = LEGACY_UPLOAD_ORIGINS.find((origin) => value.startsWith(`${origin}/uploads/`));
+  return oldOrigin ? `${publicOrigin(req)}${value.slice(oldOrigin.length)}` : value;
+}
+
+function responseRow(req, entityName, config, row) {
+  return stripSecrets(entityName, repairLegacyUploadUrls(deserializeRow(config, row), req));
+}
 
 function requester(req) {
   if (!req.userId) return null;
@@ -63,7 +87,7 @@ router.get('/:entity', (req, res, next) => {
       sql += ` order by ${desc ? sort.slice(1) : sort} ${desc ? 'desc' : 'asc'}`;
     }
     if (limit) sql += ` limit ${Number(limit)}`;
-    const rows = db.prepare(sql).all(...params).map((r) => stripSecrets(req.params.entity, deserializeRow(config, r)));
+    const rows = db.prepare(sql).all(...params).map((r) => responseRow(req, req.params.entity, config, r));
     res.json(rows);
   } catch (err) { next(err); }
 });
@@ -73,7 +97,7 @@ router.get('/:entity/:id', (req, res, next) => {
     const config = getEntityConfig(req.params.entity);
     const row = db.prepare(`select * from ${config.table} where id = ?`).get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Not found' });
-    res.json(stripSecrets(req.params.entity, deserializeRow(config, row)));
+    res.json(responseRow(req, req.params.entity, config, row));
   } catch (err) { next(err); }
 });
 
@@ -90,7 +114,7 @@ router.post('/:entity', requireAuth, (req, res, next) => {
     db.prepare(`insert into ${config.table} (${columns.join(',')}) values (${columns.map(() => '?').join(',')})`)
       .run(...columns.map((c) => row[c]));
     const created = db.prepare(`select * from ${config.table} where id = ?`).get(base.id);
-    res.json(stripSecrets(entityName, deserializeRow(config, created)));
+    res.json(responseRow(req, entityName, config, created));
   } catch (err) { next(err); }
 });
 
@@ -110,7 +134,7 @@ router.post('/:entity/bulk', requireAuth, (req, res, next) => {
         .run(...columns.map((c) => row[c]));
       return base.id;
     });
-    const rows = created.map((id) => stripSecrets(entityName, deserializeRow(config, db.prepare(`select * from ${config.table} where id = ?`).get(id))));
+    const rows = created.map((id) => responseRow(req, entityName, config, db.prepare(`select * from ${config.table} where id = ?`).get(id)));
     res.json(rows);
   } catch (err) { next(err); }
 });
@@ -146,7 +170,7 @@ router.put('/:entity/:id', requireAuth, (req, res, next) => {
     // only deleted from uploads/ once nothing (including this row's new
     // value) references the old file anymore.
     cleanupOrphanedFiles(extractUploadUrls(existing, config.table));
-    res.json(stripSecrets(entityName, deserializeRow(config, updated)));
+    res.json(responseRow(req, entityName, config, updated));
   } catch (err) { next(err); }
 });
 
