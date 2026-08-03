@@ -36,6 +36,7 @@ export default function Layout({ children, currentPageName }) {
   const [repeatMode, setRepeatMode] = useState(false);
   const [shuffleEnabled, setShuffleEnabled] = useState(false);
   const [shuffledSongs, setShuffledSongs] = useState([]);
+  const [playQueue, setPlayQueue] = useState(null);
   const [showRightSidebar, setShowRightSidebar] = useState(false);
   const [showMobilePlayer, setShowMobilePlayer] = useState(false);
   const [crossfadeEnabled, setCrossfadeEnabled] = useState(false);
@@ -109,15 +110,30 @@ export default function Layout({ children, currentPageName }) {
   // ===== Listen for song play events =====
   useEffect(() => {
     const handlePlaySong = (e) => {
+      // A direct click starts a new listening context; it must not inherit a
+      // previously selected playlist/label queue.
+      setPlayQueue(null);
       playTrack(e.detail);
+    };
+    const handlePlayQueue = (e) => {
+      const queue = Array.isArray(e.detail?.songs) ? e.detail.songs.filter((song) => song?.audio_url) : [];
+      if (!queue.length) return;
+      // A queue is intentionally ordered, so it always takes precedence over
+      // the global shuffle state.
+      setShuffleEnabled(false);
+      setShuffledSongs([]);
+      setPlayQueue(queue);
+      playTrack(queue[0]);
     };
     const handleTogglePlayPause = () => setIsPlaying(prev => !prev);
 
     window.addEventListener('playSong', handlePlaySong);
+    window.addEventListener('playQueue', handlePlayQueue);
     window.addEventListener('togglePlayPause', handleTogglePlayPause);
 
     return () => {
       window.removeEventListener('playSong', handlePlaySong);
+      window.removeEventListener('playQueue', handlePlayQueue);
       window.removeEventListener('togglePlayPause', handleTogglePlayPause);
     };
   }, []);
@@ -164,6 +180,7 @@ export default function Layout({ children, currentPageName }) {
 
   // ===== PLAYLIST HELPERS =====
   const getPlaylist = () => {
+    if (playQueue?.length) return playQueue;
     return shuffleEnabled && shuffledSongs.length > 0 ? shuffledSongs : songs;
   };
 
@@ -175,6 +192,9 @@ export default function Layout({ children, currentPageName }) {
     if (!playList.length || !song) return null;
 
     const index = playList.findIndex(s => s.id === song.id);
+    if (playQueue?.length) {
+      return index >= 0 && index < playList.length - 1 ? playList[index + 1] : null;
+    }
     const safeIndex = index >= 0 ? index : 0;
     const nextIndex = (safeIndex + 1) % playList.length;
 

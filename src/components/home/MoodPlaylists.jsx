@@ -10,17 +10,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 // No AI involved: this is a straightforward group-by over data the app
 // already has.
 
-function seededShuffle(arr, seed) {
-  const a = [...arr];
-  let s = seed % 233280 || 1;
-  const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rnd() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 function formatTotal(songs) {
   const secs = songs.reduce((a, s) => a + (s.duration || 0), 0);
   const m = Math.round(secs / 60);
@@ -166,8 +155,10 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
   }, [playlists.length]);
 
   const playPlaylist = (pl) => {
-    const order = seededShuffle(pl.songs, pl.id.length * 7919);
-    if (order[0]) onPlaySong?.(order[0]);
+    // Keep the exact order shown in the label modal and hand the full list to
+    // the global player, rather than starting one song inside the full catalog.
+    const order = [...pl.songs];
+    if (order[0]) window.dispatchEvent(new CustomEvent('playQueue', { detail: { songs: order } }));
     toast(`Tocando ${pl.label.name}`);
   };
 
