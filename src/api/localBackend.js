@@ -1,4 +1,4 @@
-// Self-contained local backend for HAUSS MUSIC.
+// Self-contained local backend for VELVET MUSIC.
 // Replaces the previous base44-hosted backend: everything (auth, entities,
 // file uploads) is persisted in the browser's localStorage instead of a
 // remote server. No network calls leave the browser.
@@ -330,7 +330,7 @@ export function seedDemoData() {
     full_name: 'Nova Onda',
     display_name: 'Nova Onda',
     profile_picture: '',
-    bio: 'Produtor e artista residente da HAUSS MUSIC.',
+    bio: 'Produtor e artista residente da VELVET MUSIC.',
     user_type: ['artista'],
     role: 'user',
     profile_completed: true,
@@ -352,7 +352,7 @@ export function seedDemoData() {
   writeTable('Banner', banners.map(data => ({ id: genId(), created_date: nowIso(), updated_date: nowIso(), ...data })));
 
   writeTable('AppSettings', [
-    { id: genId(), created_date: nowIso(), updated_date: nowIso(), key: 'app_name', value: 'HAUSS MUSIC' },
+    { id: genId(), created_date: nowIso(), updated_date: nowIso(), key: 'app_name', value: 'VELVET MUSIC' },
   ]);
 
   storage.setItem(SEED_FLAG_KEY, 'true');

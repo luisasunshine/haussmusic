@@ -15,7 +15,7 @@ const navItems = [
 ];
 
 const libraryItems = [
-  { icon: Star, label: 'HAUSS HITS', page: 'Rankings' },
+  { icon: Star, label: 'VELVET HITS', page: 'Rankings' },
 ];
 
 export default function Sidebar({ currentPage }) {
@@ -37,7 +37,7 @@ export default function Sidebar({ currentPage }) {
       <div className="flex items-center justify-center h-[72px] border-b border-[#282828]">
         <Link to={createPageUrl('Home')}>
           {logoUrl ? (
-            <img src={logoUrl} alt="HAUSS MUSIC" className="w-10 h-10 object-contain" />
+            <img src={logoUrl} alt="VELVET MUSIC" className="w-10 h-10 object-contain" />
           ) : (
             <div className="w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center">
               <span className="text-black font-black text-xs">HM</span>

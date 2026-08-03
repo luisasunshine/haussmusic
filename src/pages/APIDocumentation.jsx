@@ -19,7 +19,7 @@ export default function APIDocumentation() {
     {
       id: 'getSongs',
       title: 'Obter Músicas',
-      description: 'Retorna as 50 músicas mais recentes publicadas no HAUSS MUSIC',
+      description: 'Retorna as 50 músicas mais recentes publicadas no VELVET MUSIC',
       code: `// JavaScript/TypeScript
 const response = await fetch('${apiEndpoint}', {
   method: 'POST',
@@ -149,8 +149,8 @@ const data = await response.json();`,
               <Code className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-white">API Pública do HAUSS MUSIC</h1>
-              <p className="text-zinc-400 mt-1">Integre músicas do HAUSS MUSIC no seu aplicativo</p>
+              <h1 className="text-4xl font-black text-white">API Pública do VELVET MUSIC</h1>
+              <p className="text-zinc-400 mt-1">Integre músicas do VELVET MUSIC no seu aplicativo</p>
             </div>
           </motion.div>
         </div>
@@ -168,8 +168,8 @@ const data = await response.json();`,
             Sobre a API
           </h2>
           <p className="text-zinc-300 mb-4">
-            A API pública do HAUSS MUSIC permite que você acesse músicas, álbuns e EPs publicados na plataforma. 
-            Perfeito para criar integrações, widgets de música, ou permitir que usuários compartilhem músicas do HAUSS MUSIC em outras plataformas.
+            A API pública do VELVET MUSIC permite que você acesse músicas, álbuns e EPs publicados na plataforma. 
+            Perfeito para criar integrações, widgets de música, ou permitir que usuários compartilhem músicas do VELVET MUSIC em outras plataformas.
           </p>
           <div className="bg-zinc-400/10 border border-zinc-400/30 rounded-xl p-4">
             <div className="text-sm text-zinc-200 font-mono break-all">
@@ -285,7 +285,7 @@ const data = await response.json();`,
   
   return (
     <div className="music-widget">
-      <h2>🎧 Do HAUSS MUSIC</h2>
+      <h2>🎧 Do VELVET MUSIC</h2>
       {songs.map(song => (
         <div key={song.id} className="song-item">
           <img src={song.cover_url} alt={song.title} />
@@ -304,7 +304,7 @@ const data = await response.json();`,
 
         {/* Footer */}
         <div className="mt-12 text-center text-zinc-500">
-          <p>🖤 Feito com amor pela equipe HAUSS MUSIC</p>
+          <p>🖤 Feito com amor pela equipe VELVET MUSIC</p>
           <p className="text-sm mt-2">Tem dúvidas? Entre em contato conosco!</p>
         </div>
       </div>

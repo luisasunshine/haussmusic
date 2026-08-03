@@ -496,7 +496,7 @@ export default function Layout({ children, currentPageName }) {
       ? [{ icon: Mic, label: 'Podcast', page: 'PodcastDashboard' }]
       : []
     ),
-    { icon: Star, label: 'HAUSS HITS', page: 'Rankings' },
+    { icon: Star, label: 'VELVET HITS', page: 'Rankings' },
     ...(isAuthenticated ? [] : [{ icon: LogIn, label: 'Entrar', page: 'AuthPage' }]),
   ];
 

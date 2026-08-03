@@ -72,7 +72,7 @@ export default function ProfileSetup({ user, onComplete }) {
           >
             <Sparkles className="w-8 h-8 text-white" />
           </motion.div>
-          <h2 className="text-3xl font-bold text-white mb-2">Bem-vindo ao HAUSS MUSIC!</h2>
+          <h2 className="text-3xl font-bold text-white mb-2">Bem-vindo ao VELVET MUSIC!</h2>
           <p className="text-zinc-400">Complete seu perfil para começar</p>
         </div>
 
@@ -138,7 +138,7 @@ export default function ProfileSetup({ user, onComplete }) {
             ) : (
               <>
                 <Save className="w-5 h-5 mr-2" />
-                Começar a usar o HAUSS MUSIC
+                Começar a usar o VELVET MUSIC
               </>
             )}
           </Button>

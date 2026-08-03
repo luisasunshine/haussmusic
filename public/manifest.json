@@ -1,7 +1,7 @@
 {
-  "name": "HAUSS MUSIC",
-  "short_name": "HAUSS",
-  "description": "HAUSS MUSIC - streaming e lançamentos musicais",
+  "name": "VELVET MUSIC",
+  "short_name": "VELVET",
+  "description": "VELVET MUSIC - streaming e lançamentos musicais",
   "icons": [
     { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
   ],

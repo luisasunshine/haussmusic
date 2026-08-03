@@ -43,5 +43,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`HAUSS MUSIC server listening on :${PORT}`);
+  console.log(`VELVET MUSIC server listening on :${PORT}`);
 });

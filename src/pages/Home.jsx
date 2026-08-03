@@ -361,12 +361,12 @@ export default function Home() {
                 style={{ boxShadow: '0 0 60px rgba(200,200,210,0.4)' }}
               >
                 {logoUrl ? (
-                  <img src={logoUrl} alt="HAUSS MUSIC" className="w-full h-full object-contain p-2" />
+                  <img src={logoUrl} alt="VELVET MUSIC" className="w-full h-full object-contain p-2" />
                 ) : (
                   <Music2 className="w-12 h-12 text-black" />
                 )}
               </motion.div>
-              <h1 className="text-5xl font-bold text-white mb-2">HAUSS MUSIC</h1>
+              <h1 className="text-5xl font-bold text-white mb-2">VELVET MUSIC</h1>
               <p className="text-[#B3B3B3]">Bem-vindo à sua música</p>
             </motion.div>
           </motion.div>
@@ -943,7 +943,7 @@ export default function Home() {
               <div className="w-20 h-20 rounded-full bg-[#282828] flex items-center justify-center mb-4">
                 <Music2 className="w-10 h-10 text-[#535353]" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Bem-vindo ao HAUSS MUSIC</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">Bem-vindo ao VELVET MUSIC</h2>
               <p className="text-[#B3B3B3] max-w-md">Sua plataforma de streaming musical. Explore músicas, crie playlists e descubra novos artistas.</p>
             </div>
           )}

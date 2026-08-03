@@ -1,4 +1,4 @@
-# HAUSS MUSIC server
+# VELVET MUSIC server
 
 Your own backend: a small Express API backed by a single SQLite file
 (`data/hauss.db`) and a local `uploads/` folder for cover art, banners and

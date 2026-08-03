@@ -1,4 +1,4 @@
-// Self-hosted database for HAUSS MUSIC: a single SQLite file on disk.
+// Self-hosted database for VELVET MUSIC: a single SQLite file on disk.
 // No external database service — this is the whole point of this backend.
 // Uses Node's built-in node:sqlite (Node 22.5+), so there's no native
 // module to compile — works the same on Windows, Docker, any VPS.

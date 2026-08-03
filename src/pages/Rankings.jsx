@@ -77,7 +77,7 @@ export default function Rankings() {
               <Flame className="w-6 lg:w-8 h-6 lg:h-8 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-2xl lg:text-4xl font-bold text-white">HAUSS HITS</h1>
+              <h1 className="text-2xl lg:text-4xl font-bold text-white">VELVET HITS</h1>
               <p className="text-sm lg:text-base text-[#B3B3B3]">O top 100 de cada categoria, atualizado ao vivo</p>
             </div>
           </div>

@@ -28,7 +28,7 @@ function formatTotal(songs) {
 }
 
 // The label's own logo when it has one; otherwise a mosaic of its songs'
-// art under the HAUSS silver/black wash, same treatment used elsewhere so
+// art under the VELVET silver/black wash, same treatment used elsewhere so
 // a label without a logo still reads as part of the same system.
 function PlaylistCover({ label, songs, rounded = 'rounded-2xl' }) {
   if (label.profile_picture) {
@@ -184,7 +184,7 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl lg:text-2xl font-bold text-white">Por Gravadora</h2>
-          <p className="text-xs text-[#B3B3B3] mt-0.5">As músicas de cada gravadora do acervo HAUSS</p>
+          <p className="text-xs text-[#B3B3B3] mt-0.5">As músicas de cada gravadora do acervo VELVET</p>
         </div>
         <div className="hidden sm:flex items-center gap-1.5">
           <button onClick={() => nudge(-1)} className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center text-white/70 hover:text-white transition-colors">

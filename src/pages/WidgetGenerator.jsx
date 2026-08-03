@@ -33,7 +33,7 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
     // Use data.data.songs ou data.data.releases
   });`;
 
-  const embedCode = `<!-- Widget HAUSS MUSIC -->
+  const embedCode = `<!-- Widget VELVET MUSIC -->
 <div id="hauss-widget"></div>
 <script src="${widgetUrl}"></script>
 <script>
@@ -68,8 +68,8 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
               <Sparkles className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-white">Widget do HAUSS MUSIC</h1>
-              <p className="text-zinc-400 mt-1">Incorpore músicas do HAUSS MUSIC no seu site</p>
+              <h1 className="text-4xl font-black text-white">Widget do VELVET MUSIC</h1>
+              <p className="text-zinc-400 mt-1">Incorpore músicas do VELVET MUSIC no seu site</p>
             </div>
           </motion.div>
         </div>
@@ -268,7 +268,7 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
           <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl p-6 border border-cyan-500/30">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <Code className="w-5 h-5 text-cyan-400" />
-              API do HAUSS MUSIC (Tipo Spotify)
+              API do VELVET MUSIC (Tipo Spotify)
             </h3>
             <div className="space-y-4 text-zinc-300">
               <div className="bg-cyan-500/20 rounded-lg p-4 border border-cyan-500/30">
@@ -282,7 +282,7 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
               
               <div>
                 <p className="font-bold text-white mb-2">📝 Passo 2: Use o código no seu app</p>
-                <p className="text-sm">Cole no seu site e as músicas do HAUSS MUSIC aparecerão automaticamente!</p>
+                <p className="text-sm">Cole no seu site e as músicas do VELVET MUSIC aparecerão automaticamente!</p>
               </div>
 
               <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/20">

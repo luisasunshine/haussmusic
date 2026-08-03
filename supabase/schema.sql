@@ -1,4 +1,4 @@
--- HAUSS MUSIC — Supabase schema
+-- VELVET MUSIC — Supabase schema
 -- Run this once in your Supabase project's SQL Editor (Project -> SQL Editor -> New query -> paste -> Run).
 -- Safe to re-run: everything is IF NOT EXISTS / CREATE OR REPLACE.
 

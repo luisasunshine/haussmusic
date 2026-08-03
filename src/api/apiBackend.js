@@ -1,4 +1,4 @@
-// Real backend for HAUSS MUSIC talking to your own self-hosted server
+// Real backend for VELVET MUSIC talking to your own self-hosted server
 // (see /server) — a plain Express + SQLite API you run yourself, no
 // third-party database vendor involved. Used automatically once
 // VITE_API_URL is set; otherwise base44Client.js falls back to Supabase

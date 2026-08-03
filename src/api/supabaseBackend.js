@@ -1,4 +1,4 @@
-// Real backend for HAUSS MUSIC, backed by Supabase (Postgres + Auth + Storage).
+// Real backend for VELVET MUSIC, backed by Supabase (Postgres + Auth + Storage).
 // Only used once VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are set — see
 // supabase/schema.sql for the schema this expects, and .env.example for
 // where to get the keys. Falls back to the local (localStorage) backend

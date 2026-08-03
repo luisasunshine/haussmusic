@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 const tours = {
   home: [
     {
-      title: "Bem-vindo ao HAUSS MUSIC! 🎵",
+      title: "Bem-vindo ao VELVET MUSIC! 🎵",
       message: "Olá! Eu sou o Atty, seu guia musical. Vou te mostrar como navegar pela plataforma!",
       position: 'center'
     },

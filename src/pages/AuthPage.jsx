@@ -107,8 +107,8 @@ export default function AuthPage() {
         <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-8">
-            <img src="/logo.png" alt="HAUSS MUSIC" className="w-12 h-12 object-contain" />
-            <h1 className="text-3xl font-black text-white tracking-tight">HAUSS MUSIC</h1>
+            <img src="/logo.png" alt="VELVET MUSIC" className="w-12 h-12 object-contain" />
+            <h1 className="text-3xl font-black text-white tracking-tight">VELVET MUSIC</h1>
           </div>
 
           {/* Tabs */}

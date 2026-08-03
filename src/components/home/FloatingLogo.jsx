@@ -20,7 +20,7 @@ export default function FloatingLogo() {
           {/* Simple clean logo */}
           <img
             src="/logo.png"
-            alt="HAUSS MUSIC"
+            alt="VELVET MUSIC"
             className="w-full h-full object-contain opacity-90"
           />
         </motion.div>
