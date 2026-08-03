@@ -163,19 +163,31 @@ function openEditor(resource, item = null) {
     const wrap = document.createElement('label'); wrap.className = `vv-editor-field vv-editor-field-${name}`; wrap.textContent = label;
     const camel = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
     const value = item?.[name] ?? item?.[camel] ?? (name === 'position' ? 0 : '');
+    const isMedia = name === 'cover_url' || name === 'image_url';
     let input;
     if (type === 'textarea') { input = document.createElement('textarea'); input.value = value || ''; }
     else if (type === 'select') { input = document.createElement('select'); choices.forEach((choice) => { const option = new Option(choice.toUpperCase(), choice, false, value === choice); input.add(option); }); }
-    else { input = document.createElement('input'); input.type = type; if (type === 'checkbox') { input.checked = Boolean(Number(value) || value === true); wrap.className = 'vv-check'; wrap.textContent = ''; wrap.append(input, document.createTextNode(` ${label}`)); } else { input.value = value || ''; } }
+    else { input = document.createElement('input'); input.type = isMedia ? 'hidden' : type; if (type === 'checkbox') { input.checked = Boolean(Number(value) || value === true); wrap.className = 'vv-check'; wrap.textContent = ''; wrap.append(input, document.createTextNode(` ${label}`)); } else { input.value = value || ''; } }
     input.name = name; if (resource === 'users' && item && name === 'password') { input.placeholder = 'Deixe vazio para não alterar'; input.required = false; } if (resource === 'users' && !item && name === 'password') input.required = true;
     if (type !== 'checkbox') wrap.append(input);
-    if (name === 'cover_url' || name === 'image_url') {
+    if (isMedia) {
       wrap.classList.add('vv-editor-media');
-      const preview = document.createElement('div'); preview.className = 'vv-editor-preview'; if (value) preview.style.backgroundImage = `url("${value}")`;
-      const uploadLabel = document.createElement('label'); uploadLabel.className = 'vv-upload-button'; uploadLabel.textContent = 'ENVIAR IMAGEM';
+      const dropzone = document.createElement('div'); dropzone.className = `vv-dropzone${value ? ' has-image' : ''}`; if (value) dropzone.style.backgroundImage = `url("${value}")`;
+      const dropLabel = document.createElement('span'); dropLabel.textContent = value ? 'TROCAR IMAGEM' : 'CLIQUE PARA ENVIAR IMAGEM';
       const file = document.createElement('input'); file.type = 'file'; file.accept = 'image/*'; file.hidden = true;
-      file.addEventListener('change', async () => { if (!file.files?.[0]) return; uploadLabel.textContent = 'ENVIANDO...'; try { const data = new FormData(); data.append('file', file.files[0]); const response = await fetch(`${API_URL}/api/admin/uploads`, { method: 'POST', headers: session.token ? { Authorization: `Bearer ${session.token}` } : {}, body: data }); const result = await response.json(); if (!response.ok) throw new Error(result.error); input.value = result.url; preview.style.backgroundImage = `url("${result.url}")`; uploadLabel.textContent = 'TROCAR IMAGEM'; } catch (error) { uploadLabel.textContent = error.message || 'TENTAR NOVAMENTE'; } });
-      uploadLabel.append(file); wrap.append(preview, uploadLabel);
+      dropzone.append(dropLabel, file);
+      dropzone.addEventListener('click', () => file.click());
+      file.addEventListener('change', async () => {
+        if (!file.files?.[0]) return;
+        dropLabel.textContent = 'ENVIANDO...';
+        try {
+          const data = new FormData(); data.append('file', file.files[0]);
+          const response = await fetch(`${API_URL}/api/admin/uploads`, { method: 'POST', headers: session.token ? { Authorization: `Bearer ${session.token}` } : {}, body: data });
+          const result = await response.json(); if (!response.ok) throw new Error(result.error);
+          input.value = result.url; dropzone.style.backgroundImage = `url("${result.url}")`; dropzone.classList.add('has-image'); dropLabel.textContent = 'TROCAR IMAGEM';
+        } catch (error) { dropLabel.textContent = error.message || 'ERRO AO ENVIAR'; }
+      });
+      wrap.append(dropzone);
     }
     area.append(wrap);
   });
@@ -200,7 +212,7 @@ async function renderPostsAdmin(section) {
       <label>Categoria<select name="category_id"><option value="">Sem categoria</option>${categoryOptions}</select></label>
       <label>Resumo<textarea name="excerpt">${escapeHtml(editing?.excerpt || '')}</textarea></label>
       <label>Conteúdo<textarea name="content" required>${escapeHtml(editing?.content || '')}</textarea></label>
-      <label>Capa<div class="vv-post-dropzone${editing?.coverUrl ? ' has-image' : ''}" data-post-dropzone style="${editing?.coverUrl ? `background-image:url('${escapeHtml(editing.coverUrl)}')` : ''}"><span>${editing?.coverUrl ? 'TROCAR IMAGEM' : 'CLIQUE PARA ENVIAR IMAGEM'}</span><input type="file" accept="image/*" hidden data-post-cover-file></div></label>
+      <label>Capa<div class="vv-dropzone${editing?.coverUrl ? ' has-image' : ''}" data-post-dropzone style="${editing?.coverUrl ? `background-image:url('${escapeHtml(editing.coverUrl)}')` : ''}"><span>${editing?.coverUrl ? 'TROCAR IMAGEM' : 'CLIQUE PARA ENVIAR IMAGEM'}</span><input type="file" accept="image/*" hidden data-post-cover-file></div></label>
       <input type="hidden" name="cover_url" value="${escapeHtml(editing?.coverUrl || '')}" data-post-cover-input>
       <label>Status<select name="status"><option value="draft" ${editing?.status !== 'published' ? 'selected' : ''}>Rascunho</option><option value="published" ${editing?.status === 'published' ? 'selected' : ''}>Publicado</option></select></label>
       <label class="vv-post-check"><input type="checkbox" name="is_featured" ${Number(editing?.isFeatured) ? 'checked' : ''}> Destacar na capa</label>
@@ -445,4 +457,41 @@ document.addEventListener('click', (event) => {
   const personalAction = event.target.closest('[data-requires-auth]');
   if (!personalAction) return;
   if (!window.requireVelvetLogin(personalAction.dataset.requiresAuth || 'continuar')) event.preventDefault();
+});
+
+const profileEditToggle = document.querySelector('[data-profile-edit]');
+const profileEditForm = document.querySelector('[data-profile-edit-form]');
+const profileEditMessage = document.querySelector('[data-profile-edit-message]');
+
+profileEditToggle.addEventListener('click', () => {
+  profileEditForm.hidden = false;
+  profileEditForm.elements.displayName.value = session.user?.displayName || '';
+  profileEditMessage.textContent = '';
+  profileEditForm.elements.displayName.focus();
+});
+document.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { profileEditForm.hidden = true; profileEditForm.reset(); });
+profileEditForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const submit = form.querySelector('[type="submit"]');
+  const displayName = form.elements.displayName.value.trim();
+  submit.disabled = true;
+  profileEditMessage.textContent = 'Salvando perfil...';
+  try {
+    let response = await requestApi('/api/profile', { method: 'PATCH', body: JSON.stringify({ displayName }) });
+    session.user = response.user;
+    const image = form.elements.avatar.files[0];
+    if (image) {
+      const data = new FormData(); data.append('avatar', image);
+      const uploadResponse = await fetch(`${API_URL}/api/profile/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${session.token}` }, body: data });
+      const uploadData = await uploadResponse.json().catch(() => ({}));
+      if (!uploadResponse.ok) throw new Error(uploadData.error || 'Não foi possível enviar a foto.');
+      session.user = uploadData.user;
+    }
+    updateProfileView();
+    profileEditForm.hidden = true;
+    profileEditForm.reset();
+    notify('Perfil atualizado com sucesso.');
+  } catch (error) { profileEditMessage.textContent = error.message; }
+  finally { submit.disabled = false; }
 });

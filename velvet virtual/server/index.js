@@ -21,6 +21,8 @@ app.use(cors({ origin: origins.includes('*') ? '*' : origins }));
 app.use(express.json({ limit: '2mb' }));
 app.use(attachUser);
 app.use('/uploads', express.static(uploadsDir));
+const profileStorage = multer.diskStorage({ destination: uploadsDir, filename: (_req, file, done) => done(null, `${Date.now()}-${uuid()}${path.extname(file.originalname).toLowerCase()}`) });
+const profileUpload = multer({ storage: profileStorage, limits: { fileSize: 12 * 1024 * 1024 }, fileFilter: (_req, file, done) => done(null, /^image\//.test(file.mimetype)) });
 
 const now = () => new Date().toISOString();
 const slugify = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -48,8 +50,7 @@ app.post('/api/auth/register', async (req, res) => {
   const displayName = String(req.body.displayName || '').trim();
   if (!email || !displayName || password.length < 8) return res.status(400).json({ error: 'Informe nome, e-mail e uma senha com pelo menos 8 caracteres.' });
   if (db.prepare('SELECT id FROM users WHERE email = ?').get(email)) return res.status(409).json({ error: 'Este e-mail já possui uma conta.' });
-  const firstUser = db.prepare('SELECT COUNT(*) AS total FROM users').get().total === 0;
-  const role = firstUser || (process.env.ADMIN_EMAILS || '').toLowerCase().split(',').map((item) => item.trim()).includes(email) ? 'admin' : 'leitor';
+  const role = (process.env.ADMIN_EMAILS || '').toLowerCase().split(',').map((item) => item.trim()).includes(email) ? 'admin' : 'leitor';
   const id = uuid(); const date = now();
   db.prepare('INSERT INTO users (id,email,password_hash,display_name,role,created_at,updated_at) VALUES (?,?,?,?,?,?,?)').run(id, email, await bcrypt.hash(password, 12), displayName, role, date, date);
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
@@ -71,9 +72,8 @@ app.post('/api/auth/google', async (req, res) => {
     if (!profile.email || !profile.email_verified) return res.status(401).json({ error: 'O Google não confirmou este e-mail.' });
     let user = db.prepare('SELECT * FROM users WHERE email = ?').get(profile.email.toLowerCase());
     if (!user) {
-      const firstUser = db.prepare('SELECT COUNT(*) AS total FROM users').get().total === 0;
       const allowedAdmin = (process.env.ADMIN_EMAILS || '').toLowerCase().split(',').map((item) => item.trim()).includes(profile.email.toLowerCase());
-      const id = uuid(); const date = now(); const role = firstUser || allowedAdmin ? 'admin' : 'leitor';
+      const id = uuid(); const date = now(); const role = allowedAdmin ? 'admin' : 'leitor';
       db.prepare('INSERT INTO users (id,email,password_hash,google_id,display_name,avatar_url,role,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)').run(id, profile.email.toLowerCase(), await bcrypt.hash(uuid(), 12), profile.sub, profile.name || profile.email.split('@')[0], profile.picture || null, role, date, date);
       user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
     } else {
@@ -84,6 +84,21 @@ app.post('/api/auth/google', async (req, res) => {
   } catch { res.status(401).json({ error: 'Não foi possível validar o login Google.' }); }
 });
 app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: { ...publicUser(req.user), isAdmin: isAdmin(req.user) } }));
+app.patch('/api/profile', requireAuth, (req, res) => {
+  const displayName = String(req.body.displayName || '').trim();
+  if (!displayName || displayName.length > 70) return res.status(400).json({ error: 'Informe um nome de até 70 caracteres.' });
+  db.prepare('UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?').run(displayName, now(), req.user.id);
+  const user = db.prepare('SELECT id,email,display_name,avatar_url,role FROM users WHERE id = ?').get(req.user.id);
+  res.json({ user: { ...publicUser(user), isAdmin: isAdmin(user) } });
+});
+app.post('/api/profile/avatar', requireAuth, profileUpload.single('avatar'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Selecione uma imagem válida para o perfil.' });
+  const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
+  const avatarUrl = `${base}/uploads/${req.file.filename}`;
+  db.prepare('UPDATE users SET avatar_url = ?, updated_at = ? WHERE id = ?').run(avatarUrl, now(), req.user.id);
+  const user = db.prepare('SELECT id,email,display_name,avatar_url,role FROM users WHERE id = ?').get(req.user.id);
+  res.json({ user: { ...publicUser(user), isAdmin: isAdmin(user) } });
+});
 
 app.get('/api/public/home', (_req, res) => {
   const banners = db.prepare('SELECT * FROM banners WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);

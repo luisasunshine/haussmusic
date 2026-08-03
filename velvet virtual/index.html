@@ -143,6 +143,13 @@
             <span class="vv-current-role">ADMIN · ACESSO TOTAL</span>
           </div>
         </div>
+        <button type="button" class="vv-profile-edit-toggle" data-profile-edit>EDITAR PERFIL</button>
+        <form class="vv-profile-edit-form" data-profile-edit-form hidden>
+          <label>Nome de exibição<input name="displayName" maxlength="70" required /></label>
+          <label>Foto de perfil<input name="avatar" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /></label>
+          <p data-profile-edit-message></p>
+          <div><button type="button" data-profile-edit-cancel>CANCELAR</button><button type="submit">SALVAR ALTERAÇÕES</button></div>
+        </form>
         <div class="vv-profile-tabs" role="tablist">
           <button class="is-active" type="button">VISÃO GERAL</button>
           <button type="button">SALVOS</button>
@@ -206,6 +213,16 @@
     .vv-profile-logout:hover{border-color:#c0c0c8;background:#c0c0c8;color:#111}
     .vv-profile-avatar[style*="background-image"]{color:transparent}
     @media (max-width:800px){.vv-profile-logout{margin-left:18px;margin-right:18px}}
+  </style>
+  <style>
+    .vv-profile-edit-toggle{display:block;margin:18px 32px 0;padding:0;border:0;background:none;color:#c0c0c8;font:700 8px 'DM Mono',monospace;letter-spacing:.08em}
+    .vv-profile-edit-toggle:hover{color:#fff}
+    .vv-profile-edit-form{margin:18px 32px 5px;padding:18px;background:#121212;border:1px solid rgba(255,255,255,.1)}
+    .vv-profile-edit-form label{display:block;margin-bottom:13px;color:#b3b3b3;font:600 9px 'DM Mono',monospace;letter-spacing:.08em}
+    .vv-profile-edit-form input{box-sizing:border-box;width:100%;margin-top:7px;padding:10px;border:1px solid #383838;background:#181818;color:#fff;font:14px Arial,sans-serif}
+    .vv-profile-edit-form input[type=file]{font-size:11px}.vv-profile-edit-form p{min-height:14px;margin:0 0 12px;color:#ffb9b9;font-size:11px}
+    .vv-profile-edit-form>div{display:flex;gap:8px}.vv-profile-edit-form button{padding:10px 12px;border:1px solid #777;background:transparent;color:#fff;font:700 8px 'DM Mono',monospace;letter-spacing:.07em}.vv-profile-edit-form button[type=submit]{border-color:#c0c0c8;background:#c0c0c8;color:#111}
+    @media (max-width:800px){.vv-profile-edit-toggle{margin-left:18px}.vv-profile-edit-form{margin-left:18px;margin-right:18px}}
   </style>
   <script src="script.js"></script>
   </body>
