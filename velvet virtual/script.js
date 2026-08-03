@@ -138,24 +138,20 @@ document.querySelectorAll('[data-news-open]').forEach((button) => button.addEven
 document.querySelectorAll('[data-news-close]').forEach((button) => button.addEventListener('click', closeNews));
 if (window.location.hash === '#noticias') openNews();
 
-async function loadHeroBanner() {
+async function loadFooterSettings() {
   try {
     const response = await fetch(`${API_URL}/api/public/home`);
     if (!response.ok) return;
-    const banner = (await response.json()).banners?.[0];
-    if (!banner) return;
-    const hero = document.querySelector('.vv-hero');
-    const title = hero.querySelector('h1');
-    const deck = hero.querySelector('.vv-deck');
-    const button = hero.querySelector('.vv-button');
-    if (banner.imageUrl) hero.style.backgroundImage = `linear-gradient(90deg,rgba(1,1,3,.97) 0%,rgba(1,1,4,.88) 35%,rgba(1,1,4,.18) 70%,rgba(1,1,4,.25)),linear-gradient(0deg,rgba(1,1,4,.7),transparent 47%),url("${banner.imageUrl}")`;
-    if (banner.title) title.textContent = banner.title;
-    if (banner.subtitle) deck.textContent = banner.subtitle;
-    if (banner.ctaLabel) button.firstChild.textContent = `${banner.ctaLabel} `;
-    if (banner.ctaUrl) button.href = banner.ctaUrl;
-  } catch { /* A capa estática permanece disponível se a API estiver offline. */ }
+    const settings = (await response.json()).settings || {};
+    const instagram = document.querySelector('[data-footer-instagram]');
+    const youtube = document.querySelector('[data-footer-youtube]');
+    const contact = document.querySelector('[data-footer-contact]');
+    if (settings.instagramUrl) instagram.href = settings.instagramUrl;
+    if (settings.youtubeUrl) youtube.href = settings.youtubeUrl;
+    if (settings.contactEmail) contact.href = `mailto:${settings.contactEmail}`;
+  } catch { /* Os links padrão permanecem visíveis. */ }
 }
-loadHeroBanner();
+loadFooterSettings();
 
 async function loadVelvetPodcasts() {
   const container = document.querySelector('[data-podcast-list]');
@@ -435,7 +431,7 @@ async function renderAdmin(resource) {
     }
     if (resource === 'settings') {
       const settings = await requestApi('/api/admin/settings');
-      section.innerHTML = `<form class="vv-settings" data-live-settings><label>Nome da revista<input name="siteName" value="${escapeHtml(settings.siteName || 'Velvet Virtual')}" required></label><label>Link do Discord<input name="discordUrl" type="url" value="${escapeHtml(settings.discordUrl || '')}"></label><label>Link do Velvet Music<input name="velvetMusicUrl" type="url" value="${escapeHtml(settings.velvetMusicUrl || 'https://velvetentertainment.vercel.app')}"></label><button class="vv-admin-add" type="submit">SALVAR CONFIGURAÇÕES</button></form>`;
+      section.innerHTML = `<form class="vv-settings" data-live-settings><label>Nome da revista<input name="siteName" value="${escapeHtml(settings.siteName || 'Velvet Virtual')}" required></label><label>Link do Discord<input name="discordUrl" type="url" value="${escapeHtml(settings.discordUrl || '')}"></label><label>Link do Velvet Music<input name="velvetMusicUrl" type="url" value="${escapeHtml(settings.velvetMusicUrl || 'https://velvetentertainment.vercel.app')}"></label><label>Link do Instagram<input name="instagramUrl" type="url" placeholder="https://instagram.com/seuperfil" value="${escapeHtml(settings.instagramUrl || '')}"></label><label>Link do YouTube<input name="youtubeUrl" type="url" placeholder="https://youtube.com/@seucanal" value="${escapeHtml(settings.youtubeUrl || '')}"></label><label>E-mail de contato<input name="contactEmail" type="email" placeholder="contato@velvet.com" value="${escapeHtml(settings.contactEmail || '')}"></label><button class="vv-admin-add" type="submit">SALVAR CONFIGURAÇÕES</button></form>`;
       section.querySelector('form').addEventListener('submit', async (event) => { event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget)); await requestApi('/api/admin/settings', { method: 'PUT', body: JSON.stringify(values) }); alert('Configurações salvas.'); }); return;
     }
     const items = await requestApi(`/api/admin/${resource}`);
