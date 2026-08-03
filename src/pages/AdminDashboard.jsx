@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Upload, Trash2, Save, Loader2, Image as ImageIcon, Music, Music2, Users, Shield, Edit2, Camera, Eye, Search, Link as LinkIcon, Newspaper } from 'lucide-react';
+import { Plus, Upload, Trash2, Save, Loader2, Image as ImageIcon, Music, Music2, Users, Shield, Edit2, Camera, Eye, Search, Link as LinkIcon, Newspaper, Mic } from 'lucide-react';
 import { DiscordIcon } from '@/components/social/SocialBrandIcons';
 import ImageCropper from '@/components/profile/ImageCropper';
 import { Button } from "@/components/ui/button";
@@ -68,14 +68,16 @@ export default function AdminDashboard() {
   const { data: songs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
+    refetchInterval: 3000,
   });
 
-  const filteredSongs = songSearchTerm.trim()
-    ? songs.filter(s =>
-        s.title?.toLowerCase().includes(songSearchTerm.toLowerCase()) ||
-        s.artist?.toLowerCase().includes(songSearchTerm.toLowerCase())
-      )
-    : songs;
+  const matchesSongSearch = (song) => !songSearchTerm.trim() ||
+    song.title?.toLowerCase().includes(songSearchTerm.toLowerCase()) ||
+    song.artist?.toLowerCase().includes(songSearchTerm.toLowerCase());
+  const musicSongs = songs.filter((song) => !song.is_podcast);
+  const podcastEpisodes = songs.filter((song) => song.is_podcast);
+  const filteredSongs = musicSongs.filter(matchesSongSearch);
+  const filteredPodcastEpisodes = podcastEpisodes.filter(matchesSongSearch);
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
@@ -434,7 +436,8 @@ export default function AdminDashboard() {
   }
 
   const adminStats = [
-    { icon: Music, value: songs.length, label: 'Músicas', color: 'from-zinc-300 to-zinc-500' },
+    { icon: Music, value: musicSongs.length, label: 'Músicas', color: 'from-zinc-300 to-zinc-500' },
+    { icon: Mic, value: podcastEpisodes.length, label: 'Podcasts', color: 'from-violet-300 to-violet-500' },
     { icon: Users, value: users.length, label: 'Usuários', color: 'from-neutral-400 to-neutral-600' },
     { icon: ImageIcon, value: banners.length, label: 'Banners', color: 'from-slate-300 to-slate-500' },
   ];
@@ -462,7 +465,7 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex gap-3 ml-auto"
+              className="flex gap-3 ml-auto flex-wrap justify-end"
             >
               {adminStats.map(s => (
                 <div key={s.label} className="bg-white/5 rounded-xl border border-white/5 px-4 py-3 text-center min-w-[80px]">
@@ -484,6 +487,9 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="songs" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
               <Music className="w-4 h-4 mr-2" />Músicas
+            </TabsTrigger>
+            <TabsTrigger value="podcasts" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+              <Mic className="w-4 h-4 mr-2" />Podcasts
             </TabsTrigger>
             <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
               <Users className="w-4 h-4 mr-2" />Usuários
@@ -687,6 +693,61 @@ export default function AdminDashboard() {
                     </div>
                     <Button variant="ghost" size="icon"
                       onClick={() => { if (confirm(`Excluir "${song.title}"?`)) deleteSongMutation.mutate(song.id); }}
+                      className="flex-shrink-0 text-zinc-600 hover:text-red-400 hover:bg-red-500/10">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Podcasts Tab */}
+          <TabsContent value="podcasts" className="mt-6 space-y-4">
+            <div className="bg-[#181818] rounded-2xl border border-white/5 overflow-hidden">
+              <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between gap-4 flex-wrap">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Mic className="w-5 h-5 text-[#c0c0c8]" /> Episódios de Podcast ({filteredPodcastEpisodes.length})
+                </h2>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <Input
+                    placeholder="Buscar por título ou artista..."
+                    value={songSearchTerm}
+                    onChange={(e) => setSongSearchTerm(e.target.value)}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 pl-9 h-9 text-sm"
+                  />
+                </div>
+              </div>
+              {filteredPodcastEpisodes.length === 0 && (
+                <p className="text-center text-zinc-500 text-sm py-10">Nenhum episódio publicado</p>
+              )}
+              <div className="divide-y divide-white/5">
+                {filteredPodcastEpisodes.map((episode, i) => (
+                  <motion.div
+                    key={episode.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.02 }}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors"
+                  >
+                    {episode.cover_url ? (
+                      <img src={episode.cover_url} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-gradient-to-br from-violet-400/30 to-violet-600/30 flex items-center justify-center flex-shrink-0">
+                        <Mic className="w-4 h-4 text-violet-200" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{episode.title}</p>
+                      <p className="text-xs text-zinc-500 truncate">{episode.artist}{episode.album ? ` · ${episode.album}` : ''}</p>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-zinc-500 flex-shrink-0">
+                      <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{episode.plays || 0}</span>
+                      <span className="bg-violet-400/10 text-violet-200 px-2 py-0.5 rounded">episódio</span>
+                    </div>
+                    <Button variant="ghost" size="icon"
+                      onClick={() => { if (confirm(`Excluir "${episode.title}"?`)) deleteSongMutation.mutate(episode.id); }}
                       className="flex-shrink-0 text-zinc-600 hover:text-red-400 hover:bg-red-500/10">
                       <Trash2 className="w-4 h-4" />
                     </Button>
