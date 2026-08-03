@@ -230,6 +230,20 @@ async function registerView(post) {
     updateViewsEverywhere(post);
   } catch { /* offline or API unreachable: the count just won't tick up locally */ }
 }
+// Deliberately NOT gated by the sessionStorage check above: that dedupe is
+// about the anonymous view counter, not this. Calling it every time a
+// logged-in reader opens a matéria is safe and correct because the server's
+// post_reads primary key is what actually prevents double-counting — so
+// "EDIÇÕES LIDAS" stays right even across logins, logouts, or reading the
+// same article again before/after signing in within one browser session.
+async function registerRead(post) {
+  if (!session.user) return;
+  try {
+    const data = await requestApi(`/api/public/posts/${post.id}/read`, { method: 'POST' });
+    const el = document.querySelector('[data-profile-read-count] b');
+    if (el) el.textContent = data.count;
+  } catch { /* offline or API unreachable: the profile stat just won't be current until the next fetch */ }
+}
 function updateViewsEverywhere(post) {
   document.querySelectorAll(`[data-post-id="${post.id}"] .vv-news-card-views`).forEach((el) => { el.textContent = viewsLabel(post); });
   if (readPage.dataset.postId === post.id) document.querySelector('[data-read-meta]').textContent = metaLine(post);
@@ -346,6 +360,7 @@ function openPost(post) {
   readPage.scrollTop = 0;
   window.history.replaceState(null, '', '#materia');
   registerView(post);
+  registerRead(post);
   loadEngagement(post);
 }
 function closeRead() { readPage.hidden = true; currentReadPost = null; window.history.replaceState(null, '', '#noticias'); }

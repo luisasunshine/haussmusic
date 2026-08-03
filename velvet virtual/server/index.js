@@ -143,10 +143,20 @@ app.post('/api/public/posts/:id/view', (req, res) => {
   if (!post) return res.status(404).json({ error: 'Matéria não encontrada.' });
   const views = post.views + 1;
   db.prepare('UPDATE posts SET views = ? WHERE id = ?').run(views, req.params.id);
-  // Recorded once per reader (the post_reads primary key ignores repeats),
-  // regardless of how many times the public view counter above ticks up.
-  if (req.user) db.prepare('INSERT OR IGNORE INTO post_reads (post_id,user_id,created_at) VALUES (?,?,?)').run(req.params.id, req.user.id, now());
   res.json({ views });
+});
+
+// Separate from the view counter above on purpose: that one is deduped
+// client-side per browser session (so a plain visitor can't inflate it by
+// reloading), which meant a post already "seen" anonymously before login
+// never got recorded once the reader signed in. This is called every time
+// a logged-in reader opens a matéria, with no client-side gate at all —
+// the post_reads primary key is what actually prevents double-counting,
+// so it stays correct across logins, logouts, and account switches.
+app.post('/api/public/posts/:id/read', requireAuth, (req, res) => {
+  if (!publishedPost(req.params.id)) return res.status(404).json({ error: 'Matéria não encontrada.' });
+  db.prepare('INSERT OR IGNORE INTO post_reads (post_id,user_id,created_at) VALUES (?,?,?)').run(req.params.id, req.user.id, now());
+  res.json({ count: db.prepare('SELECT COUNT(*) AS total FROM post_reads WHERE user_id = ?').get(req.user.id).total });
 });
 
 app.get('/api/public/reads/count', requireAuth, (req, res) => {
