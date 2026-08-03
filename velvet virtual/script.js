@@ -417,7 +417,7 @@ async function restoreSession() { if (!session.token) return; try { session.user
 restoreSession();
 document.querySelector('.vv-admin-header .vv-admin-add').addEventListener('click', () => {
   document.querySelector('[data-admin-tab="posts"]')?.click();
-  setTimeout(() => document.querySelector('[data-post-form] input[name="title"]')?.focus(), 30);
+  openPostEditor(null, document.querySelector('[data-admin-section="posts"]'));
 });
 document.querySelector('.vv-roles-heading button')?.addEventListener('click', () => { adminButtons[0]?.click(); setTimeout(() => document.querySelector('[data-admin-tab="roles"]')?.click(), 20); });
 adminButtons.forEach((button) => button.addEventListener('click', () => {
@@ -453,7 +453,7 @@ function updateProfileView() {
   if (!session.user) return;
   const user = session.user;
   const role = user.isAdmin ? 'admin' : (user.role || 'leitor');
-  const name = user.name || user.email?.split('@')[0] || 'Leitor Velvet';
+  const name = user.displayName || user.name || user.email?.split('@')[0] || 'Leitor Velvet';
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'VV';
   const isAdmin = role === 'admin';
 
@@ -526,6 +526,10 @@ const profileEditToggle = document.querySelector('[data-profile-edit]');
 const profileEditForm = document.querySelector('[data-profile-edit-form]');
 const profileEditMessage = document.querySelector('[data-profile-edit-message]');
 const profileAvatarUpload = document.querySelector('[data-profile-avatar-upload]');
+const avatarCropper = document.querySelector('[data-avatar-cropper]');
+const avatarCropImage = document.querySelector('[data-avatar-crop-image]');
+const avatarCropZoom = document.querySelector('[data-avatar-crop-zoom]');
+let avatarCropSource = null;
 function resetProfileAvatarUpload() {
   profileAvatarUpload.querySelector('b').textContent = 'ENVIAR NOVA FOTO';
   profileAvatarUpload.querySelector('small').textContent = 'PNG, JPG, WEBP ou GIF · até 12 MB';
@@ -545,6 +549,49 @@ profileEditForm.elements.avatar.addEventListener('change', () => {
   const hint = profileAvatarUpload.querySelector('small');
   title.textContent = file ? 'FOTO SELECIONADA' : 'ENVIAR NOVA FOTO';
   hint.textContent = file ? file.name : 'PNG, JPG, WEBP ou GIF · até 12 MB';
+});
+profileEditForm.elements.avatar.addEventListener('change', () => {
+  const file = profileEditForm.elements.avatar.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/') || file.size > 12 * 1024 * 1024) {
+    profileEditMessage.textContent = 'Envie uma imagem de até 12 MB.';
+    profileEditForm.elements.avatar.value = '';
+    return;
+  }
+  if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
+  avatarCropSource = URL.createObjectURL(file);
+  avatarCropImage.src = avatarCropSource;
+  avatarCropZoom.value = '1';
+  avatarCropImage.style.setProperty('--crop-scale', '1');
+  avatarCropper.hidden = false;
+});
+avatarCropZoom.addEventListener('input', () => avatarCropImage.style.setProperty('--crop-scale', avatarCropZoom.value));
+document.querySelectorAll('[data-avatar-crop-cancel]').forEach((button) => button.addEventListener('click', () => {
+  avatarCropper.hidden = true;
+  profileEditForm.elements.avatar.value = '';
+  if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
+  avatarCropSource = null;
+  resetProfileAvatarUpload();
+}));
+document.querySelector('[data-avatar-crop-apply]').addEventListener('click', () => {
+  const scale = Number(avatarCropZoom.value);
+  const side = Math.min(avatarCropImage.naturalWidth, avatarCropImage.naturalHeight) / scale;
+  const startX = (avatarCropImage.naturalWidth - side) / 2;
+  const startY = (avatarCropImage.naturalHeight - side) / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 512;
+  canvas.getContext('2d').drawImage(avatarCropImage, startX, startY, side, side, 0, 0, 512, 512);
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const files = new DataTransfer();
+    files.items.add(new File([blob], 'velvet-profile.jpg', { type: 'image/jpeg' }));
+    profileEditForm.elements.avatar.files = files.files;
+    profileAvatarUpload.querySelector('b').textContent = 'FOTO RECORTADA';
+    profileAvatarUpload.querySelector('small').textContent = 'Pronta para salvar no seu perfil';
+    avatarCropper.hidden = true;
+    if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
+    avatarCropSource = null;
+  }, 'image/jpeg', .92);
 });
 profileEditForm.addEventListener('submit', async (event) => {
   event.preventDefault();
