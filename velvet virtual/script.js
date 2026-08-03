@@ -1,5 +1,8 @@
 const searchButtons = document.querySelectorAll('[data-search-toggle]');
 const searchPanel = document.querySelector('[data-search-panel]');
+const searchInput = document.querySelector('[data-search-input]');
+const searchResults = document.querySelector('[data-search-results]');
+const searchHint = document.querySelector('[data-search-hint]');
 const brandMenuButton = document.querySelector('[data-brand-menu-toggle]');
 const brandMenu = document.querySelector('[data-brand-menu]');
 const profileButtons = document.querySelectorAll('[data-profile-toggle]');
@@ -32,12 +35,49 @@ function notify(message, type = 'success') {
 const alert = (message) => notify(message, /Bem-vinda|salvas/i.test(String(message)) ? 'success' : 'error');
 document.querySelector('[data-toast-close]').addEventListener('click', () => { toast.hidden = true; clearTimeout(toastTimer); });
 
+let searchCatalog = null;
+let searchTimer;
+const normalizeSearch = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+function closeSearch() {
+  searchPanel.hidden = true; document.body.classList.remove('is-locked');
+  if (searchInput) searchInput.value = '';
+  if (searchResults) searchResults.replaceChildren();
+  if (searchHint) searchHint.hidden = false;
+}
+async function getSearchCatalog() {
+  if (searchCatalog) return searchCatalog;
+  const response = await fetch(`${API_URL}/api/public/home`);
+  if (!response.ok) throw new Error('Não foi possível carregar a busca agora.');
+  searchCatalog = await response.json(); return searchCatalog;
+}
+async function runSearch(query) {
+  const term = normalizeSearch(query); searchResults.replaceChildren();
+  if (searchHint) searchHint.hidden = Boolean(term);
+  if (!term) return;
+  const loading = document.createElement('p'); loading.className = 'vv-search-status'; loading.textContent = 'BUSCANDO…'; searchResults.append(loading);
+  try {
+    const data = await getSearchCatalog();
+    const posts = (data.posts || []).filter((post) => normalizeSearch([post.title, post.excerpt, post.content, post.categoryName, post.authorName].join(' ')).includes(term));
+    const categories = (data.categories || []).filter((category) => normalizeSearch(`${category.name} ${category.description || ''}`).includes(term)).slice(0, 6);
+    searchResults.replaceChildren();
+    if (!posts.length && !categories.length) { searchResults.innerHTML = `<p class="vv-search-status">Nada encontrado para “${escapeHtml(query)}”.</p>`; return; }
+    if (posts.length) {
+      const heading = document.createElement('p'); heading.className = 'vv-search-group-title'; heading.textContent = `MATÉRIAS · ${posts.length}`; searchResults.append(heading);
+      posts.slice(0, 8).forEach((post) => { const button = document.createElement('button'); button.type = 'button'; button.className = 'vv-search-result'; button.innerHTML = `<span>${escapeHtml(post.categoryName || 'VELVET')}</span><b>${escapeHtml(post.title)}</b><small>${escapeHtml(post.excerpt || 'Ler matéria')}</small>`; button.addEventListener('click', () => { closeSearch(); openPost(post); }); searchResults.append(button); });
+    }
+    if (categories.length) {
+      const heading = document.createElement('p'); heading.className = 'vv-search-group-title'; heading.textContent = 'CATEGORIAS'; searchResults.append(heading);
+      categories.forEach((category) => { const button = document.createElement('button'); button.type = 'button'; button.className = 'vv-search-category'; button.textContent = category.name; button.addEventListener('click', () => { closeSearch(); openNews(category.name); }); searchResults.append(button); });
+    }
+  } catch (error) { searchResults.innerHTML = `<p class="vv-search-status">${escapeHtml(error.message)}</p>`; }
+}
 searchButtons.forEach((button) => button.addEventListener('click', () => {
   const opening = searchPanel.hidden;
-  searchPanel.hidden = !opening;
-  document.body.classList.toggle('is-locked', opening);
-  if (opening) searchPanel.querySelector('input').focus();
+  if (!opening) return closeSearch();
+  searchPanel.hidden = false; document.body.classList.add('is-locked'); searchInput.focus();
 }));
+searchInput?.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => runSearch(searchInput.value), 180); });
+searchInput?.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSearch(); });
 
 brandMenuButton.addEventListener('click', () => {
   const opening = brandMenu.hidden;
@@ -579,7 +619,7 @@ async function renderPostsAdmin(section) {
     }));
     container.querySelectorAll('[data-post-remove]').forEach((button) => button.addEventListener('click', async () => {
       if (!confirm('Excluir esta matéria permanentemente?')) return;
-      try { await requestApi(`/api/admin/posts/${button.dataset.postRemove}`, { method: 'DELETE' }); notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
+      try { await requestApi(`/api/admin/posts/${button.dataset.postRemove}`, { method: 'DELETE' }); searchCatalog = null; notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
     }));
   }
   renderCards();
@@ -676,7 +716,7 @@ async function openPostEditor(post, section) {
   postEditorForm.querySelector('[data-post-cancel]')?.addEventListener('click', closePostEditor);
   postEditorForm.querySelector('[data-post-delete]')?.addEventListener('click', async () => {
     if (!post || !confirm('Excluir esta matéria permanentemente?')) return;
-    try { await requestApi(`/api/admin/posts/${post.id}`, { method: 'DELETE' }); closePostEditor(); notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
+    try { await requestApi(`/api/admin/posts/${post.id}`, { method: 'DELETE' }); searchCatalog = null; closePostEditor(); notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
   });
 
   postEditorForm.onsubmit = async (event) => {
@@ -689,6 +729,7 @@ async function openPostEditor(post, section) {
     if (status === 'published' && !post?.publishedAt) payload.published_at = new Date().toISOString();
     try {
       await requestApi(`/api/admin/posts${post ? `/${post.id}` : ''}`, { method: post ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
+      searchCatalog = null;
       closePostEditor();
       notify(status === 'published' ? 'Publicado! Já está disponível em Notícias.' : 'Rascunho salvo.');
       renderPostsAdmin(section);
