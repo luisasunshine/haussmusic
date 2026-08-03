@@ -108,6 +108,14 @@ app.get('/api/public/home', (_req, res) => {
   res.json({ banners, posts, categories, settings });
 });
 
+app.post('/api/public/posts/:id/view', (req, res) => {
+  const post = db.prepare("SELECT id, views FROM posts WHERE id = ? AND status = 'published'").get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Matéria não encontrada.' });
+  const views = post.views + 1;
+  db.prepare('UPDATE posts SET views = ? WHERE id = ?').run(views, req.params.id);
+  res.json({ views });
+});
+
 function crud(resource, table, fields) {
   app.get(`/api/admin/${resource}`, requireAdmin, (_req, res) => res.json(db.prepare(`SELECT * FROM ${table} ORDER BY ${table === 'categories' ? 'name COLLATE NOCASE' : 'updated_at DESC'}`).all().map(toCamel)));
   app.post(`/api/admin/${resource}`, requireAdmin, (req, res) => {

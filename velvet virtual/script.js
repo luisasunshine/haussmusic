@@ -69,9 +69,12 @@ document.querySelectorAll('[data-admin-tab]').forEach((tab) => tab.addEventListe
   document.querySelector('[data-admin-title]').textContent = tab.textContent.replace(/^[^A-Za-zÀ-ÿ]+\s*/, '');
 }));
 
+function viewsLabel(post) { return `${Number(post.views || 0).toLocaleString('pt-BR')} visualizações`; }
+
 function articleCard(post, large = false) {
   const article = document.createElement('article');
   article.className = large ? 'vv-news-card vv-news-card-large' : 'vv-news-card';
+  article.dataset.postId = post.id;
   article.tabIndex = 0;
   article.setAttribute('role', 'button');
   article.setAttribute('aria-label', `Ler matéria: ${post.title}`);
@@ -86,11 +89,35 @@ function articleCard(post, large = false) {
   image.append(category);
   const title = document.createElement('h3'); title.textContent = post.title;
   const excerpt = document.createElement('p'); excerpt.className = 'vv-news-card-excerpt'; excerpt.textContent = post.excerpt || 'Leia a matéria completa na Velvet Virtual.';
-  const meta = document.createElement('span'); meta.textContent = `${Number(post.views || 0).toLocaleString('pt-BR')} visualizações`;
+  const meta = document.createElement('span'); meta.className = 'vv-news-card-views'; meta.textContent = viewsLabel(post);
   article.append(image, title, excerpt, meta);
   article.addEventListener('click', () => openPost(post));
   article.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPost(post); } });
   return article;
+}
+
+// Increments the view counter once per post per browser session (so
+// reopening the same matéria repeatedly doesn't inflate the count), then
+// patches every place that number is currently on screen — the reading
+// view, and any matching card still rendered behind it — without a reload.
+async function registerView(post) {
+  const seenKey = 'vv_seen_posts';
+  let seen = [];
+  try { seen = JSON.parse(sessionStorage.getItem(seenKey) || '[]'); } catch { seen = []; }
+  if (seen.includes(post.id)) return;
+  try {
+    const response = await fetch(`${API_URL}/api/public/posts/${post.id}/view`, { method: 'POST' });
+    if (!response.ok) return;
+    const data = await response.json();
+    seen.push(post.id);
+    sessionStorage.setItem(seenKey, JSON.stringify(seen));
+    post.views = data.views;
+    updateViewsEverywhere(post);
+  } catch { /* offline or API unreachable: the count just won't tick up locally */ }
+}
+function updateViewsEverywhere(post) {
+  document.querySelectorAll(`[data-post-id="${post.id}"] .vv-news-card-views`).forEach((el) => { el.textContent = viewsLabel(post); });
+  if (readPage.dataset.postId === post.id) document.querySelector('[data-read-meta]').textContent = metaLine(post);
 }
 
 const readPage = document.querySelector('[data-read-page]');
@@ -100,11 +127,15 @@ function contentToHtml(content) {
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1 ↗</a>');
   return String(content || '').split(/\n{2,}/).filter(Boolean).map((block) => `<p>${renderInline(block.trim()).replace(/\n/g, '<br>')}</p>`).join('');
 }
+function metaLine(post) {
+  const dateLabel = (post.publishedAt || post.createdAt) ? new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+  return [post.authorName, dateLabel, viewsLabel(post)].filter(Boolean).join(' · ');
+}
 function openPost(post) {
+  readPage.dataset.postId = post.id;
   document.querySelector('[data-read-category]').textContent = post.categoryName || 'VELVET';
   document.querySelector('[data-read-title]').textContent = post.title;
-  const dateLabel = (post.publishedAt || post.createdAt) ? new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
-  document.querySelector('[data-read-meta]').textContent = [post.authorName, dateLabel, `${Number(post.views || 0).toLocaleString('pt-BR')} visualizações`].filter(Boolean).join(' · ');
+  document.querySelector('[data-read-meta]').textContent = metaLine(post);
   const cover = document.querySelector('[data-read-cover]');
   cover.hidden = !post.coverUrl;
   cover.innerHTML = post.coverUrl ? `<img src="${escapeHtml(post.coverUrl)}" alt="">` : '';
@@ -112,6 +143,7 @@ function openPost(post) {
   readPage.hidden = false;
   readPage.scrollTop = 0;
   window.history.replaceState(null, '', '#materia');
+  registerView(post);
 }
 function closeRead() { readPage.hidden = true; window.history.replaceState(null, '', '#noticias'); }
 document.querySelectorAll('[data-read-close]').forEach((button) => button.addEventListener('click', closeRead));
