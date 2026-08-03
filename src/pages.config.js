@@ -55,6 +55,7 @@ import Home from './pages/Home';
 import Library from './pages/Library';
 import Player from './pages/Player';
 import Playlist from './pages/Playlist';
+import PodcastDashboard from './pages/PodcastDashboard';
 import Rankings from './pages/Rankings';
 import Release from './pages/Release';
 import Search from './pages/Search';
@@ -72,6 +73,7 @@ export const PAGES = {
     "Library": Library,
     "Player": Player,
     "Playlist": Playlist,
+    "PodcastDashboard": PodcastDashboard,
     "Rankings": Rankings,
     "Release": Release,
     "Search": Search,

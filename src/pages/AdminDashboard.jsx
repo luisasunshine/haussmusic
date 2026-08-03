@@ -18,6 +18,7 @@ const CARGO_OPTIONS = [
   { value: 'ouvinte', label: '🎧 Ouvinte' },
   { value: 'artista', label: '🎤 Artista' },
   { value: 'gravadora', label: '🏷️ Gravadora' },
+  { value: 'podcast', label: '🎙️ Podcast' },
   { value: 'staff', label: '⭐ Staff' },
 ];
 
@@ -746,6 +747,7 @@ export default function AdminDashboard() {
                             <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                               t === 'artista' ? 'bg-[#c0c0c8]/15 text-[#e5e5ea]' :
                               t === 'gravadora' ? 'bg-slate-400/15 text-slate-300' :
+                              t === 'podcast' ? 'bg-fuchsia-500/15 text-fuchsia-300' :
                               t === 'staff' ? 'bg-amber-500/15 text-amber-400' :
                               'bg-zinc-800 text-zinc-500'
                             }`}>{t}</span>

@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Home, Search, Library, Music2, Star, Shield, Award, LogIn } from 'lucide-react';
+import { Home, Search, Library, Music2, Star, Shield, Award, LogIn, Mic } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -134,6 +134,27 @@ export default function Sidebar({ currentPage }) {
           </Link>
         )}
 
+
+        {/* Podcast Dashboard link */}
+        {(hasUserType(user, 'podcast') || user?.role === 'admin') && (
+          <Link to={createPageUrl('PodcastDashboard')} className="w-full">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-200 ${
+                isActive('PodcastDashboard')
+                  ? 'text-[#c0c0c8]'
+                  : 'text-[#B3B3B3] hover:text-white'
+              }`}
+            >
+              <Mic
+                className={`w-6 h-6 ${isActive('PodcastDashboard') ? 'fill-current' : ''}`}
+                style={isActive('PodcastDashboard') ? { filter: 'drop-shadow(0 0 6px rgba(192,192,200,0.7))' } : undefined}
+              />
+              <span className="text-[9px] font-medium leading-none">Podcast</span>
+            </motion.div>
+          </Link>
+        )}
 
         {/* Admin link */}
         {user?.role === 'admin' && (

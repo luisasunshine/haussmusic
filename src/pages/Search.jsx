@@ -152,8 +152,9 @@ export default function Search() {
 
   const filteredSongs = useMemo(() => {
     // The shared ['songs'] cache is sorted by -created_date now; keep Search's
-    // results ordered by plays like before by sorting locally.
-    let results = [...songs].sort((a, b) => (b.plays || 0) - (a.plays || 0));
+    // results ordered by plays like before by sorting locally. Podcasts share
+    // the songs table but must not surface in music search.
+    let results = [...songs].filter(s => !s.is_podcast).sort((a, b) => (b.plays || 0) - (a.plays || 0));
     if (selectedCategory) results = results.filter(s => s.genre === selectedCategory);
     if (query.trim()) {
       const s = query.toLowerCase();
@@ -215,7 +216,7 @@ export default function Search() {
   const formatDuration = (s) => s ? `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}` : '--:--';
   const hasResults = filteredArtists.length > 0 || filteredReleases.length > 0 || filteredSongs.length > 0;
   const isSearching = query.trim().length > 0 || selectedCategory;
-  const topPlayedSongs = songs.filter(s => (s.plays || 0) > 0).sort((a, b) => (b.plays || 0) - (a.plays || 0)).slice(0, 8);
+  const topPlayedSongs = songs.filter(s => !s.is_podcast && (s.plays || 0) > 0).sort((a, b) => (b.plays || 0) - (a.plays || 0)).slice(0, 8);
 
   return (
     <div className="min-h-screen pb-40 lg:pb-32 bg-[#121212]">

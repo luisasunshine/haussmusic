@@ -56,7 +56,7 @@ const TYPES = [
   { value: 'album', label: 'Álbum', desc: '7+ faixas', icon: Disc },
 ];
 
-export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, onSuccess, managedArtist = null, labelContext = null }) {
+export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, onSuccess, managedArtist = null, labelContext = null, podcastMode = false }) {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingWhat, setUploadingWhat] = useState('');
@@ -104,6 +104,8 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
     credits: track?.has_credits
       ? (track.credits || []).filter((c) => (c.title || '').trim() || (c.description || '').trim())
       : [],
+    is_podcast: podcastMode,
+    ...(podcastMode ? { background_video_url: '' } : {}),
   });
 
   const getTodayDate = () => {
@@ -123,9 +125,11 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
     if (releaseToEdit) {
       setFormData(releaseToEdit);
     } else {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         release_date: getTodayDate(),
+        // Podcasts skip the single/EP/album type — each upload is an episode.
+        type: podcastMode ? 'podcast' : prev.type,
         artist: managedArtist?.display_name || managedArtist?.full_name || '',
         artist_id: managedArtist?.id || '',
         artist_email: managedArtist?.email || '',
@@ -224,6 +228,11 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
         label_name: labelContext?.label_name || formData.label_name || null,
         label_logo: labelContext?.label_logo || formData.label_logo || null,
         published_by_label: !!labelContext,
+        // Podcasts reuse the release pipeline but are audio-only and tagged so
+        // they stay out of the music surfaces and land in the podcast area.
+        is_podcast: podcastMode,
+        type: podcastMode ? 'podcast' : formData.type,
+        background_video_url: podcastMode ? '' : formData.background_video_url,
         status
       };
 
@@ -364,15 +373,16 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
               <div className="text-center pt-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#c0c0c8]/10 text-[#e5e5ea] text-xs font-semibold mb-3">
                   <Sparkles className="w-3.5 h-3.5" />
-                  {releaseToEdit ? 'Editando lançamento' : 'Novo lançamento'}
+                  {podcastMode ? (releaseToEdit ? 'Editando podcast' : 'Novo podcast') : (releaseToEdit ? 'Editando lançamento' : 'Novo lançamento')}
                 </div>
                 <h2 className="text-2xl md:text-3xl font-black text-white">
-                  {releaseToEdit ? 'Editar Lançamento' : 'Criar Lançamento'}
+                  {podcastMode ? (releaseToEdit ? 'Editar Podcast' : 'Criar Podcast') : (releaseToEdit ? 'Editar Lançamento' : 'Criar Lançamento')}
                 </h2>
-                <p className="text-zinc-500 text-sm mt-1">Preencha os detalhes do seu projeto musical</p>
+                <p className="text-zinc-500 text-sm mt-1">{podcastMode ? 'Preencha os detalhes do seu podcast' : 'Preencha os detalhes do seu projeto musical'}</p>
               </div>
 
-              {/* ===== TYPE SELECTOR ===== */}
+              {/* ===== TYPE SELECTOR (music releases only) ===== */}
+              {!podcastMode && (
               <section>
                 <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300 mb-3">
                   <Tag className="w-4 h-4 text-[#c0c0c8]" /> Tipo de Lançamento
@@ -396,6 +406,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                   ))}
                 </div>
               </section>
+              )}
 
               {/* ===== BASIC INFO ===== */}
               <section className="space-y-4">
@@ -406,7 +417,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                   <input
                     type="text" value={formData.title}
                     onChange={e => setFormData(p => ({ ...p, title: e.target.value }))}
-                    placeholder="Título do lançamento *"
+                    placeholder={podcastMode ? 'Nome do podcast *' : 'Título do lançamento *'}
                     className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#c0c0c8]/40 transition-colors"
                   />
                   <div className="grid grid-cols-2 gap-3">
@@ -488,9 +499,9 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
               {/* ===== MEDIA ===== */}
               <section>
                 <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300 mb-3">
-                  <Image className="w-4 h-4 text-[#c0c0c8]" /> Capa & Vídeo
+                  <Image className="w-4 h-4 text-[#c0c0c8]" /> {podcastMode ? 'Capa' : 'Capa & Vídeo'}
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid ${podcastMode ? 'grid-cols-1 max-w-[220px]' : 'grid-cols-2'} gap-3`}>
                   {/* Cover */}
                   <label className="relative group cursor-pointer">
                     <div className={`aspect-square rounded-2xl border-2 border-dashed overflow-hidden transition-all ${
@@ -503,7 +514,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                           <div className="w-10 h-10 rounded-full bg-white/[0.05] flex items-center justify-center">
                             <Upload className="w-5 h-5 text-zinc-500" />
                           </div>
-                          <span className="text-xs text-zinc-500 text-center px-2">Capa do<br/>Lançamento</span>
+                          <span className="text-xs text-zinc-500 text-center px-2">{podcastMode ? <>Capa do<br/>Podcast</> : <>Capa do<br/>Lançamento</>}</span>
                         </div>
                       )}
                       {formData.cover_url && (
@@ -515,7 +526,8 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                     <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e, 'cover')} />
                   </label>
 
-                  {/* Video */}
+                  {/* Video — podcasts are audio only, so it's hidden for them */}
+                  {!podcastMode && (
                   <label className="relative group cursor-pointer">
                     <div className={`aspect-square rounded-2xl border-2 border-dashed overflow-hidden transition-all ${
                       formData.background_video_url ? 'border-[#c0c0c8]/40' : 'border-white/[0.08] hover:border-white/20'
@@ -538,6 +550,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                     </div>
                     <input type="file" accept="video/*,image/gif" className="hidden" onChange={e => handleUpload(e, 'video')} />
                   </label>
+                  )}
                 </div>
               </section>
 
@@ -545,7 +558,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
               <section>
                 <div className="flex items-center justify-between mb-3">
                   <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
-                    <Music className="w-4 h-4 text-[#c0c0c8]" /> Faixas
+                    <Music className="w-4 h-4 text-[#c0c0c8]" /> {podcastMode ? 'Episódios' : 'Faixas'}
                     {formData.tracks.length > 0 && (
                       <span className="text-xs font-normal text-zinc-500 ml-1">
                         ({formData.tracks.length} — {totalDuration()})
@@ -751,7 +764,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                     <div className="w-12 h-12 rounded-full bg-white/[0.03] flex items-center justify-center mx-auto mb-3">
                       <Music className="w-6 h-6 text-zinc-600" />
                     </div>
-                    <p className="text-sm text-zinc-500">Adicione as faixas do seu lançamento</p>
+                    <p className="text-sm text-zinc-500">{podcastMode ? 'Adicione os episódios do seu podcast' : 'Adicione as faixas do seu lançamento'}</p>
                     <p className="text-xs text-zinc-600 mt-1">Arraste para reordenar depois</p>
                   </div>
                 )}
@@ -776,7 +789,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                   className="flex-[2] py-3 rounded-2xl bg-[#c0c0c8] hover:bg-[#9B6CF7] text-white text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#c0c0c8]/25"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {releaseToEdit ? 'Atualizar lançamento' : 'Publicar lançamento'}
+                  {podcastMode ? (releaseToEdit ? 'Atualizar podcast' : 'Publicar podcast') : (releaseToEdit ? 'Atualizar lançamento' : 'Publicar lançamento')}
                 </motion.button>
               </div>
             </div>
