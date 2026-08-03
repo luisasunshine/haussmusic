@@ -348,7 +348,7 @@ async function loadNews() {
     if (!response.ok) throw new Error('Falha ao carregar notícias');
     const data = await response.json();
     const weekStart = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const posts = [...data.posts].filter((post) => (!activeNewsCategory || post.categoryName === activeNewsCategory) && (!newsWeekOnly || new Date(post.publishedAt || post.createdAt).getTime() >= weekStart)).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
+    const posts = [...data.posts].filter((post) => (!activeNewsCategory || post.categoryName === activeNewsCategory) && (!newsWeekOnly || (post.categoryName === 'Lançamentos' && new Date(post.publishedAt || post.createdAt).getTime() >= weekStart))).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
     if (newsCategoryTabs) {
       newsCategoryTabs.replaceChildren();
       const all = document.createElement('button'); all.type = 'button'; all.textContent = 'TODAS'; all.classList.toggle('is-active', !activeNewsCategory); all.addEventListener('click', () => openNews()); newsCategoryTabs.append(all);
@@ -360,6 +360,8 @@ async function loadNews() {
     posts.filter((post) => !featuredIds.has(post.id)).forEach((post) => newsGrid.append(articleCard(post)));
     newsCount.textContent = `${posts.length} PUBLICAÇ${posts.length === 1 ? 'ÃO' : 'ÕES'}`;
     newsPage.querySelector('.vv-news-heading .vv-eyebrow').textContent = newsWeekOnly ? 'NOVIDADES DA SEMANA' : activeNewsCategory ? `CATEGORIA · ${activeNewsCategory.toUpperCase()}` : 'TODAS AS NOTÍCIAS';
+    newsPage.querySelector('[data-news-title]').innerHTML = newsWeekOnly ? 'O que chegou<br /><i>agora.</i>' : 'O que está<br /><i>acontecendo.</i>';
+    newsPage.querySelector('[data-news-description]').textContent = newsWeekOnly ? 'Lançamentos publicados nos últimos sete dias para você ouvir, assistir e descobrir primeiro.' : 'As novidades da Velvet Virtual, atualizadas diretamente pela redação.';
     newsPage.querySelector('.vv-news-list-header h2').textContent = newsWeekOnly ? 'Novas nesta semana' : activeNewsCategory ? `Em ${activeNewsCategory}` : 'Mais recentes';
     newsEmpty.hidden = posts.length > 0;
   } catch {
@@ -368,8 +370,8 @@ async function loadNews() {
   }
 }
 
-function openNews(category = null, weekOnly = false) { activeNewsCategory = category; newsWeekOnly = weekOnly; vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', weekOnly ? '#novas' : '#noticias'); loadNews(); }
-function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
+function openNews(category = null, weekOnly = false) { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', weekOnly ? '#novas' : '#noticias'); loadNews(); }
+function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.classList.remove('is-week-page'); newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
 document.querySelectorAll('[data-revista-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(); }));
 document.querySelectorAll('[data-week-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(null, true); }));
