@@ -12,6 +12,19 @@ const newsFeatured = document.querySelector('[data-news-featured]');
 const newsEmpty = document.querySelector('[data-news-empty]');
 const newsCount = document.querySelector('[data-news-count]');
 const API_URL = window.VELVET_VIRTUAL_API_URL || 'https://velvetvirtual.up.railway.app';
+const toast = document.querySelector('[data-toast]');
+let toastTimer;
+function notify(message, type = 'success') {
+  const icon = toast.querySelector('[data-toast-icon]');
+  toast.querySelector('[data-toast-message]').textContent = message;
+  icon.textContent = type === 'error' ? '!' : '✓';
+  toast.dataset.type = type;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, 4200);
+}
+const alert = (message) => notify(message, /Bem-vinda|salvas/i.test(String(message)) ? 'success' : 'error');
+document.querySelector('[data-toast-close]').addEventListener('click', () => { toast.hidden = true; clearTimeout(toastTimer); });
 
 searchButtons.forEach((button) => button.addEventListener('click', () => {
   const opening = searchPanel.hidden;
