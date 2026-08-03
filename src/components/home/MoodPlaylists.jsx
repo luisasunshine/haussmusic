@@ -72,6 +72,7 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
   const [active, setActive] = useState(null); // opened playlist modal
   const [saving, setSaving] = useState(false);
   const [savedIds, setSavedIds] = useState([]);
+  const [hasOverflow, setHasOverflow] = useState(false);
 
   const { data: labels = [] } = useQuery({
     queryKey: ['labels'],
@@ -152,6 +153,18 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
     if (el) el.scrollBy({ left: dir * el.clientWidth * 0.75, behavior: 'smooth' });
   };
 
+  // Navigation and edge fading only make sense when the row actually has
+  // more cards than fit in the visible space.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const updateOverflow = () => setHasOverflow(el.scrollWidth > el.clientWidth + 1);
+    updateOverflow();
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [playlists.length]);
+
   const playPlaylist = (pl) => {
     const order = seededShuffle(pl.songs, pl.id.length * 7919);
     if (order[0]) onPlaySong?.(order[0]);
@@ -186,21 +199,21 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
           <h2 className="text-xl lg:text-2xl font-bold text-white">Por Gravadora</h2>
           <p className="text-xs text-[#B3B3B3] mt-0.5">As músicas de cada gravadora do acervo VELVET</p>
         </div>
-        <div className="hidden sm:flex items-center gap-1.5">
+        {hasOverflow && <div className="hidden sm:flex items-center gap-1.5">
           <button onClick={() => nudge(-1)} className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center text-white/70 hover:text-white transition-colors">
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button onClick={() => nudge(1)} className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center text-white/70 hover:text-white transition-colors">
             <ChevronRight className="w-4 h-4" />
           </button>
-        </div>
+        </div>}
       </div>
 
-      {/* Edge-fade mask makes cards dissolve as they scroll past either side */}
+      {/* Only fade the edges when there are cards to scroll to. */}
       <div
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto pt-1 pb-4 -mx-1 px-1 scrollbar-hide"
-        style={{ WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%)', maskImage: 'linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%)' }}
+        style={hasOverflow ? { WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%)', maskImage: 'linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%)' } : undefined}
       >
         {playlists.map((pl, i) => (
           <motion.button
