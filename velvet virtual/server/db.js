@@ -49,4 +49,12 @@ if (!postColumns.includes('is_featured')) db.exec('ALTER TABLE posts ADD COLUMN 
 const userColumns = db.prepare('PRAGMA table_info(users)').all().map((column) => column.name);
 if (!userColumns.includes('google_id')) db.exec('ALTER TABLE users ADD COLUMN google_id TEXT');
 
+// A capa inicial também é um banner real, para aparecer e poder ser editada no Admin.
+const bannerCount = db.prepare('SELECT COUNT(*) AS total FROM banners').get().total;
+if (!bannerCount) {
+  const date = new Date().toISOString();
+  db.prepare('INSERT INTO banners (id,title,subtitle,image_url,cta_label,cta_url,position,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)')
+    .run('velvet-initial-cover', 'O som que vem antes do amanhã.', 'Entre o palco, a internet e a pista, uma nova geração está transformando a forma de sentir cultura.', 'assets/velvet-virtual-cover.png', 'LER MATÉRIA', '#materias', 0, 1, date, date);
+}
+
 module.exports = { db };
