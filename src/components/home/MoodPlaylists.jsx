@@ -212,7 +212,7 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
       {/* Only fade the edges when there are cards to scroll to. */}
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pt-1 pb-4 -mx-1 px-1 scrollbar-hide"
+        className="flex gap-4 overflow-x-auto pt-4 pb-4 -mx-1 px-1 scrollbar-hide"
         style={hasOverflow ? { WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%)', maskImage: 'linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%)' } : undefined}
       >
         {playlists.map((pl, i) => (
