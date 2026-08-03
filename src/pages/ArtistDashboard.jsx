@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import ReleaseCreatorPanel from '@/components/releases/ReleaseCreatorPanel';
 import { TikTokIcon, SpotifyIcon } from '@/components/social/SocialBrandIcons';
 import { hasUserType } from '@/lib/utils';
+import { getReleaseMetrics } from '@/lib/releaseMetrics';
 import { toast } from 'sonner';
 
 export default function ArtistDashboard() {
@@ -47,7 +48,7 @@ export default function ArtistDashboard() {
       return all.filter(r => r.created_by === user?.email);
     },
     enabled: !!user,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 
   const { data: mySongs = [] } = useQuery({
@@ -57,7 +58,7 @@ export default function ArtistDashboard() {
       return all.filter(s => s.created_by === user?.email);
     },
     enabled: !!user,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 
   const { data: myFollowers = [] } = useQuery({
@@ -341,8 +342,8 @@ export default function ArtistDashboard() {
                               {new Date(release.release_date).getFullYear()}
                             </span>
                           )}
-                          <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{release.likes || 0}</span>
-                          <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{release.plays || 0}</span>
+                          <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{getReleaseMetrics(release, mySongs).likes}</span>
+                          <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{getReleaseMetrics(release, mySongs).plays}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -415,7 +416,7 @@ export default function ArtistDashboard() {
                       </div>
                       <div className="flex items-center justify-end gap-3">
                         <span className="text-sm text-zinc-500">{formatDuration(song.duration)}</span>
-                        <span className="text-xs text-zinc-600">{song.plays || 0} plays</span>
+                        <span className="text-xs text-zinc-600 flex items-center gap-2"><span>{song.plays || 0} plays</span><span className="flex items-center gap-1"><Heart className="w-3 h-3" />{song.likes || 0}</span></span>
                       </div>
                     </motion.div>
                   ))}

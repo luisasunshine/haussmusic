@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mic, Heart, Eye, Calendar, Edit2, Trash2, Play, Plus, Clock, Radio, Headphones, Upload, Loader2, Pencil } from 'lucide-react';
+import { Mic, Heart, Eye, Calendar, Edit2, Trash2, Play, Plus, Radio, Headphones, Upload, Loader2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import ReleaseCreatorPanel from '@/components/releases/ReleaseCreatorPanel';
 import { hasUserType } from '@/lib/utils';
+import { getReleaseMetrics } from '@/lib/releaseMetrics';
 import { toast } from 'sonner';
 
 export default function PodcastDashboard() {
@@ -69,7 +70,7 @@ export default function PodcastDashboard() {
       return all.filter(r => r.created_by === user?.email && r.is_podcast);
     },
     enabled: !!user,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 
   const { data: myEpisodes = [] } = useQuery({
@@ -79,7 +80,7 @@ export default function PodcastDashboard() {
       return all.filter(s => s.created_by === user?.email && s.is_podcast);
     },
     enabled: !!user,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 
   const totalPlays = myEpisodes.reduce((a, s) => a + (s.plays || 0), 0);
@@ -230,8 +231,8 @@ export default function PodcastDashboard() {
                       <h3 className="font-semibold text-white text-sm truncate">{show.title}</h3>
                       <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
                         {show.release_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(show.release_date).getFullYear()}</span>}
-                        <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{show.likes || 0}</span>
-                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{show.plays || 0}</span>
+                        <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{getReleaseMetrics(show, myEpisodes).likes}</span>
+                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{getReleaseMetrics(show, myEpisodes).plays}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -279,7 +280,7 @@ export default function PodcastDashboard() {
                     </div>
                     <div className="flex items-center justify-end gap-3">
                       <span className="text-sm text-zinc-500">{formatDuration(ep.duration)}</span>
-                      <span className="text-xs text-zinc-600">{ep.plays || 0} plays</span>
+                      <span className="text-xs text-zinc-600 flex items-center gap-2"><span>{ep.plays || 0} plays</span><span className="flex items-center gap-1"><Heart className="w-3 h-3" />{ep.likes || 0}</span></span>
                     </div>
                   </motion.div>
                 ))}

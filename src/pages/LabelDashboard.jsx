@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import ReleaseCreatorPanel from '@/components/releases/ReleaseCreatorPanel';
 import ImageCropper from '@/components/profile/ImageCropper';
 import { hasUserType, withUserType, withoutUserType } from '@/lib/utils';
+import { getReleaseMetrics } from '@/lib/releaseMetrics';
 
 export default function LabelDashboard() {
   const [user, setUser] = useState(null);
@@ -73,14 +74,14 @@ export default function LabelDashboard() {
     queryKey: ['labelAllPosts'],
     queryFn: () => base44.entities.Post.list('-release_date', 200),
     enabled: !!label,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 
   const { data: allSongs = [] } = useQuery({
     queryKey: ['labelAllSongs'],
     queryFn: () => base44.entities.Song.list('-created_date', 300),
     enabled: !!label,
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 
   const managedArtistIds = new Set(label?.managed_artists || []);
@@ -523,8 +524,8 @@ export default function LabelDashboard() {
                               {new Date(post.release_date).getFullYear()}
                             </span>
                           )}
-                          <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{post.likes || 0}</span>
-                          <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{post.plays || 0}</span>
+                          <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{getReleaseMetrics(post, labelSongs).likes}</span>
+                          <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{getReleaseMetrics(post, labelSongs).plays}</span>
                         </div>
                       </div>
                     </motion.div>
