@@ -34,7 +34,7 @@ function PlaylistCover({ label, songs, rounded = 'rounded-2xl' }) {
   if (label.profile_picture) {
     return (
       <div className={`absolute inset-0 ${rounded} overflow-hidden bg-[#18181b]`}>
-        <img src={label.profile_picture} alt="" className="w-full h-full object-contain" />
+        <img src={label.profile_picture} alt="" className="w-full h-full object-contain p-3" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/5" />
       </div>
     );
