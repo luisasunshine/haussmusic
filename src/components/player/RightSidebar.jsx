@@ -22,6 +22,7 @@ export default function RightSidebar({ song, onClose, currentTime = 0, duration 
 
   const credits = Array.isArray(song?.credits) ? song.credits.filter((c) => c && (c.title || c.description)) : [];
   const hasLyrics = Array.isArray(song?.lyrics) && song.lyrics.length > 0;
+  const podcastCategories = Array.isArray(song?.categories) ? song.categories.filter(Boolean) : [];
 
   useEffect(() => {
     const loadArtist = async () => {
@@ -145,7 +146,17 @@ export default function RightSidebar({ song, onClose, currentTime = 0, duration 
           </div>
 
           <div className="flex items-center justify-between gap-2">
-            {song.genre ? (
+            {song.is_podcast ? (
+              podcastCategories.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {podcastCategories.map((category) => (
+                    <span key={category} className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-[#c0c0c8]/10 text-[#c0c0c8] border border-[#c0c0c8]/20">
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              ) : <span className="text-xs text-white/40">Podcast</span>
+            ) : song.genre ? (
               <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-[#c0c0c8]/10 text-[#c0c0c8] border border-[#c0c0c8]/20">
                 {song.genre}
               </span>
