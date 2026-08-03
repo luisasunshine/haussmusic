@@ -94,8 +94,10 @@ export default function LabelDashboard() {
     (item.created_by && managedArtistEmails.has(item.created_by)) ||
     (item.artist && managedArtistNames.has(item.artist));
 
-  const labelPosts = allPosts.filter(belongsToLabel);
-  const labelSongs = allSongs.filter(belongsToLabel);
+  // Podcasts have their own dashboard and must not be mixed into the label's
+  // music catalogue or its release metrics.
+  const labelPosts = allPosts.filter((post) => belongsToLabel(post) && !post.is_podcast);
+  const labelSongs = allSongs.filter((song) => belongsToLabel(song) && !song.is_podcast);
 
   const filteredLabelPosts = releaseSearch.trim()
     ? labelPosts.filter(p =>

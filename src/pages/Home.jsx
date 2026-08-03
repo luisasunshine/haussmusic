@@ -510,7 +510,6 @@ export default function Home() {
                                     <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
                                   </div>
                                 )}
-                                <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded">Podcast</span>
                                 {firstEp && (
                                   <motion.button
                                     whileHover={{ scale: 1.08 }}
@@ -654,12 +653,12 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h2 className="text-xl lg:text-2xl font-bold text-white">Todas as Músicas</h2>
-                      <p className="text-sm text-[#B3B3B3]">{allSongs.length} músicas</p>
+                      <p className="text-sm text-[#B3B3B3]">{musicSongs.length} músicas</p>
                     </div>
                   </div>
-                  {allSongs.length > 0 ? (
+                  {musicSongs.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                      {allSongs.map((song, i) => {
+                      {musicSongs.map((song, i) => {
                         const scheduled = isSongScheduled(song);
                         return (
                         <motion.div
@@ -791,7 +790,6 @@ export default function Home() {
                                   <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
                                 </div>
                               )}
-                              <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded">Podcast</span>
                               {firstEp && (
                                 <motion.button
                                   whileHover={{ scale: 1.08 }}

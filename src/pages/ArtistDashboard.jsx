@@ -45,7 +45,7 @@ export default function ArtistDashboard() {
     queryKey: ['my-releases', user?.email],
     queryFn: async () => {
       const all = await base44.entities.Post.list('-created_date');
-      return all.filter(r => r.created_by === user?.email);
+      return all.filter(r => r.created_by === user?.email && !r.is_podcast);
     },
     enabled: !!user,
     refetchInterval: 3000,
@@ -55,7 +55,7 @@ export default function ArtistDashboard() {
     queryKey: ['my-songs', user?.email],
     queryFn: async () => {
       const all = await base44.entities.Song.list('-created_date');
-      return all.filter(s => s.created_by === user?.email);
+      return all.filter(s => s.created_by === user?.email && !s.is_podcast);
     },
     enabled: !!user,
     refetchInterval: 3000,
