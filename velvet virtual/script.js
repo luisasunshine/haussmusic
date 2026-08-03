@@ -232,22 +232,7 @@ function openEditor(resource, item = null) {
     if (type !== 'checkbox') wrap.append(input);
     if (isMedia) {
       wrap.classList.add('vv-editor-media');
-      const dropzone = document.createElement('div'); dropzone.className = `vv-dropzone${value ? ' has-image' : ''}`; if (value) dropzone.style.backgroundImage = `url("${value}")`;
-      const dropLabel = document.createElement('span'); dropLabel.textContent = value ? 'TROCAR IMAGEM' : 'CLIQUE PARA ENVIAR IMAGEM';
-      const file = document.createElement('input'); file.type = 'file'; file.accept = 'image/*'; file.hidden = true;
-      dropzone.append(dropLabel, file);
-      dropzone.addEventListener('click', () => file.click());
-      file.addEventListener('change', async () => {
-        if (!file.files?.[0]) return;
-        dropLabel.textContent = 'ENVIANDO...';
-        try {
-          const data = new FormData(); data.append('file', file.files[0]);
-          const response = await fetch(`${API_URL}/api/admin/uploads`, { method: 'POST', headers: session.token ? { Authorization: `Bearer ${session.token}` } : {}, body: data });
-          const result = await response.json(); if (!response.ok) throw new Error(result.error);
-          input.value = result.url; dropzone.style.backgroundImage = `url("${result.url}")`; dropzone.classList.add('has-image'); dropLabel.textContent = 'TROCAR IMAGEM';
-        } catch (error) { dropLabel.textContent = error.message || 'ERRO AO ENVIAR'; }
-      });
-      wrap.append(dropzone);
+      wrap.append(createDropzone(value, (url) => { input.value = url; }));
     }
     area.append(wrap);
   });
@@ -258,35 +243,12 @@ function adminEmpty(icon, title, text) { return `<div class="vv-admin-empty"><sp
 function escapeHtml(value = '') { return String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char])); }
 
 async function renderPostsAdmin(section) {
-  let items, categories;
-  try {
-    [items, categories] = await Promise.all([requestApi('/api/admin/posts'), requestApi('/api/admin/categories')]);
-  } catch (error) { section.innerHTML = adminEmpty('!', 'Não foi possível carregar.', error.message); return; }
-  const editingId = section.dataset.editingId || '';
-  const editing = editingId ? items.find((post) => post.id === editingId) : null;
-  const categoryOptions = categories.map((category) => `<option value="${category.id}" ${editing?.categoryId === category.id ? 'selected' : ''}>${escapeHtml(category.name)}</option>`).join('');
-  section.innerHTML = `<div class="vv-post-admin">
-    <form class="vv-post-form-card" data-post-form>
-      <h3>${editing ? '✎ Editar matéria' : '+ Criar matéria'}</h3>
-      <label>Título<input name="title" required value="${escapeHtml(editing?.title || '')}"></label>
-      <label>Categoria<select name="category_id"><option value="">Sem categoria</option>${categoryOptions}</select></label>
-      <label>Resumo<textarea name="excerpt">${escapeHtml(editing?.excerpt || '')}</textarea></label>
-      <label>Conteúdo<textarea name="content" required>${escapeHtml(editing?.content || '')}</textarea></label>
-      <label>Capa<div class="vv-dropzone${editing?.coverUrl ? ' has-image' : ''}" data-post-dropzone style="${editing?.coverUrl ? `background-image:url('${escapeHtml(editing.coverUrl)}')` : ''}"><span>${editing?.coverUrl ? 'TROCAR IMAGEM' : 'CLIQUE PARA ENVIAR IMAGEM'}</span><input type="file" accept="image/*" hidden data-post-cover-file></div></label>
-      <input type="hidden" name="cover_url" value="${escapeHtml(editing?.coverUrl || '')}" data-post-cover-input>
-      <label>Status<select name="status"><option value="draft" ${editing?.status !== 'published' ? 'selected' : ''}>Rascunho</option><option value="published" ${editing?.status === 'published' ? 'selected' : ''}>Publicado</option></select></label>
-      <label class="vv-post-check"><input type="checkbox" name="is_featured" ${Number(editing?.isFeatured) ? 'checked' : ''}> Destacar na capa</label>
-      <div class="vv-post-form-actions">
-        ${editing ? '<button type="button" class="vv-post-form-ghost" data-post-cancel>CANCELAR</button>' : ''}
-        <button type="submit" class="vv-admin-add">${editing ? 'SALVAR' : 'PUBLICAR'}</button>
-      </div>
-      ${editing ? '<button type="button" class="vv-post-form-delete" data-post-delete>EXCLUIR MATÉRIA</button>' : ''}
-    </form>
-    <div>
-      <div class="vv-post-list-head"><h3>Postagens (<span data-post-count>${items.length}</span>)</h3><div class="vv-search-field"><input placeholder="Buscar postagens..." data-post-search></div></div>
-      <div class="vv-post-cards" data-post-cards></div>
-    </div>
-  </div>`;
+  let items;
+  try { items = await requestApi('/api/admin/posts'); } catch (error) { section.innerHTML = adminEmpty('!', 'Não foi possível carregar.', error.message); return; }
+  section.dataset.items = JSON.stringify(items);
+  section.innerHTML = `<div class="vv-admin-toolbar"><p>Gerencie todas as matérias da revista.</p><button class="vv-admin-add" data-post-new>+ NOVA MATÉRIA</button></div>
+    <div class="vv-post-list-head"><h3>Postagens (<span data-post-count>${items.length}</span>)</h3><div class="vv-search-field"><input placeholder="Buscar postagens..." data-post-search></div></div>
+    <div class="vv-post-cards" data-post-cards></div>`;
 
   const cardHtml = (post) => `<div class="vv-post-card">
     <div class="vv-post-card-cover" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}">${post.coverUrl ? '' : '▤'}</div>
@@ -309,55 +271,94 @@ async function renderPostsAdmin(section) {
     const filtered = items.filter((post) => !term || post.title.toLowerCase().includes(term));
     section.querySelector('[data-post-count]').textContent = filtered.length;
     const container = section.querySelector('[data-post-cards]');
-    container.innerHTML = filtered.length ? filtered.map(cardHtml).join('') : adminEmpty('▤', 'Nenhuma postagem encontrada.', 'Use o formulário ao lado para publicar a primeira matéria.');
-    container.querySelectorAll('[data-post-edit]').forEach((button) => button.addEventListener('click', () => { section.dataset.editingId = button.dataset.postEdit; renderPostsAdmin(section); }));
+    container.innerHTML = filtered.length ? filtered.map(cardHtml).join('') : adminEmpty('▤', 'Nenhuma postagem encontrada.', 'Use "Nova matéria" para publicar a primeira.');
+    container.querySelectorAll('[data-post-edit]').forEach((button) => button.addEventListener('click', () => {
+      const post = items.find((row) => row.id === button.dataset.postEdit);
+      openPostEditor(post, section);
+    }));
     container.querySelectorAll('[data-post-remove]').forEach((button) => button.addEventListener('click', async () => {
       if (!confirm('Excluir esta matéria permanentemente?')) return;
-      try { await requestApi(`/api/admin/posts/${button.dataset.postRemove}`, { method: 'DELETE' }); if (section.dataset.editingId === button.dataset.postRemove) delete section.dataset.editingId; renderPostsAdmin(section); } catch (error) { alert(error.message); }
+      try { await requestApi(`/api/admin/posts/${button.dataset.postRemove}`, { method: 'DELETE' }); notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
     }));
   }
   renderCards();
   section.querySelector('[data-post-search]').addEventListener('input', renderCards);
+  section.querySelector('[data-post-new]').addEventListener('click', () => openPostEditor(null, section));
+}
 
-  const dropzone = section.querySelector('[data-post-dropzone]');
-  const fileInput = section.querySelector('[data-post-cover-file]');
-  const coverInput = section.querySelector('[data-post-cover-input]');
-  dropzone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', async () => {
-    if (!fileInput.files?.[0]) return;
-    const label = dropzone.querySelector('span'); label.textContent = 'ENVIANDO...';
-    try {
-      const data = new FormData(); data.append('file', fileInput.files[0]);
-      const response = await fetch(`${API_URL}/api/admin/uploads`, { method: 'POST', headers: session.token ? { Authorization: `Bearer ${session.token}` } : {}, body: data });
-      const result = await response.json(); if (!response.ok) throw new Error(result.error);
-      coverInput.value = result.url; dropzone.style.backgroundImage = `url("${result.url}")`; dropzone.classList.add('has-image'); label.textContent = 'TROCAR IMAGEM';
-    } catch (error) { label.textContent = error.message || 'ERRO AO ENVIAR'; }
+const postEditorPanel = document.querySelector('[data-post-editor]');
+const postEditorForm = document.querySelector('[data-post-form]');
+
+function closePostEditor() { postEditorPanel.hidden = true; }
+
+async function openPostEditor(post, section) {
+  let categories;
+  try { categories = await requestApi('/api/admin/categories'); } catch { categories = []; }
+  const categoryOptions = categories.map((category) => `<option value="${category.id}" ${post?.categoryId === category.id ? 'selected' : ''}>${escapeHtml(category.name)}</option>`).join('');
+  const defaultStatus = post?.status === 'draft' ? 'draft' : 'published';
+
+  document.querySelector('[data-post-editor-kicker]').textContent = post ? 'EDITAR MATÉRIA' : 'NOVA MATÉRIA';
+  document.querySelector('[data-post-editor-title]').textContent = post ? post.title : 'Criar matéria';
+  postEditorForm.innerHTML = `
+    <label>Título<input name="title" required value="${escapeHtml(post?.title || '')}"></label>
+    <label>Categoria<select name="category_id"><option value="">Sem categoria</option>${categoryOptions}</select></label>
+    <label>Resumo<textarea name="excerpt">${escapeHtml(post?.excerpt || '')}</textarea></label>
+    <label>Conteúdo<textarea name="content" required>${escapeHtml(post?.content || '')}</textarea></label>
+    <label>Capa</label>
+    <div data-cover-slot></div>
+    <label>Publicação
+      <div class="vv-status-toggle" data-status-toggle>
+        <button type="button" data-status-value="draft" class="${defaultStatus === 'draft' ? 'is-active' : ''}">RASCUNHO</button>
+        <button type="button" data-status-value="published" class="${defaultStatus === 'published' ? 'is-active' : ''}">PUBLICAR</button>
+      </div>
+    </label>
+    <label class="vv-post-check"><input type="checkbox" name="is_featured" ${Number(post?.isFeatured) ? 'checked' : ''}> Destacar na capa</label>
+    <div class="vv-post-form-actions">
+      ${post ? '<button type="button" class="vv-post-form-ghost" data-post-cancel>CANCELAR</button>' : ''}
+      <button type="submit" class="vv-admin-add" data-post-submit>${defaultStatus === 'published' ? 'PUBLICAR' : 'SALVAR RASCUNHO'}</button>
+    </div>
+    ${post ? '<button type="button" class="vv-post-form-delete" data-post-delete>EXCLUIR MATÉRIA</button>' : ''}`;
+
+  let status = defaultStatus;
+  const submitButton = postEditorForm.querySelector('[data-post-submit]');
+  postEditorForm.querySelectorAll('[data-status-value]').forEach((button) => button.addEventListener('click', () => {
+    status = button.dataset.statusValue;
+    postEditorForm.querySelectorAll('[data-status-value]').forEach((item) => item.classList.toggle('is-active', item === button));
+    submitButton.textContent = status === 'published' ? 'PUBLICAR' : 'SALVAR RASCUNHO';
+  }));
+
+  let coverUrl = post?.coverUrl || '';
+  postEditorForm.querySelector('[data-cover-slot]').replaceWith(createDropzone(coverUrl, (url) => { coverUrl = url; }));
+
+  postEditorForm.querySelector('[data-post-cancel]')?.addEventListener('click', closePostEditor);
+  postEditorForm.querySelector('[data-post-delete]')?.addEventListener('click', async () => {
+    if (!post || !confirm('Excluir esta matéria permanentemente?')) return;
+    try { await requestApi(`/api/admin/posts/${post.id}`, { method: 'DELETE' }); closePostEditor(); notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
   });
 
-  section.querySelector('[data-post-cancel]')?.addEventListener('click', () => { delete section.dataset.editingId; renderPostsAdmin(section); });
-  section.querySelector('[data-post-delete]')?.addEventListener('click', async () => {
-    if (!editing || !confirm('Excluir esta matéria permanentemente?')) return;
-    try { await requestApi(`/api/admin/posts/${editing.id}`, { method: 'DELETE' }); delete section.dataset.editingId; renderPostsAdmin(section); } catch (error) { alert(error.message); }
-  });
-
-  section.querySelector('[data-post-form]').addEventListener('submit', async (event) => {
+  postEditorForm.onsubmit = async (event) => {
     event.preventDefault();
-    const form = event.currentTarget;
-    const payload = Object.fromEntries(new FormData(form));
-    payload.is_featured = form.elements.is_featured.checked ? 1 : 0;
+    const payload = Object.fromEntries(new FormData(postEditorForm));
+    payload.cover_url = coverUrl;
+    payload.status = status;
+    payload.is_featured = postEditorForm.elements.is_featured.checked ? 1 : 0;
     if (!payload.category_id) delete payload.category_id;
-    if (payload.status === 'published' && !editing?.publishedAt) payload.published_at = new Date().toISOString();
+    if (status === 'published' && !post?.publishedAt) payload.published_at = new Date().toISOString();
     try {
-      await requestApi(`/api/admin/posts${editing ? `/${editing.id}` : ''}`, { method: editing ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
-      delete section.dataset.editingId;
+      await requestApi(`/api/admin/posts${post ? `/${post.id}` : ''}`, { method: post ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
+      closePostEditor();
+      notify(status === 'published' ? 'Publicado! Já está disponível em Notícias.' : 'Rascunho salvo.');
       renderPostsAdmin(section);
+      if (!newsPage.hidden) loadNews();
     } catch (error) { alert(error.message); }
-  });
+  };
+
+  postEditorPanel.hidden = false;
 }
 
 async function renderAdmin(resource) {
   const section = document.querySelector(`[data-admin-section="${resource}"]`); if (!section) return;
-  if (resource === 'posts') { delete section.dataset.editingId; return renderPostsAdmin(section); }
+  if (resource === 'posts') return renderPostsAdmin(section);
   try {
     if (resource === 'roles') {
       section.innerHTML = `<div class="vv-admin-toolbar"><p>Os cargos definem as permissões da comunidade.</p></div><div class="vv-role-admin-list"><div><b>ADMIN</b><span>Acesso completo: conteúdos, banners, categorias, usuários e configurações.</span></div><div><b>STAFF</b><span>Gestão editorial de conteúdos e banners.</span></div><div><b>LEITOR · PODCAST · MODELO · INFLUENCER · CREATORS</b><span>Cargos de identificação da comunidade. Altere o cargo de cada pessoa na aba Usuários.</span></div></div>`;
@@ -389,7 +390,9 @@ document.addEventListener('click', (event) => {
   const edit = event.target.closest('[data-live-edit]'); if (edit) { const section = document.querySelector(`[data-admin-section="${edit.dataset.liveEdit}"]`); const item = JSON.parse(section.dataset.items || '[]').find((row) => row.id === edit.dataset.id); openEditor(edit.dataset.liveEdit, item); }
   if (event.target.matches('[data-editor-close]')) closeEditor();
   if (event.target.matches('[data-auth-close]')) closeAuth();
+  if (event.target.matches('[data-post-editor-close]') || event.target === postEditorPanel) closePostEditor();
 });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !postEditorPanel.hidden) closePostEditor(); });
 editorForm.addEventListener('submit', async (event) => { event.preventDefault(); const { resource, item } = session.editor; const payload = Object.fromEntries(new FormData(editorForm)); ['is_featured', 'is_active'].forEach((name) => { if (editorForm.elements[name]) payload[name] = editorForm.elements[name].checked ? 1 : 0; }); if (resource === 'users' && item && !payload.password) delete payload.password; try { await requestApi(`/api/admin/${resource}${item ? `/${item.id}` : ''}`, { method: item ? 'PATCH' : 'POST', body: JSON.stringify(payload) }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
 document.querySelector('[data-editor-delete]').addEventListener('click', async () => { const { resource, item } = session.editor; if (!item || !confirm('Apagar este item permanentemente?')) return; try { await requestApi(`/api/admin/${resource}/${item.id}`, { method: 'DELETE' }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
 
