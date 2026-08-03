@@ -140,9 +140,7 @@ async function registerView(post) {
   try { seen = JSON.parse(sessionStorage.getItem(seenKey) || '[]'); } catch { seen = []; }
   if (seen.includes(post.id)) return;
   try {
-    const response = await fetch(`${API_URL}/api/public/posts/${post.id}/view`, { method: 'POST' });
-    if (!response.ok) return;
-    const data = await response.json();
+    const data = await requestApi(`/api/public/posts/${post.id}/view`, { method: 'POST' });
     seen.push(post.id);
     sessionStorage.setItem(seenKey, JSON.stringify(seen));
     post.views = data.views;
@@ -812,6 +810,10 @@ function updateProfileView() {
   profileAvatar.style.backgroundSize = 'cover';
   profileAvatar.style.backgroundPosition = 'center';
   profileRole.textContent = `${getRoleName(role).toUpperCase()} · ${isAdmin ? 'ACESSO TOTAL' : 'MEMBRO VELVET'}`;
+  requestApi('/api/public/reads/count').then((data) => {
+    const el = document.querySelector('[data-profile-read-count] b');
+    if (el) el.textContent = data.count;
+  }).catch(() => {});
   profileAdminTab.hidden = !isAdmin;
   profileAdminNote.hidden = !isAdmin;
   if (profileManageRoles) profileManageRoles.hidden = !isAdmin;
