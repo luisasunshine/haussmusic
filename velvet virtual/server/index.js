@@ -29,6 +29,32 @@ const slugify = (value) => String(value || '').normalize('NFD').replace(/[\u0300
 const publicUser = (user) => ({ id: user.id, email: user.email, displayName: user.display_name, avatarUrl: user.avatar_url, role: user.role });
 const toCamel = (row) => row && Object.fromEntries(Object.entries(row).map(([key, value]) => [key.replace(/_([a-z])/g, (_, char) => char.toUpperCase()), value]));
 const readJson = (value) => { try { return JSON.parse(value); } catch { return value; } };
+const normalizeCategoryIds = (value) => [...new Set((Array.isArray(value) ? value : String(value || '').split(',')).map((item) => String(item).trim()).filter(Boolean))];
+function attachPostCategories(rows) {
+  if (!rows.length) return [];
+  const grouped = new Map();
+  db.prepare(`SELECT post_categories.post_id, categories.id, categories.name, categories.slug
+    FROM post_categories JOIN categories ON categories.id = post_categories.category_id
+    ORDER BY post_categories.position, categories.name COLLATE NOCASE`).all().forEach((item) => {
+    if (!grouped.has(item.post_id)) grouped.set(item.post_id, []);
+    grouped.get(item.post_id).push({ id: item.id, name: item.name, slug: item.slug });
+  });
+  return rows.map((row) => {
+    const post = toCamel(row);
+    const categories = grouped.get(post.id) || (post.categoryId ? [{ id: post.categoryId, name: post.categoryName, slug: post.categorySlug }] : []);
+    post.categoryIds = categories.map((category) => category.id);
+    post.categoryNames = categories.map((category) => category.name).filter(Boolean);
+    post.categorySlugs = categories.map((category) => category.slug).filter(Boolean);
+    if (post.categoryNames.length) post.categoryName = post.categoryNames[0];
+    if (post.categorySlugs.length) post.categorySlug = post.categorySlugs[0];
+    return post;
+  });
+}
+function syncPostCategories(postId, categoryIds) {
+  db.prepare('DELETE FROM post_categories WHERE post_id = ?').run(postId);
+  const insert = db.prepare('INSERT OR IGNORE INTO post_categories (post_id,category_id,position) VALUES (?,?,?)');
+  categoryIds.forEach((categoryId, position) => insert.run(postId, categoryId, position));
+}
 
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'velvet-virtual' }));
 
@@ -102,10 +128,10 @@ app.post('/api/profile/avatar', requireAuth, profileUpload.single('avatar'), (re
 
 app.get('/api/public/home', (_req, res) => {
   const banners = db.prepare('SELECT * FROM banners WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
-  const posts = db.prepare(`SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name,
+  const posts = attachPostCategories(db.prepare(`SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name,
     (SELECT COUNT(*) FROM post_likes WHERE post_likes.post_id = posts.id) AS likes
     FROM posts LEFT JOIN categories ON categories.id = posts.category_id LEFT JOIN users ON users.id = posts.created_by
-    WHERE posts.status = 'published' ORDER BY posts.published_at DESC, posts.created_at DESC`).all().map(toCamel);
+    WHERE posts.status = 'published' ORDER BY posts.published_at DESC, posts.created_at DESC`).all());
   const categories = db.prepare('SELECT id,name,slug,description FROM categories ORDER BY name').all().map(toCamel);
   const vimosVoce = db.prepare('SELECT * FROM vimos_voce WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
   const settings = Object.fromEntries(db.prepare('SELECT key,value FROM settings').all().map((item) => [item.key, readJson(item.value)]));
@@ -167,20 +193,24 @@ app.post('/api/public/posts/:id/comments', requireAuth, (req, res) => {
 });
 
 app.get('/api/public/saved', requireAuth, (req, res) => {
-  const posts = db.prepare(`SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name
+  const posts = attachPostCategories(db.prepare(`SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name
     FROM post_saves JOIN posts ON posts.id = post_saves.post_id
     LEFT JOIN categories ON categories.id = posts.category_id LEFT JOIN users ON users.id = posts.created_by
-    WHERE post_saves.user_id = ? AND posts.status = 'published' ORDER BY post_saves.created_at DESC`).all(req.user.id).map(toCamel);
+    WHERE post_saves.user_id = ? AND posts.status = 'published' ORDER BY post_saves.created_at DESC`).all(req.user.id));
   res.json({ posts });
 });
 
 function crud(resource, table, fields) {
-  app.get(`/api/admin/${resource}`, requireAdmin, (_req, res) => res.json(db.prepare(`SELECT * FROM ${table} ORDER BY ${table === 'categories' ? 'name COLLATE NOCASE' : 'updated_at DESC'}`).all().map(toCamel)));
+  app.get(`/api/admin/${resource}`, requireAdmin, (_req, res) => {
+    const rows = db.prepare(`SELECT * FROM ${table} ORDER BY ${table === 'categories' ? 'name COLLATE NOCASE' : 'updated_at DESC'}`).all();
+    res.json(table === 'posts' ? attachPostCategories(rows) : rows.map(toCamel));
+  });
   app.post(`/api/admin/${resource}`, requireAdmin, (req, res) => {
     const id = uuid(); const date = now(); const data = { ...req.body };
     if (table === 'categories') data.slug = slugify(data.slug || data.name);
-    if (table === 'posts') { data.slug = slugify(data.slug || data.title); data.created_by = req.user.id; if (data.status === 'published' && !data.published_at) data.published_at = date; }
-    const names = ['id', ...fields, ...(table === 'posts' ? ['created_by'] : []), 'created_at', 'updated_at'];
+    const categoryIds = table === 'posts' ? normalizeCategoryIds(data.category_ids ?? data.category_id) : [];
+    if (table === 'posts') { data.category_id = categoryIds[0] || null; data.slug = slugify(data.slug || data.title); data.created_by = req.user.id; if (data.status === 'published' && !data.published_at) data.published_at = date; }
+    const names = ['id', ...fields.filter((field) => field !== 'category_ids'), ...(table === 'posts' ? ['created_by'] : []), 'created_at', 'updated_at'];
     const values = names.map((name) => {
       if (name === 'id') return id;
       if (name === 'created_at' || name === 'updated_at') return date;
@@ -195,21 +225,34 @@ function crud(resource, table, fields) {
       if (table === 'vimos_voce' && name === 'position') return 0;
       return null;
     });
-    try { db.prepare(`INSERT INTO ${table} (${names.join(',')}) VALUES (${names.map(() => '?').join(',')})`).run(...values); } catch (error) { return res.status(400).json({ error: error.message }); }
-    res.status(201).json(toCamel(db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id)));
+    try { db.prepare(`INSERT INTO ${table} (${names.join(',')}) VALUES (${names.map(() => '?').join(',')})`).run(...values); if (table === 'posts') syncPostCategories(id, categoryIds); } catch (error) { return res.status(400).json({ error: error.message }); }
+    const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id);
+    res.status(201).json(table === 'posts' ? attachPostCategories([item])[0] : toCamel(item));
   });
   app.patch(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => {
     const allowed = fields.filter((field) => Object.hasOwn(req.body, field));
     if (!allowed.length) return res.status(400).json({ error: 'Nenhum campo válido para atualizar.' });
     const data = { ...req.body }; if (table === 'categories' && data.slug) data.slug = slugify(data.slug); if (table === 'posts' && data.slug) data.slug = slugify(data.slug);
-    const assignments = [...allowed, 'updated_at'].map((field) => `${field} = ?`).join(', ');
-    db.prepare(`UPDATE ${table} SET ${assignments} WHERE id = ?`).run(...[...allowed.map((field) => data[field]), now(), req.params.id]);
-    res.json(toCamel(db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id)));
+    const categoryWasUpdated = table === 'posts' && (Object.hasOwn(data, 'category_ids') || Object.hasOwn(data, 'category_id'));
+    const categoryIds = categoryWasUpdated ? normalizeCategoryIds(data.category_ids ?? data.category_id) : [];
+    if (categoryWasUpdated) data.category_id = categoryIds[0] || null;
+    const databaseFields = allowed.filter((field) => field !== 'category_ids');
+    if (categoryWasUpdated && !databaseFields.includes('category_id')) databaseFields.push('category_id');
+    const assignments = [...databaseFields, 'updated_at'].map((field) => `${field} = ?`).join(', ');
+    db.prepare(`UPDATE ${table} SET ${assignments} WHERE id = ?`).run(...[...databaseFields.map((field) => data[field]), now(), req.params.id]);
+    if (categoryWasUpdated) syncPostCategories(req.params.id, categoryIds);
+    const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id);
+    res.json(table === 'posts' ? attachPostCategories([item])[0] : toCamel(item));
   });
-  app.delete(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => { db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id); res.status(204).end(); });
+  app.delete(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => {
+    if (table === 'posts') db.prepare('DELETE FROM post_categories WHERE post_id = ?').run(req.params.id);
+    if (table === 'categories') db.prepare('DELETE FROM post_categories WHERE category_id = ?').run(req.params.id);
+    db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
+    res.status(204).end();
+  });
 }
 crud('categories', 'categories', ['name', 'slug', 'description']);
-crud('posts', 'posts', ['title', 'slug', 'excerpt', 'content', 'cover_url', 'category_id', 'status', 'published_at', 'views', 'is_featured']);
+crud('posts', 'posts', ['title', 'slug', 'excerpt', 'content', 'cover_url', 'category_id', 'category_ids', 'status', 'published_at', 'views', 'is_featured']);
 crud('banners', 'banners', ['title', 'subtitle', 'image_url', 'cta_label', 'cta_url', 'position', 'duration', 'is_active']);
 crud('vimos-voce', 'vimos_voce', ['title', 'description', 'image_url', 'instagram_url', 'position', 'is_active']);
 

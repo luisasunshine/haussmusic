@@ -33,6 +33,12 @@ db.exec(`
     created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
     FOREIGN KEY(category_id) REFERENCES categories(id), FOREIGN KEY(created_by) REFERENCES users(id)
   );
+  CREATE TABLE IF NOT EXISTS post_categories (
+    post_id TEXT NOT NULL, category_id TEXT NOT NULL, position INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (post_id, category_id),
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY(category_id) REFERENCES categories(id)
+  );
   CREATE TABLE IF NOT EXISTS banners (
     id TEXT PRIMARY KEY, title TEXT NOT NULL, subtitle TEXT, image_url TEXT,
     cta_label TEXT, cta_url TEXT, position INTEGER NOT NULL DEFAULT 0,
@@ -75,6 +81,11 @@ const userColumns = db.prepare('PRAGMA table_info(users)').all().map((column) =>
 if (!userColumns.includes('google_id')) db.exec('ALTER TABLE users ADD COLUMN google_id TEXT');
 const bannerColumns = db.prepare('PRAGMA table_info(banners)').all().map((column) => column.name);
 if (!bannerColumns.includes('duration')) db.exec('ALTER TABLE banners ADD COLUMN duration INTEGER NOT NULL DEFAULT 6');
+
+// Preserva as matérias antigas: a categoria principal também passa a integrar
+// a lista de categorias que pode ser exibida e filtrada pela revista.
+db.exec(`INSERT OR IGNORE INTO post_categories (post_id, category_id, position)
+  SELECT id, category_id, 0 FROM posts WHERE category_id IS NOT NULL AND category_id <> ''`);
 
 // A capa inicial também é um banner real, para aparecer e poder ser editada no Admin.
 const bannerCount = db.prepare('SELECT COUNT(*) AS total FROM banners').get().total;

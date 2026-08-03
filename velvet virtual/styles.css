@@ -72,6 +72,10 @@ h1,h2,h3,p{margin-top:0}.vv-hero h1{font-size:clamp(52px,7vw,108px);line-height:
 .vv-editor-media .vv-dropzone input[type=file]{display:none!important}
 .vv-post-check{display:flex!important;align-items:center;gap:8px;min-height:41px;padding:0 12px;border:1px solid #383838;border-radius:6px;background:#0d0d0d;color:#e5e5ea;font:500 11px Manrope,Arial,sans-serif;letter-spacing:normal}
 .vv-post-check input{width:auto}
+.vv-field-help{color:#777;font:10px Manrope,Arial,sans-serif;letter-spacing:normal;text-transform:none}
+.vv-post-category-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:190px;overflow:auto;padding:11px;border:1px solid #383838;border-radius:6px;background:#0d0d0d}
+.vv-post-form-card .vv-post-category-option{display:flex;align-items:center;gap:7px;padding:8px;border:1px solid #2d2d2d;border-radius:5px;background:#151515;color:#d7d7dc;font:500 11px Manrope,Arial,sans-serif;letter-spacing:normal;cursor:pointer}
+.vv-post-form-card .vv-post-category-option:hover{border-color:#777}.vv-post-form-card .vv-post-category-option input{width:auto;margin:0;accent-color:#c0c0c8}
 .vv-post-form-actions{display:flex;gap:8px;margin-top:4px}
 .vv-post-form-actions .vv-admin-add{flex:1;min-height:42px}
 .vv-post-form-ghost{padding:11px 14px;border:1px solid #383838;border-radius:6px;background:transparent;color:#B3B3B3;font:600 9px 'DM Mono',monospace;letter-spacing:.06em}

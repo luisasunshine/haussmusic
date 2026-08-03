@@ -74,7 +74,7 @@ async function runSearch(query) {
   const loading = document.createElement('p'); loading.className = 'vv-search-status'; loading.textContent = 'BUSCANDO…'; searchResults.append(loading);
   try {
     const data = await getSearchCatalog();
-    const posts = (data.posts || []).filter((post) => normalizeSearch([post.title, post.excerpt, post.content, post.categoryName, post.authorName].join(' ')).includes(term));
+    const posts = (data.posts || []).filter((post) => normalizeSearch([post.title, post.excerpt, post.content, ...(post.categoryNames || []), post.categoryName, post.authorName].join(' ')).includes(term));
     const categories = (data.categories || []).filter((category) => normalizeSearch(`${category.name} ${category.description || ''}`).includes(term)).slice(0, 6);
     searchResults.replaceChildren();
     if (!posts.length && !categories.length) { searchResults.innerHTML = `<p class="vv-search-status">Nada encontrado para “${escapeHtml(query)}”.</p>`; return; }
@@ -334,7 +334,7 @@ document.querySelector('[data-comment-form]').addEventListener('submit', async (
 function openPost(post) {
   currentReadPost = post;
   readPage.dataset.postId = post.id;
-  document.querySelector('[data-read-category]').textContent = post.categoryName || 'VELVET';
+  document.querySelector('[data-read-category]').textContent = (post.categoryNames || [post.categoryName]).filter(Boolean).join(' · ') || 'VELVET';
   document.querySelector('[data-read-title]').textContent = post.title;
   document.querySelector('[data-read-meta]').textContent = metaLine(post);
   const cover = document.querySelector('[data-read-cover]');
@@ -359,7 +359,8 @@ async function loadNews() {
     if (!response.ok) throw new Error('Falha ao carregar notícias');
     const data = await response.json();
     const weekStart = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const posts = [...data.posts].filter((post) => (!activeNewsCategory || post.categoryName === activeNewsCategory) && (!newsWeekOnly || (post.categoryName === 'Lançamentos' && new Date(post.publishedAt || post.createdAt).getTime() >= weekStart))).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
+    const hasCategory = (post, category) => (post.categoryNames || [post.categoryName]).includes(category);
+    const posts = [...data.posts].filter((post) => (!activeNewsCategory || hasCategory(post, activeNewsCategory)) && (!newsWeekOnly || (hasCategory(post, 'Lançamentos') && new Date(post.publishedAt || post.createdAt).getTime() >= weekStart))).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
     if (newsCategoryTabs) {
       newsCategoryTabs.replaceChildren();
       const all = document.createElement('button'); all.type = 'button'; all.textContent = 'TODAS'; all.classList.toggle('is-active', !activeNewsCategory); all.addEventListener('click', () => openNews()); newsCategoryTabs.append(all);
@@ -688,14 +689,16 @@ async function openPostEditor(post, section) {
   postEditorForm.innerHTML = '<div class="vv-admin-empty"><span>…</span><h3>Abrindo editor</h3><p>Preparando os campos da matéria.</p></div>';
   let categories;
   try { categories = await requestApi('/api/admin/categories'); } catch { categories = []; }
-  const categoryOptions = categories.map((category) => `<option value="${category.id}" ${post?.categoryId === category.id ? 'selected' : ''}>${escapeHtml(category.name)}</option>`).join('');
+  const selectedCategoryIds = new Set(post?.categoryIds || (post?.categoryId ? [post.categoryId] : []));
+  const categoryOptions = categories.map((category) => `<label class="vv-post-category-option"><input type="checkbox" value="${category.id}" ${selectedCategoryIds.has(category.id) ? 'checked' : ''}>${escapeHtml(category.name)}</label>`).join('');
   const defaultStatus = post?.status === 'draft' ? 'draft' : 'published';
 
   document.querySelector('[data-post-editor-kicker]').textContent = post ? 'EDITAR MATÉRIA' : 'NOVA MATÉRIA';
   document.querySelector('[data-post-editor-title]').textContent = post ? post.title : 'Criar matéria';
   postEditorForm.innerHTML = `
     <label>Título<input name="title" required value="${escapeHtml(post?.title || '')}"></label>
-    <label>Categoria<select name="category_id"><option value="">Sem categoria</option>${categoryOptions}</select></label>
+    <label>Categorias <span class="vv-field-help">Selecione uma ou mais categorias</span></label>
+    <div class="vv-post-category-picker" data-post-categories>${categoryOptions || '<span class="vv-field-help">Nenhuma categoria cadastrada.</span>'}</div>
     <label>Resumo<textarea name="excerpt">${escapeHtml(post?.excerpt || '')}</textarea></label>
     <label>Conteúdo
       <div class="vv-content-toolbar"><button type="button" data-content-link>↗ INSERIR LINK</button><button type="button" data-content-image>▧ INSERIR IMAGEM</button><input type="file" accept="image/*" hidden data-content-image-file></div>
@@ -776,7 +779,8 @@ async function openPostEditor(post, section) {
     payload.cover_url = coverUrl;
     payload.status = status;
     payload.is_featured = postEditorForm.elements.is_featured.checked ? 1 : 0;
-    if (!payload.category_id) delete payload.category_id;
+    payload.category_ids = [...postEditorForm.querySelectorAll('[data-post-categories] input:checked')].map((input) => input.value);
+    payload.category_id = payload.category_ids[0] || null;
     if (status === 'published' && !post?.publishedAt) payload.published_at = new Date().toISOString();
     try {
       await requestApi(`/api/admin/posts${post ? `/${post.id}` : ''}`, { method: post ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
