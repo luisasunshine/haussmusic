@@ -172,6 +172,8 @@ export default function Release() {
   }
 
   const totalDuration = releaseSongs.reduce((acc, s) => acc + (s.duration || 0), 0);
+  const isPodcast = !!release.is_podcast;
+  const itemLabel = isPodcast ? 'episódio' : 'faixa';
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -256,7 +258,7 @@ export default function Release() {
                   )}
                   <div className="flex items-center gap-1.5 lg:gap-2">
                     <Music2 className="w-3 lg:w-4 h-3 lg:h-4" />
-                    {releaseSongs.length} faixas
+                    {releaseSongs.length} {itemLabel}{releaseSongs.length !== 1 ? 's' : ''}
                   </div>
                   <div className="flex items-center gap-1.5 lg:gap-2">
                     <Clock className="w-3 lg:w-4 h-3 lg:h-4" />
@@ -323,7 +325,7 @@ export default function Release() {
 
       {/* Tracklist */}
       <div className="px-4 lg:px-6 xl:px-8">
-        <h2 className="text-xl lg:text-2xl font-bold text-white mb-3 lg:mb-4">Faixas</h2>
+        <h2 className="text-xl lg:text-2xl font-bold text-white mb-3 lg:mb-4">{isPodcast ? 'Episódios' : 'Faixas'}</h2>
         <div className="space-y-1">
            {releaseSongs.map((song, index) => (
              <motion.div
