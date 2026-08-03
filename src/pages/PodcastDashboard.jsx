@@ -81,7 +81,7 @@ export default function PodcastDashboard() {
   }
 
   const stats = [
-    { icon: Headphones, value: myEpisodes.length, label: 'Episódios', bg: 'bg-fuchsia-400/10', text: 'text-fuchsia-300', grad: 'from-fuchsia-400 to-fuchsia-600' },
+    { icon: Headphones, value: myEpisodes.length, label: 'Episódios', bg: 'bg-zinc-400/10', text: 'text-zinc-300', grad: 'from-zinc-300 to-zinc-500' },
     { icon: Eye, value: totalPlays, label: 'Reproduções', bg: 'bg-neutral-400/10', text: 'text-neutral-300', grad: 'from-neutral-400 to-neutral-600' },
     { icon: Heart, value: totalLikes, label: 'Curtidas', bg: 'bg-slate-400/10', text: 'text-slate-300', grad: 'from-slate-300 to-slate-500' },
     { icon: Radio, value: myPodcasts.length, label: 'Podcasts', bg: 'bg-zinc-300/10', text: 'text-zinc-200', grad: 'from-zinc-200 to-zinc-400' },
@@ -91,29 +91,29 @@ export default function PodcastDashboard() {
     <div className="min-h-screen pb-32">
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/15 via-[#121212] to-[#c0c0c8]/10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#c0c0c8]/20 via-[#121212] to-[#e5e5ea]/10" />
         <div className="relative px-6 lg:px-8 pt-8 pb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="relative flex-shrink-0">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-fuchsia-400/30 shadow-2xl shadow-fuchsia-500/20">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-[#c0c0c8]/30 shadow-2xl shadow-[#c0c0c8]/20">
                 {user.profile_picture ? (
                   <img src={user.profile_picture} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-500 to-[#c0c0c8] flex items-center justify-center">
-                    <Mic className="w-12 h-12 text-white/70" />
+                  <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8] to-[#e5e5ea] flex items-center justify-center">
+                    <Mic className="w-12 h-12 text-white/60" />
                   </div>
                 )}
               </div>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }} className="flex-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300 bg-fuchsia-500/10 px-3 py-1 rounded-full">Podcast</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#c0c0c8] bg-[#c0c0c8]/10 px-3 py-1 rounded-full">Podcast</span>
               <h1 className="text-3xl md:text-5xl font-black text-white mb-1 mt-2">{user.display_name || user.full_name}</h1>
               <p className="text-zinc-400 text-sm md:text-base">Dashboard de Podcast — Publique episódios e acompanhe suas métricas</p>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-              <Button onClick={() => { setEditing(null); setShowCreator(true); }} className="btn-metal rounded-full px-6 py-6 h-auto text-base font-bold shadow-lg shadow-fuchsia-500/20">
+              <Button onClick={() => { setEditing(null); setShowCreator(true); }} className="btn-metal rounded-full px-6 py-6 h-auto text-base font-bold shadow-lg shadow-[#c0c0c8]/30">
                 <Plus className="w-5 h-5 mr-2" /> Novo Podcast
               </Button>
             </motion.div>
@@ -139,10 +139,10 @@ export default function PodcastDashboard() {
       <div className="px-6 lg:px-8 pt-6">
         <Tabs defaultValue="podcasts" className="w-full">
           <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
-            <TabsTrigger value="podcasts" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-fuchsia-300 data-[state=active]:to-fuchsia-500 data-[state=active]:text-fuchsia-950">
+            <TabsTrigger value="podcasts" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
               <Radio className="w-4 h-4 mr-2" /> Podcasts
             </TabsTrigger>
-            <TabsTrigger value="episodes" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-fuchsia-300 data-[state=active]:to-fuchsia-500 data-[state=active]:text-fuchsia-950">
+            <TabsTrigger value="episodes" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
               <Headphones className="w-4 h-4 mr-2" /> Episódios
             </TabsTrigger>
           </TabsList>
@@ -162,13 +162,13 @@ export default function PodcastDashboard() {
                       {show.cover_url ? (
                         <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-fuchsia-500/40 to-[#c0c0c8]/40 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/40 to-[#e5e5ea]/40 flex items-center justify-center">
                           <Mic className="w-16 h-16 text-white/20" />
                         </div>
                       )}
-                      <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-fuchsia-500/80 backdrop-blur-sm text-white px-2 py-1 rounded-md">Podcast</span>
+                      <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-md">Podcast</span>
                       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={(e) => { e.stopPropagation(); setEditing(show); setShowCreator(true); }} className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-fuchsia-500 rounded-lg transition-colors">
+                        <button onClick={(e) => { e.stopPropagation(); setEditing(show); setShowCreator(true); }} className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-[#c0c0c8] rounded-lg transition-colors">
                           <Edit2 className="w-3.5 h-3.5 text-white" />
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); if (confirm('Excluir este podcast?')) deletePodcast.mutate(show.id); }} className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-red-500 rounded-lg transition-colors">
@@ -189,8 +189,8 @@ export default function PodcastDashboard() {
               </div>
             ) : (
               <div className="text-center py-20 bg-[#181818] rounded-2xl border border-white/5">
-                <div className="w-20 h-20 rounded-full bg-fuchsia-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Mic className="w-10 h-10 text-fuchsia-400" />
+                <div className="w-20 h-20 rounded-full bg-[#c0c0c8]/10 flex items-center justify-center mx-auto mb-4">
+                  <Mic className="w-10 h-10 text-[#c0c0c8]" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Nenhum podcast ainda</h3>
                 <p className="text-zinc-400 mb-6 max-w-md mx-auto">Publique seu primeiro podcast — só áudio, sem vídeo. Adicione episódios e o mundo escuta.</p>
@@ -218,8 +218,8 @@ export default function PodcastDashboard() {
                       {ep.cover_url ? (
                         <img src={ep.cover_url} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-gradient-to-br from-fuchsia-500/30 to-[#c0c0c8]/30 flex items-center justify-center flex-shrink-0">
-                          <Headphones className="w-4 h-4 text-fuchsia-300" />
+                        <div className="w-10 h-10 rounded bg-gradient-to-br from-[#c0c0c8]/30 to-[#e5e5ea]/30 flex items-center justify-center flex-shrink-0">
+                          <Headphones className="w-4 h-4 text-[#c0c0c8]" />
                         </div>
                       )}
                       <div className="min-w-0">
@@ -236,8 +236,8 @@ export default function PodcastDashboard() {
               </div>
             ) : (
               <div className="text-center py-20 bg-[#181818] rounded-2xl border border-white/5">
-                <div className="w-20 h-20 rounded-full bg-fuchsia-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Headphones className="w-10 h-10 text-fuchsia-400" />
+                <div className="w-20 h-20 rounded-full bg-[#c0c0c8]/10 flex items-center justify-center mx-auto mb-4">
+                  <Headphones className="w-10 h-10 text-[#c0c0c8]" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Nenhum episódio ainda</h3>
                 <p className="text-zinc-400">Seus episódios aparecerão aqui depois de publicar um podcast.</p>

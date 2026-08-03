@@ -493,7 +493,7 @@ export default function Home() {
                           <h2 className="text-xl lg:text-2xl font-bold text-white">Podcasts</h2>
                           <p className="text-sm text-[#B3B3B3]">Conversas e histórias em áudio</p>
                         </div>
-                        <Mic className="w-5 h-5 text-fuchsia-400" />
+                        <Mic className="w-5 h-5 text-[#c0c0c8]" />
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                         {podcastShows.map((show, i) => {
@@ -511,11 +511,11 @@ export default function Home() {
                                 {show.cover_url ? (
                                   <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-fuchsia-500/30 to-[#18181b] flex items-center justify-center">
-                                    <Mic className="w-9 h-9 text-fuchsia-300/60" />
+                                  <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
+                                    <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
                                   </div>
                                 )}
-                                <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-fuchsia-500/80 backdrop-blur-sm text-white px-2 py-0.5 rounded">Podcast</span>
+                                <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded">Podcast</span>
                                 {firstEp && (
                                   <motion.button
                                     whileHover={{ scale: 1.08 }}
