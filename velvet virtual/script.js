@@ -161,10 +161,11 @@ function articleCard(post, large = false) {
 function homeStory(post, kind = 'recent') {
   const story = document.createElement('article');
   story.className = kind === 'top' ? 'vv-story vv-story-large' : 'vv-story vv-story-small';
+  story.dataset.postId = post.id;
   story.tabIndex = 0; story.setAttribute('role', 'button'); story.setAttribute('aria-label', `Ler matéria: ${post.title}`);
   if (kind === 'top') {
     story.style.backgroundImage = post.coverUrl ? `url('${post.coverUrl}')` : 'linear-gradient(135deg,#25232c,#0b0b0f)';
-    story.innerHTML = `<div class="vv-story-overlay"></div><div class="vv-story-content"><p class="vv-label vv-label-cyan">MAIS VISTA</p><h3>${escapeHtml(post.title)}</h3><p class="vv-story-byline">${viewsLabel(post)} · ${escapeHtml(post.categoryName || 'VELVET')}</p></div>`;
+    story.innerHTML = `<div class="vv-story-overlay"></div><div class="vv-story-content"><p class="vv-label vv-label-cyan">MAIS VISTA</p><h3>${escapeHtml(post.title)}</h3><p class="vv-story-byline"><span data-post-views>${viewsLabel(post)}</span> · ${escapeHtml(post.categoryName || 'VELVET')}</p></div>`;
   } else if (kind === 'liked') {
     story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div><div class="vv-story-text"><p class="vv-label">MAIS CURTIDA</p><h3>${escapeHtml(post.title)}</h3><p>${Number(post.likes || 0).toLocaleString('pt-BR')} curtidas · ${escapeHtml(post.categoryName || 'Velvet')}</p></div>`;
   } else {
@@ -213,41 +214,38 @@ async function loadHomeVimos() {
   } catch { /* Mantém a mensagem editorial enquanto a API não estiver disponível. */ }
 }
 
-// Increments the view counter once per post per browser session (so
-// reopening the same matéria repeatedly doesn't inflate the count), then
-// patches every place that number is currently on screen — the reading
-// view, and any matching card still rendered behind it — without a reload.
+// O servidor é a fonte de verdade: conta uma única vez para cada conta e,
+// para quem ainda não entrou, uma vez por navegador. Assim recarregar ou
+// abrir a mesma matéria em outra aba não infla os números.
 async function registerView(post) {
-  const seenKey = 'vv_seen_posts';
-  let seen = [];
-  try { seen = JSON.parse(sessionStorage.getItem(seenKey) || '[]'); } catch { seen = []; }
-  if (seen.includes(post.id)) return;
   try {
-    const data = await requestApi(`/api/public/posts/${post.id}/view`, { method: 'POST' });
-    seen.push(post.id);
-    sessionStorage.setItem(seenKey, JSON.stringify(seen));
+    const data = await requestApi(`/api/public/posts/${post.id}/view`, { method: 'POST', headers: { 'X-Velvet-Visitor': getVisitorId() } });
     post.views = data.views;
     updateViewsEverywhere(post);
+    if (session.user && data.readCount !== null) {
+      const el = document.querySelector('[data-profile-read-count] b');
+      if (el) el.textContent = data.readCount;
+    }
   } catch { /* offline or API unreachable: the count just won't tick up locally */ }
-}
-// Deliberately NOT gated by the sessionStorage check above: that dedupe is
-// about the anonymous view counter, not this. Calling it every time a
-// logged-in reader opens a matéria is safe and correct because the server's
-// post_reads primary key is what actually prevents double-counting — so
-// "EDIÇÕES LIDAS" stays right even across logins, logouts, or reading the
-// same article again before/after signing in within one browser session.
-async function registerRead(post) {
-  if (!session.user) return;
-  try {
-    const data = await requestApi(`/api/public/posts/${post.id}/read`, { method: 'POST' });
-    const el = document.querySelector('[data-profile-read-count] b');
-    if (el) el.textContent = data.count;
-  } catch { /* offline or API unreachable: the profile stat just won't be current until the next fetch */ }
 }
 function updateViewsEverywhere(post) {
   document.querySelectorAll(`[data-post-id="${post.id}"] .vv-news-card-views`).forEach((el) => { el.textContent = viewsLabel(post); });
+  document.querySelectorAll(`[data-post-id="${post.id}"] [data-post-views]`).forEach((el) => { el.textContent = viewsLabel(post); });
+  if (currentReadPost?.id === post.id) currentReadPost.views = post.views;
   if (readPage.dataset.postId === post.id) document.querySelector('[data-read-meta]').textContent = metaLine(post);
 }
+async function syncVisibleViewCounts() {
+  if (document.hidden) return;
+  try {
+    const response = await fetch(`${API_URL}/api/public/home`);
+    if (!response.ok) return;
+    const data = await response.json();
+    (data.posts || []).forEach((post) => updateViewsEverywhere(post));
+    if (searchCatalog) searchCatalog.posts = data.posts || [];
+  } catch { /* a próxima sincronização tenta de novo */ }
+}
+setInterval(syncVisibleViewCounts, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncVisibleViewCounts(); });
 
 const readPage = document.querySelector('[data-read-page]');
 function contentToHtml(content) {
@@ -360,7 +358,6 @@ function openPost(post) {
   readPage.scrollTop = 0;
   window.history.replaceState(null, '', '#materia');
   registerView(post);
-  registerRead(post);
   loadEngagement(post);
 }
 function closeRead() { readPage.hidden = true; currentReadPost = null; window.history.replaceState(null, '', '#noticias'); }
@@ -516,6 +513,15 @@ async function loadVelvetPodcasts() {
 }
 loadVelvetPodcasts();
 
+function getVisitorId() {
+  const key = 'vv_visitor_id';
+  let value = localStorage.getItem(key);
+  if (!value) {
+    value = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}-velvet`;
+    localStorage.setItem(key, value);
+  }
+  return value;
+}
 const session = { token: localStorage.getItem('vv_auth_token'), user: null, editor: null };
 const authPanel = document.querySelector('[data-auth-panel]');
 const editorPanel = document.querySelector('[data-editor]');

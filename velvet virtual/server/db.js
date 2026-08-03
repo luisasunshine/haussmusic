@@ -72,6 +72,11 @@ db.exec(`
     PRIMARY KEY (post_id, user_id),
     FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
   );
+  CREATE TABLE IF NOT EXISTS post_guest_views (
+    post_id TEXT NOT NULL, visitor_id TEXT NOT NULL, created_at TEXT NOT NULL,
+    PRIMARY KEY (post_id, visitor_id),
+    FOREIGN KEY(post_id) REFERENCES posts(id)
+  );
 `);
 
 const postColumns = db.prepare('PRAGMA table_info(posts)').all().map((column) => column.name);

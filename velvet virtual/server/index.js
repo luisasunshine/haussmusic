@@ -141,9 +141,25 @@ app.get('/api/public/home', (_req, res) => {
 app.post('/api/public/posts/:id/view', (req, res) => {
   const post = db.prepare("SELECT id, views FROM posts WHERE id = ? AND status = 'published'").get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Matéria não encontrada.' });
-  const views = post.views + 1;
-  db.prepare('UPDATE posts SET views = ? WHERE id = ?').run(views, req.params.id);
-  res.json({ views });
+  let counted = false;
+  let readCount = null;
+  const visitorId = String(req.get('x-velvet-visitor') || '').trim();
+  const validVisitor = /^[a-z0-9-]{20,80}$/i.test(visitorId);
+  if (req.user) {
+    const result = db.prepare('INSERT OR IGNORE INTO post_reads (post_id,user_id,created_at) VALUES (?,?,?)').run(req.params.id, req.user.id, now());
+    const alreadySeenHere = validVisitor && Boolean(db.prepare('SELECT 1 FROM post_guest_views WHERE post_id = ? AND visitor_id = ?').get(req.params.id, visitorId));
+    if (validVisitor) db.prepare('INSERT OR IGNORE INTO post_guest_views (post_id,visitor_id,created_at) VALUES (?,?,?)').run(req.params.id, visitorId, now());
+    counted = Number(result.changes) > 0 && !alreadySeenHere;
+    readCount = db.prepare('SELECT COUNT(*) AS total FROM post_reads WHERE user_id = ?').get(req.user.id).total;
+  } else {
+    if (validVisitor) {
+      const result = db.prepare('INSERT OR IGNORE INTO post_guest_views (post_id,visitor_id,created_at) VALUES (?,?,?)').run(req.params.id, visitorId, now());
+      counted = Number(result.changes) > 0;
+    }
+  }
+  if (counted) db.prepare('UPDATE posts SET views = views + 1 WHERE id = ?').run(req.params.id);
+  const views = db.prepare('SELECT views FROM posts WHERE id = ?').get(req.params.id).views;
+  res.json({ views, counted, readCount });
 });
 
 // Separate from the view counter above on purpose: that one is deduped
