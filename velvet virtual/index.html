@@ -146,7 +146,7 @@
         <button type="button" class="vv-profile-edit-toggle" data-profile-edit>EDITAR PERFIL</button>
         <form class="vv-profile-edit-form" data-profile-edit-form hidden>
           <label>Nome de exibição<input name="displayName" maxlength="70" required /></label>
-          <label>Foto de perfil<input name="avatar" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /></label>
+          <label>Foto de perfil<input name="avatar" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden /><button type="button" class="vv-profile-upload" data-profile-avatar-upload><span>⇧</span><b>ENVIAR NOVA FOTO</b><small>PNG, JPG, WEBP ou GIF · até 12 MB</small></button></label>
           <p data-profile-edit-message></p>
           <div><button type="button" data-profile-edit-cancel>CANCELAR</button><button type="submit">SALVAR ALTERAÇÕES</button></div>
         </form>
@@ -206,6 +206,14 @@
       </div>
     </section>
     <section class="vv-editor" data-editor hidden aria-label="Editor administrativo"><form data-editor-form><button type="button" data-editor-close class="vv-editor-close" aria-label="Fechar">×</button><p class="vv-eyebrow" data-editor-kicker>ADMIN</p><h2 data-editor-title>Novo item</h2><div data-editor-fields></div><div class="vv-editor-actions"><button type="button" data-editor-delete hidden class="vv-editor-delete">EXCLUIR</button><button type="submit" class="vv-admin-add">SALVAR</button></div></form></section>
+    <section class="vv-post-editor" data-post-editor hidden aria-label="Editor de matéria">
+      <div class="vv-post-editor-card">
+        <button type="button" class="vv-editor-close" data-post-editor-close aria-label="Fechar">×</button>
+        <p class="vv-eyebrow" data-post-editor-kicker>NOVA MATÉRIA</p>
+        <h2 data-post-editor-title>Criar matéria</h2>
+        <form class="vv-post-form-card" data-post-form></form>
+      </div>
+    </section>
     <section class="vv-auth" data-auth-panel hidden aria-label="Conta Velvet"><form data-auth-form><button type="button" data-auth-close class="vv-editor-close" aria-label="Fechar">×</button><p class="vv-eyebrow">CONTA VELVET</p><h2 data-auth-title>Entrar</h2><div data-google-login class="vv-google-login"></div><div class="vv-auth-divider"><span>OU COM E-MAIL</span></div><label data-auth-name hidden>Nome<input name="displayName" autocomplete="name" /></label><label>E-mail<input name="email" type="email" autocomplete="email" required /></label><label>Senha<input name="password" type="password" minlength="8" required /></label><p data-auth-message class="vv-auth-message"></p><button type="submit" class="vv-admin-add" data-auth-submit>ENTRAR</button><button type="button" data-auth-switch class="vv-auth-switch">CRIAR UMA CONTA</button></form></section>
     <div class="vv-toast" data-toast hidden role="status" aria-live="polite"><span data-toast-icon>✓</span><p data-toast-message></p><button type="button" data-toast-close aria-label="Fechar notificação">×</button></div>
   <style>
@@ -222,6 +230,7 @@
     .vv-profile-edit-form input{box-sizing:border-box;width:100%;margin-top:7px;padding:10px;border:1px solid #383838;background:#181818;color:#fff;font:14px Arial,sans-serif}
     .vv-profile-edit-form input[type=file]{font-size:11px}.vv-profile-edit-form p{min-height:14px;margin:0 0 12px;color:#ffb9b9;font-size:11px}
     .vv-profile-edit-form>div{display:flex;gap:8px}.vv-profile-edit-form button{padding:10px 12px;border:1px solid #777;background:transparent;color:#fff;font:700 8px 'DM Mono',monospace;letter-spacing:.07em}.vv-profile-edit-form button[type=submit]{border-color:#c0c0c8;background:#c0c0c8;color:#111}
+    .vv-profile-edit-form .vv-profile-upload{box-sizing:border-box;width:100%;min-height:88px;margin-top:7px;padding:13px;border:1.5px dashed #4a4a4a;border-radius:7px;background:#111;color:#b3b3b3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.vv-profile-upload span{font:18px/1 Arial,sans-serif;color:#c0c0c8}.vv-profile-upload b{font:700 9px 'DM Mono',monospace;letter-spacing:.08em;color:#e5e5ea}.vv-profile-upload small{font:10px Manrope,Arial,sans-serif;color:#777}.vv-profile-edit-form .vv-profile-upload:hover{border-color:#c0c0c8;background:#181818}
     @media (max-width:800px){.vv-profile-edit-toggle{margin-left:18px}.vv-profile-edit-form{margin-left:18px;margin-right:18px}}
   </style>
   <script src="script.js"></script>

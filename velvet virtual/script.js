@@ -148,6 +148,66 @@ async function requestApi(path, options = {}) {
 
 function openAuth(message = '') { authPanel.hidden = false; document.body.classList.add('is-locked'); document.querySelector('[data-auth-message]').textContent = message; }
 function closeAuth() { authPanel.hidden = true; document.body.classList.remove('is-locked'); }
+
+function uploadFile(fileObj, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${API_URL}/api/admin/uploads`);
+    if (session.token) xhr.setRequestHeader('Authorization', `Bearer ${session.token}`);
+    xhr.upload.addEventListener('progress', (event) => { if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100)); });
+    xhr.onload = () => {
+      try {
+        const result = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) resolve(result.url); else reject(new Error(result.error || 'Falha ao enviar imagem.'));
+      } catch { reject(new Error('Falha ao enviar imagem.')); }
+    };
+    xhr.onerror = () => reject(new Error('Falha de conexão ao enviar imagem.'));
+    const data = new FormData(); data.append('file', fileObj);
+    xhr.send(data);
+  });
+}
+
+function createDropzone(initialValue, onChange) {
+  const dropzone = document.createElement('div');
+  dropzone.className = `vv-dropzone${initialValue ? ' has-image' : ''}`;
+  if (initialValue) dropzone.style.backgroundImage = `url("${initialValue}")`;
+  const label = document.createElement('span'); label.textContent = initialValue ? 'TROCAR IMAGEM' : 'CLIQUE OU ARRASTE UMA IMAGEM';
+  const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'vv-dropzone-remove'; remove.hidden = !initialValue; remove.setAttribute('aria-label', 'Remover imagem'); remove.textContent = '✕';
+  const file = document.createElement('input'); file.type = 'file'; file.accept = 'image/*'; file.hidden = true;
+  dropzone.append(label, remove, file);
+  let currentValue = initialValue || '';
+
+  async function handleFile(fileObj) {
+    if (!fileObj.type.startsWith('image/')) { notify('Envie um arquivo de imagem.', 'error'); return; }
+    if (fileObj.size > 12 * 1024 * 1024) { notify('Imagem muito grande (máximo 12MB).', 'error'); return; }
+    const localUrl = URL.createObjectURL(fileObj);
+    dropzone.style.backgroundImage = `url("${localUrl}")`; dropzone.classList.add('has-image'); remove.hidden = false;
+    try {
+      const url = await uploadFile(fileObj, (pct) => { label.textContent = `ENVIANDO ${pct}%`; });
+      currentValue = url; onChange(url);
+      dropzone.style.backgroundImage = `url("${url}")`; label.textContent = 'TROCAR IMAGEM';
+    } catch (error) {
+      notify(error.message || 'Erro ao enviar imagem.', 'error');
+      if (currentValue) { dropzone.style.backgroundImage = `url("${currentValue}")`; label.textContent = 'TROCAR IMAGEM'; }
+      else { dropzone.classList.remove('has-image'); dropzone.style.backgroundImage = ''; label.textContent = 'CLIQUE OU ARRASTE UMA IMAGEM'; remove.hidden = true; }
+    } finally { URL.revokeObjectURL(localUrl); }
+  }
+
+  dropzone.addEventListener('click', () => file.click());
+  file.addEventListener('change', () => { if (file.files?.[0]) handleFile(file.files[0]); file.value = ''; });
+  dropzone.addEventListener('dragover', (event) => { event.preventDefault(); dropzone.classList.add('is-dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
+  dropzone.addEventListener('drop', (event) => {
+    event.preventDefault(); dropzone.classList.remove('is-dragover');
+    const dropped = event.dataTransfer.files?.[0]; if (dropped) handleFile(dropped);
+  });
+  remove.addEventListener('click', (event) => {
+    event.stopPropagation(); currentValue = ''; onChange('');
+    dropzone.classList.remove('has-image'); dropzone.style.backgroundImage = ''; label.textContent = 'CLIQUE OU ARRASTE UMA IMAGEM'; remove.hidden = true;
+  });
+  return dropzone;
+}
+
 function openEditor(resource, item = null) {
   const schemas = {
     banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'URL da imagem', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
@@ -462,6 +522,11 @@ document.addEventListener('click', (event) => {
 const profileEditToggle = document.querySelector('[data-profile-edit]');
 const profileEditForm = document.querySelector('[data-profile-edit-form]');
 const profileEditMessage = document.querySelector('[data-profile-edit-message]');
+const profileAvatarUpload = document.querySelector('[data-profile-avatar-upload]');
+function resetProfileAvatarUpload() {
+  profileAvatarUpload.querySelector('b').textContent = 'ENVIAR NOVA FOTO';
+  profileAvatarUpload.querySelector('small').textContent = 'PNG, JPG, WEBP ou GIF · até 12 MB';
+}
 
 profileEditToggle.addEventListener('click', () => {
   profileEditForm.hidden = false;
@@ -469,7 +534,15 @@ profileEditToggle.addEventListener('click', () => {
   profileEditMessage.textContent = '';
   profileEditForm.elements.displayName.focus();
 });
-document.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { profileEditForm.hidden = true; profileEditForm.reset(); });
+document.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { profileEditForm.hidden = true; profileEditForm.reset(); resetProfileAvatarUpload(); });
+profileAvatarUpload.addEventListener('click', () => profileEditForm.elements.avatar.click());
+profileEditForm.elements.avatar.addEventListener('change', () => {
+  const file = profileEditForm.elements.avatar.files[0];
+  const title = profileAvatarUpload.querySelector('b');
+  const hint = profileAvatarUpload.querySelector('small');
+  title.textContent = file ? 'FOTO SELECIONADA' : 'ENVIAR NOVA FOTO';
+  hint.textContent = file ? file.name : 'PNG, JPG, WEBP ou GIF · até 12 MB';
+});
 profileEditForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -491,6 +564,7 @@ profileEditForm.addEventListener('submit', async (event) => {
     updateProfileView();
     profileEditForm.hidden = true;
     profileEditForm.reset();
+    resetProfileAvatarUpload();
     notify('Perfil atualizado com sucesso.');
   } catch (error) { profileEditMessage.textContent = error.message; }
   finally { submit.disabled = false; }
