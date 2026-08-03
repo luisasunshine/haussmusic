@@ -6,6 +6,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
+const { OAuth2Client } = require('google-auth-library');
 const { db } = require('./db');
 const { signToken, isAdmin, attachUser, requireAuth, requireAdmin } = require('./auth');
 
@@ -13,6 +14,7 @@ const app = express();
 const port = process.env.PORT || 4175;
 const origins = (process.env.CORS_ORIGIN || '*').split(',').map((value) => value.trim());
 const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
+const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
 fs.mkdirSync(uploadsDir, { recursive: true });
 app.set('trust proxy', 1);
 app.use(cors({ origin: origins.includes('*') ? '*' : origins }));
@@ -59,6 +61,27 @@ app.post('/api/auth/login', async (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
   if (!user || !(await bcrypt.compare(String(req.body.password || ''), user.password_hash))) return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
   res.json({ token: signToken(user.id), user: publicUser(user) });
+});
+app.post('/api/auth/google', async (req, res) => {
+  if (!googleClient) return res.status(500).json({ error: 'Login Google não configurado no servidor.' });
+  if (!req.body.idToken) return res.status(400).json({ error: 'Token do Google ausente.' });
+  try {
+    const ticket = await googleClient.verifyIdToken({ idToken: req.body.idToken, audience: process.env.GOOGLE_CLIENT_ID });
+    const profile = ticket.getPayload();
+    if (!profile.email || !profile.email_verified) return res.status(401).json({ error: 'O Google não confirmou este e-mail.' });
+    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(profile.email.toLowerCase());
+    if (!user) {
+      const firstUser = db.prepare('SELECT COUNT(*) AS total FROM users').get().total === 0;
+      const allowedAdmin = (process.env.ADMIN_EMAILS || '').toLowerCase().split(',').map((item) => item.trim()).includes(profile.email.toLowerCase());
+      const id = uuid(); const date = now(); const role = firstUser || allowedAdmin ? 'admin' : 'leitor';
+      db.prepare('INSERT INTO users (id,email,password_hash,google_id,display_name,avatar_url,role,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)').run(id, profile.email.toLowerCase(), await bcrypt.hash(uuid(), 12), profile.sub, profile.name || profile.email.split('@')[0], profile.picture || null, role, date, date);
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+    } else {
+      db.prepare('UPDATE users SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = ? WHERE id = ?').run(profile.sub, profile.picture || null, now(), user.id);
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
+    }
+    res.json({ token: signToken(user.id), user: publicUser(user) });
+  } catch { res.status(401).json({ error: 'Não foi possível validar o login Google.' }); }
 });
 app.get('/api/auth/me', requireAuth, (req, res) => res.json({ user: { ...publicUser(req.user), isAdmin: isAdmin(req.user) } }));
 

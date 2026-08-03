@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
     <div class="vv-noise" aria-hidden="true"></div>
@@ -198,7 +199,7 @@
       </div>
     </section>
     <section class="vv-editor" data-editor hidden aria-label="Editor administrativo"><form data-editor-form><button type="button" data-editor-close class="vv-editor-close" aria-label="Fechar">×</button><p class="vv-eyebrow" data-editor-kicker>ADMIN</p><h2 data-editor-title>Novo item</h2><div data-editor-fields></div><div class="vv-editor-actions"><button type="button" data-editor-delete hidden class="vv-editor-delete">EXCLUIR</button><button type="submit" class="vv-admin-add">SALVAR</button></div></form></section>
-    <section class="vv-auth" data-auth-panel hidden aria-label="Conta Velvet"><form data-auth-form><button type="button" data-auth-close class="vv-editor-close" aria-label="Fechar">×</button><p class="vv-eyebrow">CONTA VELVET</p><h2 data-auth-title>Entrar</h2><label data-auth-name hidden>Nome<input name="displayName" autocomplete="name" /></label><label>E-mail<input name="email" type="email" autocomplete="email" required /></label><label>Senha<input name="password" type="password" minlength="8" required /></label><p data-auth-message class="vv-auth-message"></p><button type="submit" class="vv-admin-add" data-auth-submit>ENTRAR</button><button type="button" data-auth-switch class="vv-auth-switch">CRIAR UMA CONTA</button></form></section>
+    <section class="vv-auth" data-auth-panel hidden aria-label="Conta Velvet"><form data-auth-form><button type="button" data-auth-close class="vv-editor-close" aria-label="Fechar">×</button><p class="vv-eyebrow">CONTA VELVET</p><h2 data-auth-title>Entrar</h2><div data-google-login class="vv-google-login"></div><div class="vv-auth-divider"><span>OU COM E-MAIL</span></div><label data-auth-name hidden>Nome<input name="displayName" autocomplete="name" /></label><label>E-mail<input name="email" type="email" autocomplete="email" required /></label><label>Senha<input name="password" type="password" minlength="8" required /></label><p data-auth-message class="vv-auth-message"></p><button type="submit" class="vv-admin-add" data-auth-submit>ENTRAR</button><button type="button" data-auth-switch class="vv-auth-switch">CRIAR UMA CONTA</button></form></section>
     <script src="script.js"></script>
   </body>
 </html>

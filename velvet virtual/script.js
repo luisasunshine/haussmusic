@@ -11,7 +11,7 @@ const newsGrid = document.querySelector('[data-news-grid]');
 const newsFeatured = document.querySelector('[data-news-featured]');
 const newsEmpty = document.querySelector('[data-news-empty]');
 const newsCount = document.querySelector('[data-news-count]');
-const API_URL = window.VELVET_VIRTUAL_API_URL || 'http://127.0.0.1:4175';
+const API_URL = window.VELVET_VIRTUAL_API_URL || 'https://velvetvirtual.up.railway.app';
 
 searchButtons.forEach((button) => button.addEventListener('click', () => {
   const opening = searchPanel.hidden;
@@ -310,6 +310,21 @@ document.querySelector('[data-editor-delete]').addEventListener('click', async (
 
 document.querySelector('[data-auth-switch]').addEventListener('click', () => { const creating = document.querySelector('[data-auth-name]').hidden; document.querySelector('[data-auth-name]').hidden = !creating; document.querySelector('[data-auth-title]').textContent = creating ? 'Criar conta' : 'Entrar'; document.querySelector('[data-auth-submit]').textContent = creating ? 'CRIAR CONTA' : 'ENTRAR'; document.querySelector('[data-auth-switch]').textContent = creating ? 'JÁ TENHO UMA CONTA' : 'CRIAR UMA CONTA'; });
 document.querySelector('[data-auth-form]').addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget; const creating = !document.querySelector('[data-auth-name]').hidden; const message = document.querySelector('[data-auth-message]'); try { const response = await requestApi(`/api/auth/${creating ? 'register' : 'login'}`, { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(form))) }); session.token = response.token; session.user = response.user; localStorage.setItem('vv_auth_token', response.token); closeAuth(); alert(`Bem-vinda, ${response.user.displayName}.`); } catch (error) { message.textContent = error.message; } });
+function finishGoogleLogin(response) {
+  const message = document.querySelector('[data-auth-message]');
+  requestApi('/api/auth/google', { method: 'POST', body: JSON.stringify({ idToken: response.credential }) })
+    .then((data) => { session.token = data.token; session.user = data.user; localStorage.setItem('vv_auth_token', data.token); closeAuth(); alert(`Bem-vinda, ${data.user.displayName}.`); })
+    .catch((error) => { message.textContent = error.message; });
+}
+function initializeGoogleLogin() {
+  if (!window.google?.accounts?.id) { setTimeout(initializeGoogleLogin, 250); return; }
+  const button = document.querySelector('[data-google-login]');
+  if (!button || button.dataset.ready) return;
+  window.google.accounts.id.initialize({ client_id: '530388505659-knfq71sbse2t4kh6norpvqbcm05eaut7.apps.googleusercontent.com', callback: finishGoogleLogin, auto_select: false });
+  window.google.accounts.id.renderButton(button, { theme: 'outline', size: 'large', width: 360, text: 'continue_with', locale: 'pt-BR', shape: 'rectangular' });
+  button.dataset.ready = 'true';
+}
+initializeGoogleLogin();
 async function restoreSession() { if (!session.token) return; try { session.user = (await requestApi('/api/auth/me')).user; } catch { localStorage.removeItem('vv_auth_token'); session.token = null; } }
 restoreSession();
 document.querySelector('.vv-admin-header .vv-admin-add').addEventListener('click', () => {

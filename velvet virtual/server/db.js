@@ -17,7 +17,7 @@ const db = {
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL,
+    id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, google_id TEXT,
     display_name TEXT NOT NULL, avatar_url TEXT, role TEXT NOT NULL DEFAULT 'leitor',
     created_at TEXT NOT NULL, updated_at TEXT NOT NULL
   );
@@ -46,5 +46,7 @@ db.exec(`
 const postColumns = db.prepare('PRAGMA table_info(posts)').all().map((column) => column.name);
 if (!postColumns.includes('views')) db.exec('ALTER TABLE posts ADD COLUMN views INTEGER NOT NULL DEFAULT 0');
 if (!postColumns.includes('is_featured')) db.exec('ALTER TABLE posts ADD COLUMN is_featured INTEGER NOT NULL DEFAULT 0');
+const userColumns = db.prepare('PRAGMA table_info(users)').all().map((column) => column.name);
+if (!userColumns.includes('google_id')) db.exec('ALTER TABLE users ADD COLUMN google_id TEXT');
 
 module.exports = { db };
