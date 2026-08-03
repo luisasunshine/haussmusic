@@ -146,7 +146,7 @@
         <button type="button" class="vv-profile-edit-toggle" data-profile-edit>EDITAR PERFIL</button>
         <form class="vv-profile-edit-form" data-profile-edit-form hidden>
           <label>Nome de exibição<input name="displayName" maxlength="70" required /></label>
-          <label>Foto de perfil<input name="avatar" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden /><button type="button" class="vv-profile-upload" data-profile-avatar-upload><span>⇧</span><b>ENVIAR NOVA FOTO</b><small>PNG, JPG, WEBP ou GIF · até 12 MB</small></button></label>
+          <span class="vv-profile-upload-title">Foto de perfil</span><input id="vv-profile-avatar-input" class="vv-native-file-input" name="avatar" type="file" accept="image/*" /><label for="vv-profile-avatar-input" class="vv-profile-upload" data-profile-avatar-upload><span>⇧</span><b>ENVIAR NOVA FOTO</b><small>Escolha da galeria ou câmera · até 12 MB</small></label>
           <p data-profile-edit-message></p>
           <div><button type="button" data-profile-edit-cancel>CANCELAR</button><button type="submit">SALVAR ALTERAÇÕES</button></div>
         </form>
@@ -226,11 +226,12 @@
     .vv-profile-edit-toggle{display:inline-flex;align-items:center;gap:8px;margin:18px 32px 0;padding:11px 14px;border:1px solid #777;border-radius:3px;background:#181818;color:#fff;font:700 9px 'DM Mono',monospace;letter-spacing:.08em}
     .vv-profile-edit-toggle:before{content:'✎';font:16px/1 Arial,sans-serif}.vv-profile-edit-toggle:hover{border-color:#c0c0c8;background:#c0c0c8;color:#111}
     .vv-profile-edit-form{margin:18px 32px 5px;padding:18px;background:#121212;border:1px solid rgba(255,255,255,.1)}
-    .vv-profile-edit-form label{display:block;margin-bottom:13px;color:#b3b3b3;font:600 9px 'DM Mono',monospace;letter-spacing:.08em}
+    .vv-profile-edit-form label,.vv-profile-upload-title{display:block;margin-bottom:13px;color:#b3b3b3;font:600 9px 'DM Mono',monospace;letter-spacing:.08em}
     .vv-profile-edit-form input{box-sizing:border-box;width:100%;margin-top:7px;padding:10px;border:1px solid #383838;background:#181818;color:#fff;font:14px Arial,sans-serif}
     .vv-profile-edit-form input[type=file]{font-size:11px}.vv-profile-edit-form p{min-height:14px;margin:0 0 12px;color:#ffb9b9;font-size:11px}
     .vv-profile-edit-form>div{display:flex;gap:8px}.vv-profile-edit-form button{padding:10px 12px;border:1px solid #777;background:transparent;color:#fff;font:700 8px 'DM Mono',monospace;letter-spacing:.07em}.vv-profile-edit-form button[type=submit]{border-color:#c0c0c8;background:#c0c0c8;color:#111}
     .vv-profile-edit-form .vv-profile-upload{box-sizing:border-box;width:100%;min-height:88px;margin-top:7px;padding:13px;border:1.5px dashed #4a4a4a;border-radius:7px;background:#111;color:#b3b3b3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.vv-profile-upload span{font:18px/1 Arial,sans-serif;color:#c0c0c8}.vv-profile-upload b{font:700 9px 'DM Mono',monospace;letter-spacing:.08em;color:#e5e5ea}.vv-profile-upload small{font:10px Manrope,Arial,sans-serif;color:#777}.vv-profile-edit-form .vv-profile-upload:hover{border-color:#c0c0c8;background:#181818}
+    .vv-native-file-input{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important;border:0!important}
     @media (max-width:800px){.vv-profile-edit-toggle{margin-left:18px}.vv-profile-edit-form{margin-left:18px;margin-right:18px}}
   </style>
   <section class="vv-cropper" data-avatar-cropper hidden aria-label="Recortar foto de perfil"><div class="vv-cropper-card"><button type="button" data-avatar-crop-cancel class="vv-editor-close" aria-label="Fechar">×</button><p class="vv-eyebrow">FOTO DE PERFIL</p><h2>Recortar imagem</h2><p>Ajuste o zoom para enquadrar sua foto.</p><div class="vv-crop-stage"><img data-avatar-crop-image alt="Prévia para recorte" /></div><label class="vv-crop-range">ZOOM<input type="range" data-avatar-crop-zoom min="1" max="3" step="0.01" value="1" /></label><div class="vv-crop-actions"><button type="button" data-avatar-crop-cancel>CANCELAR</button><button type="button" data-avatar-crop-apply>USAR ESTA FOTO</button></div></div></section>

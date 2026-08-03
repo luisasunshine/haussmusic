@@ -530,9 +530,11 @@ const avatarCropper = document.querySelector('[data-avatar-cropper]');
 const avatarCropImage = document.querySelector('[data-avatar-crop-image]');
 const avatarCropZoom = document.querySelector('[data-avatar-crop-zoom]');
 let avatarCropSource = null;
+let croppedAvatarFile = null;
 function resetProfileAvatarUpload() {
+  croppedAvatarFile = null;
   profileAvatarUpload.querySelector('b').textContent = 'ENVIAR NOVA FOTO';
-  profileAvatarUpload.querySelector('small').textContent = 'PNG, JPG, WEBP ou GIF · até 12 MB';
+  profileAvatarUpload.querySelector('small').textContent = 'Escolha da galeria ou câmera · até 12 MB';
 }
 
 profileEditToggle.addEventListener('click', () => {
@@ -542,13 +544,13 @@ profileEditToggle.addEventListener('click', () => {
   profileEditForm.elements.displayName.focus();
 });
 document.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { profileEditForm.hidden = true; profileEditForm.reset(); resetProfileAvatarUpload(); });
-profileAvatarUpload.addEventListener('click', () => profileEditForm.elements.avatar.click());
 profileEditForm.elements.avatar.addEventListener('change', () => {
   const file = profileEditForm.elements.avatar.files[0];
+  croppedAvatarFile = null;
   const title = profileAvatarUpload.querySelector('b');
   const hint = profileAvatarUpload.querySelector('small');
   title.textContent = file ? 'FOTO SELECIONADA' : 'ENVIAR NOVA FOTO';
-  hint.textContent = file ? file.name : 'PNG, JPG, WEBP ou GIF · até 12 MB';
+  hint.textContent = file ? file.name : 'Escolha da galeria ou câmera · até 12 MB';
 });
 profileEditForm.elements.avatar.addEventListener('change', () => {
   const file = profileEditForm.elements.avatar.files[0];
@@ -560,10 +562,11 @@ profileEditForm.elements.avatar.addEventListener('change', () => {
   }
   if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
   avatarCropSource = URL.createObjectURL(file);
+  avatarCropImage.onload = () => { avatarCropper.hidden = false; };
+  avatarCropImage.onerror = () => { profileEditMessage.textContent = 'Não foi possível abrir esta imagem. Tente uma foto em JPG ou PNG.'; profileEditForm.elements.avatar.value = ''; if (avatarCropSource) URL.revokeObjectURL(avatarCropSource); avatarCropSource = null; };
   avatarCropImage.src = avatarCropSource;
   avatarCropZoom.value = '1';
   avatarCropImage.style.setProperty('--crop-scale', '1');
-  avatarCropper.hidden = false;
 });
 avatarCropZoom.addEventListener('input', () => avatarCropImage.style.setProperty('--crop-scale', avatarCropZoom.value));
 document.querySelectorAll('[data-avatar-crop-cancel]').forEach((button) => button.addEventListener('click', () => {
@@ -583,9 +586,7 @@ document.querySelector('[data-avatar-crop-apply]').addEventListener('click', () 
   canvas.getContext('2d').drawImage(avatarCropImage, startX, startY, side, side, 0, 0, 512, 512);
   canvas.toBlob((blob) => {
     if (!blob) return;
-    const files = new DataTransfer();
-    files.items.add(new File([blob], 'velvet-profile.jpg', { type: 'image/jpeg' }));
-    profileEditForm.elements.avatar.files = files.files;
+    croppedAvatarFile = new File([blob], 'velvet-profile.jpg', { type: 'image/jpeg' });
     profileAvatarUpload.querySelector('b').textContent = 'FOTO RECORTADA';
     profileAvatarUpload.querySelector('small').textContent = 'Pronta para salvar no seu perfil';
     avatarCropper.hidden = true;
@@ -603,7 +604,7 @@ profileEditForm.addEventListener('submit', async (event) => {
   try {
     let response = await requestApi('/api/profile', { method: 'PATCH', body: JSON.stringify({ displayName }) });
     session.user = response.user;
-    const image = form.elements.avatar.files[0];
+    const image = croppedAvatarFile || form.elements.avatar.files[0];
     if (image) {
       const data = new FormData(); data.append('avatar', image);
       const uploadResponse = await fetch(`${API_URL}/api/profile/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${session.token}` }, body: data });
