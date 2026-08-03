@@ -165,6 +165,8 @@ function homeStory(post, kind = 'recent') {
   if (kind === 'top') {
     story.style.backgroundImage = post.coverUrl ? `url('${post.coverUrl}')` : 'linear-gradient(135deg,#25232c,#0b0b0f)';
     story.innerHTML = `<div class="vv-story-overlay"></div><div class="vv-story-content"><p class="vv-label vv-label-cyan">MAIS VISTA</p><h3>${escapeHtml(post.title)}</h3><p class="vv-story-byline">${viewsLabel(post)} · ${escapeHtml(post.categoryName || 'VELVET')}</p></div>`;
+  } else if (kind === 'liked') {
+    story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div><div class="vv-story-text"><p class="vv-label">MAIS CURTIDA</p><h3>${escapeHtml(post.title)}</h3><p>${Number(post.likes || 0).toLocaleString('pt-BR')} curtidas · ${escapeHtml(post.categoryName || 'Velvet')}</p></div>`;
   } else {
     story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div><div class="vv-story-text"><p class="vv-label">RECENTE</p><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.excerpt || `${post.categoryName || 'Velvet'} · nova matéria`)}</p></div>`;
   }
@@ -179,10 +181,16 @@ async function loadHomeFeatured() {
     const response = await fetch(`${API_URL}/api/public/home`); if (!response.ok) throw new Error();
     const posts = (await response.json()).posts || [];
     if (!posts.length) return;
-    const recent = [...posts].sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
-    const top = [...posts].sort((a, b) => Number(b.views || 0) - Number(a.views || 0) || new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt))[0];
+    const recencyDiff = (a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt);
+    const recent = [...posts].sort(recencyDiff);
+    const top = [...posts].sort((a, b) => Number(b.views || 0) - Number(a.views || 0) || recencyDiff(a, b))[0];
+    const mostLiked = [...posts]
+      .filter((post) => post.id !== top.id && Number(post.likes || 0) > 0)
+      .sort((a, b) => Number(b.likes || 0) - Number(a.likes || 0) || recencyDiff(a, b))[0];
+    const usedIds = new Set([top.id, mostLiked?.id].filter(Boolean));
     const grid = document.createElement('div'); grid.className = 'vv-feature-grid'; grid.append(homeStory(top, 'top'));
-    recent.filter((post) => post.id !== top.id).slice(0, 2).forEach((post) => grid.append(homeStory(post)));
+    if (mostLiked) grid.append(homeStory(mostLiked, 'liked'));
+    recent.filter((post) => !usedIds.has(post.id)).slice(0, mostLiked ? 1 : 2).forEach((post) => grid.append(homeStory(post)));
     target.replaceChildren(grid);
   } catch { /* Mantém o estado vazio enquanto a API não estiver disponível. */ }
 }

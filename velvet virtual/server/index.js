@@ -102,7 +102,10 @@ app.post('/api/profile/avatar', requireAuth, profileUpload.single('avatar'), (re
 
 app.get('/api/public/home', (_req, res) => {
   const banners = db.prepare('SELECT * FROM banners WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
-  const posts = db.prepare("SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name FROM posts LEFT JOIN categories ON categories.id = posts.category_id LEFT JOIN users ON users.id = posts.created_by WHERE posts.status = 'published' ORDER BY posts.published_at DESC, posts.created_at DESC").all().map(toCamel);
+  const posts = db.prepare(`SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name,
+    (SELECT COUNT(*) FROM post_likes WHERE post_likes.post_id = posts.id) AS likes
+    FROM posts LEFT JOIN categories ON categories.id = posts.category_id LEFT JOIN users ON users.id = posts.created_by
+    WHERE posts.status = 'published' ORDER BY posts.published_at DESC, posts.created_at DESC`).all().map(toCamel);
   const categories = db.prepare('SELECT id,name,slug,description FROM categories ORDER BY name').all().map(toCamel);
   const vimosVoce = db.prepare('SELECT * FROM vimos_voce WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
   const settings = Object.fromEntries(db.prepare('SELECT key,value FROM settings').all().map((item) => [item.key, readJson(item.value)]));
