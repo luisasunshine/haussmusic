@@ -38,10 +38,15 @@ h1,h2,h3,p{margin-top:0}.vv-hero h1{font-size:clamp(52px,7vw,108px);line-height:
 .vv-google-login{display:flex;justify-content:center;min-height:40px}.vv-auth-divider{display:flex;align-items:center;gap:10px;color:#696969;font:500 8px 'DM Mono',monospace;letter-spacing:.08em}.vv-auth-divider:before,.vv-auth-divider:after{content:'';height:1px;flex:1;background:#383838}
 .vv-toast{position:fixed;z-index:120;right:24px;bottom:24px;width:min(390px,calc(100vw - 36px));padding:14px 14px 14px 16px;display:grid;grid-template-columns:27px 1fr auto;align-items:center;gap:10px;border:1px solid rgba(192,192,200,.38);background:#181818;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.55)}.vv-toast>span{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#c0c0c8;color:#101010;font-weight:800;font-size:13px}.vv-toast[data-type="error"]>span{background:#b65b5b;color:#fff}.vv-toast p{margin:0;font-size:12px;line-height:1.45}.vv-toast button{border:0;background:none;color:#B3B3B3;font-size:21px}.vv-toast[hidden]{display:none!important}
 
-/* Posts admin — inline creator + live list, mirrors the Velvet Music admin dashboard pattern */
-.vv-post-admin{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:22px;align-items:start}
-@media (max-width:1000px){.vv-post-admin{grid-template-columns:1fr}}
-.vv-post-form-card{display:grid;gap:12px;padding:22px;background:#181818;border:1px solid #282828;border-radius:10px;position:sticky;top:0}
+/* Posts admin — full-width list + an overlay editor for both create and edit, mirroring the Velvet Music admin dashboard pattern */
+.vv-post-editor{position:fixed;inset:0;z-index:95;padding:20px;display:grid;place-items:center;background:rgba(0,0,0,.8);backdrop-filter:blur(12px)}
+.vv-post-editor-card{position:relative;width:min(640px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:34px;background:#181818;border:1px solid #383838;border-radius:12px;box-shadow:0 30px 90px #000}
+.vv-post-editor-card [data-post-editor-kicker]{color:#c0c0c8;margin:0 0 6px;font:600 10px 'DM Mono',monospace;letter-spacing:.1em}
+.vv-post-editor-card h2{margin:0 0 22px;font-size:26px;letter-spacing:-.05em;max-width:90%}
+.vv-status-toggle{display:flex;gap:6px;padding:4px;border:1px solid #383838;border-radius:7px;background:#0d0d0d}
+.vv-status-toggle button{flex:1;padding:9px;border:0;border-radius:5px;background:transparent;color:#8a8a8a;font:700 9px 'DM Mono',monospace;letter-spacing:.06em}
+.vv-status-toggle button.is-active{background:#c0c0c8;color:#111}
+.vv-post-form-card{display:grid;gap:12px}
 .vv-post-form-card h3{margin:0 0 2px;font-size:17px;letter-spacing:-.03em}
 .vv-post-form-card label{display:grid;gap:7px;color:#B3B3B3;font:500 9px 'DM Mono',monospace;letter-spacing:.07em}
 .vv-post-form-card input,.vv-post-form-card textarea,.vv-post-form-card select{width:100%;padding:11px 12px;border:1px solid #383838;border-radius:6px;background:#0d0d0d;color:#fff;outline:none;font:500 13px Manrope,Arial,sans-serif;letter-spacing:normal}
