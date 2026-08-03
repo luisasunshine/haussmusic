@@ -108,16 +108,8 @@ export default function Home() {
     refetchInterval: 3000,
   });
 
-  const { data: artists = [] } = useQuery({
-    queryKey: ['artists'],
-    queryFn: () => base44.entities.User.list('-created_date', 12),
-  });
-
-  // Wider pool than the `artists` query above (which only grabs the 12
-  // most recent signups overall, not 12 most recent artists specifically)
-  // so "15 most recent artists"/"15 most recent listeners" is accurate
-  // even when the two cargos are unevenly mixed in recent signups. Polled
-  // so the sidebar widget picks up new accounts without a manual refresh.
+  // A wider, polled pool keeps the artist grid and sidebar current even when
+  // artists and listeners are unevenly mixed in recent signups.
   const { data: recentUsers = [] } = useQuery({
     queryKey: ['recent-users-sidebar'],
     queryFn: () => base44.entities.User.list('-created_date', 200),
@@ -170,7 +162,9 @@ export default function Home() {
   const featuredSong = topPlayed[0];
   const featuredSongScheduled = featuredSong ? isSongScheduled(featuredSong) : false;
   const recentAlbums = posts.filter(p => p.type === 'album' || p.type === 'ep').slice(0, 8);
-  const songArtists = artists.filter(a => hasUserType(a, 'artista')).slice(0, 5);
+  // The artists tab uses this same refreshed data as the sidebar so profile
+  // photos do not get stuck on a stale URL after a backend/domain change.
+  const songArtists = recentArtists;
 
   const { data: featuredArtist } = useQuery({
     queryKey: ['featured-artist', featuredSong?.artist],
