@@ -479,7 +479,6 @@ document.querySelector('.vv-admin-header .vv-admin-add').addEventListener('click
   document.querySelector('[data-admin-tab="posts"]')?.click();
   openPostEditor(null, document.querySelector('[data-admin-section="posts"]'));
 });
-document.querySelector('.vv-roles-heading button')?.addEventListener('click', () => { adminButtons[0]?.click(); setTimeout(() => document.querySelector('[data-admin-tab="roles"]')?.click(), 20); });
 adminButtons.forEach((button) => button.addEventListener('click', () => {
   setTimeout(() => {
     if (!session.user) { adminPanel.hidden = true; openAuth('Entre com a conta administrativa para abrir o painel.'); return; }
