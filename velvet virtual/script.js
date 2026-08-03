@@ -71,16 +71,47 @@ document.querySelectorAll('[data-admin-tab]').forEach((tab) => tab.addEventListe
 function articleCard(post, large = false) {
   const article = document.createElement('article');
   article.className = large ? 'vv-news-card vv-news-card-large' : 'vv-news-card';
+  article.tabIndex = 0;
+  article.setAttribute('role', 'button');
+  article.setAttribute('aria-label', `Ler matéria: ${post.title}`);
   const image = document.createElement('div');
-  image.className = 'vv-news-card-image';
-  if (post.coverUrl) image.style.backgroundImage = `url("${post.coverUrl}")`;
+  image.className = `vv-news-card-image${post.coverUrl ? '' : ' no-cover'}`;
+  if (post.coverUrl) {
+    const img = document.createElement('img');
+    img.src = post.coverUrl; img.alt = ''; img.loading = 'lazy';
+    image.append(img);
+  }
   const category = document.createElement('p'); category.className = 'vv-label'; category.textContent = post.categoryName || 'VELVET';
+  image.append(category);
   const title = document.createElement('h3'); title.textContent = post.title;
   const excerpt = document.createElement('p'); excerpt.className = 'vv-news-card-excerpt'; excerpt.textContent = post.excerpt || 'Leia a matéria completa na Velvet Virtual.';
   const meta = document.createElement('span'); meta.textContent = `${Number(post.views || 0).toLocaleString('pt-BR')} visualizações`;
-  image.append(category); article.append(image, title, excerpt, meta);
+  article.append(image, title, excerpt, meta);
+  article.addEventListener('click', () => openPost(post));
+  article.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPost(post); } });
   return article;
 }
+
+const readPage = document.querySelector('[data-read-page]');
+function contentToHtml(content) {
+  return escapeHtml(content || '').split(/\n{2,}/).map((block) => `<p>${block.trim().replace(/\n/g, '<br>')}</p>`).join('');
+}
+function openPost(post) {
+  document.querySelector('[data-read-category]').textContent = post.categoryName || 'VELVET';
+  document.querySelector('[data-read-title]').textContent = post.title;
+  const dateLabel = (post.publishedAt || post.createdAt) ? new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+  document.querySelector('[data-read-meta]').textContent = [post.authorName, dateLabel, `${Number(post.views || 0).toLocaleString('pt-BR')} visualizações`].filter(Boolean).join(' · ');
+  const cover = document.querySelector('[data-read-cover]');
+  cover.hidden = !post.coverUrl;
+  cover.innerHTML = post.coverUrl ? `<img src="${escapeHtml(post.coverUrl)}" alt="">` : '';
+  document.querySelector('[data-read-body]').innerHTML = contentToHtml(post.content) || '<p>Conteúdo em preparação.</p>';
+  readPage.hidden = false;
+  readPage.scrollTop = 0;
+  window.history.replaceState(null, '', '#materia');
+}
+function closeRead() { readPage.hidden = true; window.history.replaceState(null, '', '#noticias'); }
+document.querySelectorAll('[data-read-close]').forEach((button) => button.addEventListener('click', closeRead));
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !readPage.hidden) closeRead(); });
 
 async function loadNews() {
   newsGrid.replaceChildren(); newsFeatured.replaceChildren();
@@ -381,7 +412,7 @@ async function renderAdmin(resource) {
       section.querySelector('form').addEventListener('submit', async (event) => { event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget)); await requestApi('/api/admin/settings', { method: 'PUT', body: JSON.stringify(values) }); alert('Configurações salvas.'); }); return;
     }
     const items = await requestApi(`/api/admin/${resource}`);
-    const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p><button class="vv-admin-add" data-live-create="${resource}">+ CRIAR</button></div>`;
+    const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p>${resource === 'users' ? '' : `<button class="vv-admin-add" data-live-create="${resource}">+ CRIAR</button>`}</div>`;
     if (!items.length) { section.innerHTML = toolbar + adminEmpty(resource === 'banners' ? '▧' : resource === 'categories' ? '◇' : '♙', 'Nada por aqui ainda.', 'Crie o primeiro item usando o botão acima.'); return; }
     if (resource === 'banners') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'ATIVO' : 'INATIVO'}</span> · ORDEM ${item.position || 0}</p></div><button data-live-edit="banners" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'categories') section.innerHTML = toolbar + `<div class="vv-category-admin">${items.map((item) => `<div><b>${escapeHtml(item.name)}</b><span>${escapeHtml(item.description || item.slug)}</span><button data-live-edit="categories" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
