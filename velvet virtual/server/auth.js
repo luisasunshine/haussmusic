@@ -6,7 +6,8 @@ if (!secret) throw new Error('JWT_SECRET is required. Configure velvet virtual/s
 
 const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean);
 const signToken = (id) => jwt.sign({ sub: id }, secret, { expiresIn: '30d' });
-const isAdmin = (user) => user && (user.role === 'admin' || adminEmails.includes(user.email.toLowerCase()));
+const hasRole = (user, role) => String(user?.role || '').split(',').map((value) => value.trim()).includes(role);
+const isAdmin = (user) => user && (hasRole(user, 'admin') || adminEmails.includes(user.email.toLowerCase()));
 
 function attachUser(req, _res, next) {
   const header = req.headers.authorization || '';

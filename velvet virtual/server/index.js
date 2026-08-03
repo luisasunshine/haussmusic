@@ -211,12 +211,19 @@ crud('banners', 'banners', ['title', 'subtitle', 'image_url', 'cta_label', 'cta_
 crud('vimos-voce', 'vimos_voce', ['title', 'description', 'image_url', 'instagram_url', 'position', 'is_active']);
 
 app.get('/api/admin/users', requireAdmin, (_req, res) => res.json(db.prepare('SELECT id,email,display_name,avatar_url,role,created_at,updated_at FROM users ORDER BY created_at DESC').all().map(toCamel)));
+const ALLOWED_ROLES = ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators'];
+// A pessoa pode acumular vários cargos (ex.: staff + podcast), então role
+// é guardado como uma lista separada por vírgula em vez de um valor único.
+function parseRoles(value, fallback = 'leitor') {
+  const roles = [...new Set(String(value || '').split(',').map((role) => role.trim()).filter(Boolean))];
+  return roles.length && roles.every((role) => ALLOWED_ROLES.includes(role)) ? roles.join(',') : fallback;
+}
+
 app.post('/api/admin/users', requireAdmin, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const displayName = String(req.body.displayName || '').trim();
   const password = String(req.body.password || '');
-  const allowedRoles = ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators'];
-  const role = allowedRoles.includes(req.body.role) ? req.body.role : 'leitor';
+  const role = parseRoles(req.body.role);
   if (!email || !displayName || password.length < 8) return res.status(400).json({ error: 'Informe nome, e-mail e uma senha com ao menos 8 caracteres.' });
   if (db.prepare('SELECT id FROM users WHERE email = ?').get(email)) return res.status(409).json({ error: 'Este e-mail já está cadastrado.' });
   const id = uuid(); const date = now();
@@ -224,9 +231,10 @@ app.post('/api/admin/users', requireAdmin, async (req, res) => {
   res.status(201).json(toCamel(db.prepare('SELECT id,email,display_name,avatar_url,role,created_at,updated_at FROM users WHERE id = ?').get(id)));
 });
 app.patch('/api/admin/users/:id', requireAdmin, (req, res) => {
-  const allowedRoles = ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators'];
-  const role = String(req.body.role || ''); if (!allowedRoles.includes(role)) return res.status(400).json({ error: 'Cargo inválido.' });
-  db.prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?').run(role, now(), req.params.id);
+  const roles = [...new Set(String(req.body.role || '').split(',').map((role) => role.trim()).filter(Boolean))];
+  if (!roles.length || !roles.every((role) => ALLOWED_ROLES.includes(role))) return res.status(400).json({ error: 'Cargo inválido.' });
+  if (req.params.id === req.user.id && !roles.includes('admin')) return res.status(400).json({ error: 'Você não pode remover seu próprio acesso de admin.' });
+  db.prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?').run(roles.join(','), now(), req.params.id);
   res.json(toCamel(db.prepare('SELECT id,email,display_name,avatar_url,role,created_at,updated_at FROM users WHERE id = ?').get(req.params.id)));
 });
 app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {

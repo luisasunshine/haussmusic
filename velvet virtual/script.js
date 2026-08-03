@@ -1,3 +1,6 @@
+const CARGO_LABELS = { admin: 'Admin', staff: 'Staff', leitor: 'Leitor', podcast: 'Podcast', modelo: 'Modelo', influencer: 'Influencer', creators: 'Creators' };
+const formatCargos = (role) => String(role || '').split(',').map((value) => value.trim()).filter(Boolean).map((value) => CARGO_LABELS[value] || value).join(' · ') || 'Leitor';
+
 const searchButtons = document.querySelectorAll('[data-search-toggle]');
 const searchPanel = document.querySelector('[data-search-panel]');
 const searchInput = document.querySelector('[data-search-input]');
@@ -576,7 +579,7 @@ function openEditor(resource, item = null) {
     banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
     'vimos-voce': [['title', 'Título', 'text'], ['description', 'Descrição', 'textarea'], ['image_url', 'Foto', 'url'], ['instagram_url', 'Link do Instagram', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Publicação ativa', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
-    users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargo', 'select', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
+    users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargos (pode marcar mais de um)', 'checkboxes', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
   };
   const fields = item && resource === 'users' ? [schemas.users[3]] : schemas[resource]; if (!fields) return;
   session.editor = { resource, item };
@@ -587,6 +590,23 @@ function openEditor(resource, item = null) {
     const wrap = document.createElement('label'); wrap.className = `vv-editor-field vv-editor-field-${name}`; wrap.textContent = label;
     const camel = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
     const value = item?.[name] ?? item?.[camel] ?? (name === 'position' ? 0 : '');
+    if (type === 'checkboxes') {
+      const current = String(value || '').split(',').map((role) => role.trim());
+      const group = document.createElement('div');
+      group.className = 'vv-cargo-checkboxes';
+      group.dataset.cargoGroup = name;
+      choices.forEach((choice) => {
+        const option = document.createElement('label');
+        option.className = 'vv-cargo-option';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox'; checkbox.value = choice; checkbox.checked = current.includes(choice);
+        option.append(checkbox, document.createTextNode(CARGO_LABELS[choice] || choice));
+        group.append(option);
+      });
+      wrap.append(group);
+      area.append(wrap);
+      return;
+    }
     const isMedia = name === 'cover_url' || name === 'image_url';
     let input;
     if (type === 'textarea') { input = document.createElement('textarea'); input.value = value || ''; }
@@ -786,7 +806,7 @@ async function renderAdmin(resource) {
     if (resource === 'banners') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'ATIVO' : 'INATIVO'}</span> · ORDEM ${item.position || 0}</p></div><button data-live-edit="banners" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'vimos-voce') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.description || 'Sem descrição')} · ORDEM ${item.position || 0}</p></div><button data-live-edit="vimos-voce" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'categories') section.innerHTML = toolbar + `<div class="vv-category-admin">${items.map((item) => `<div><b>${escapeHtml(item.name)}</b><span>${escapeHtml(item.description || item.slug)}</span><button data-live-edit="categories" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
-    if (resource === 'users') section.innerHTML = toolbar + `<div class="vv-admin-table"><div class="vv-admin-row is-head"><span>USUÁRIO</span><span>E-MAIL</span><span>CARGO</span><span></span></div>${items.map((item) => `<div class="vv-admin-row"><b>${escapeHtml(item.displayName)}</b><span>${escapeHtml(item.email)}</span><i>${escapeHtml(item.role)}</i><button data-live-edit="users" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
+    if (resource === 'users') section.innerHTML = toolbar + `<div class="vv-admin-table"><div class="vv-admin-row is-head"><span>USUÁRIO</span><span>E-MAIL</span><span>CARGOS</span><span></span></div>${items.map((item) => `<div class="vv-admin-row"><b>${escapeHtml(item.displayName)}</b><span>${escapeHtml(item.email)}</span><i>${escapeHtml(formatCargos(item.role))}</i><button data-live-edit="users" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
     section.dataset.items = JSON.stringify(items);
   } catch (error) { section.innerHTML = adminEmpty('!', 'Não foi possível carregar.', error.message); }
 }
@@ -823,7 +843,20 @@ document.addEventListener('click', (event) => {
   }
 });
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !postEditorPanel.hidden) closePostEditor(); });
-editorForm.addEventListener('submit', async (event) => { event.preventDefault(); const { resource, item } = session.editor; const payload = Object.fromEntries(new FormData(editorForm)); ['is_featured', 'is_active'].forEach((name) => { if (editorForm.elements[name]) payload[name] = editorForm.elements[name].checked ? 1 : 0; }); if (resource === 'users' && item && !payload.password) delete payload.password; try { await requestApi(`/api/admin/${resource}${item ? `/${item.id}` : ''}`, { method: item ? 'PATCH' : 'POST', body: JSON.stringify(payload) }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
+editorForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const { resource, item } = session.editor;
+  const payload = Object.fromEntries(new FormData(editorForm));
+  ['is_featured', 'is_active'].forEach((name) => { if (editorForm.elements[name]) payload[name] = editorForm.elements[name].checked ? 1 : 0; });
+  const cargoGroup = editorForm.querySelector('[data-cargo-group]');
+  if (cargoGroup) {
+    const checked = [...cargoGroup.querySelectorAll('input:checked')].map((box) => box.value);
+    if (item && item.id === session.user?.id && !checked.includes('admin')) { alert('Você não pode remover seu próprio acesso de admin.'); return; }
+    payload[cargoGroup.dataset.cargoGroup] = checked.join(',');
+  }
+  if (resource === 'users' && item && !payload.password) delete payload.password;
+  try { await requestApi(`/api/admin/${resource}${item ? `/${item.id}` : ''}`, { method: item ? 'PATCH' : 'POST', body: JSON.stringify(payload) }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); }
+});
 document.querySelector('[data-editor-delete]').addEventListener('click', async () => { const { resource, item } = session.editor; if (!item || !confirm('Apagar este item permanentemente?')) return; try { await requestApi(`/api/admin/${resource}/${item.id}`, { method: 'DELETE' }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
 
 document.querySelector('[data-auth-switch]').addEventListener('click', () => { const creating = document.querySelector('[data-auth-name]').hidden; document.querySelector('[data-auth-name]').hidden = !creating; document.querySelector('[data-auth-title]').textContent = creating ? 'Criar conta' : 'Entrar'; document.querySelector('[data-auth-submit]').textContent = creating ? 'CRIAR CONTA' : 'ENTRAR'; document.querySelector('[data-auth-switch]').textContent = creating ? 'JÁ TENHO UMA CONTA' : 'CRIAR UMA CONTA'; });
@@ -881,10 +914,12 @@ function getRoleName(role) {
 function updateProfileView() {
   if (!session.user) return;
   const user = session.user;
-  const role = user.isAdmin ? 'admin' : (user.role || 'leitor');
+  const cargos = new Set(String(user.role || '').split(',').map((value) => value.trim()).filter(Boolean));
+  if (user.isAdmin) cargos.add('admin');
+  if (!cargos.size) cargos.add('leitor');
+  const isAdmin = cargos.has('admin');
   const name = user.displayName || user.name || user.email?.split('@')[0] || 'Leitor Velvet';
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'VV';
-  const isAdmin = role === 'admin';
 
   profileName.textContent = name;
   profileEmail.textContent = user.email || 'Conta Velvet';
@@ -892,7 +927,7 @@ function updateProfileView() {
   profileAvatar.style.backgroundImage = user.avatarUrl ? `url("${user.avatarUrl}")` : '';
   profileAvatar.style.backgroundSize = 'cover';
   profileAvatar.style.backgroundPosition = 'center';
-  profileRole.textContent = `${getRoleName(role).toUpperCase()} · ${isAdmin ? 'ACESSO TOTAL' : 'MEMBRO VELVET'}`;
+  profileRole.textContent = `${[...cargos].map((role) => getRoleName(role).toUpperCase()).join(' · ')} · ${isAdmin ? 'ACESSO TOTAL' : 'MEMBRO VELVET'}`;
   requestApi('/api/public/reads/count').then((data) => {
     const el = document.querySelector('[data-profile-read-count] b');
     if (el) el.textContent = data.count;
@@ -902,14 +937,16 @@ function updateProfileView() {
   if (profileManageRoles) profileManageRoles.hidden = !isAdmin;
 
   profileRoleList.replaceChildren();
-  const roleCard = document.createElement('div');
-  roleCard.className = `vv-role${isAdmin ? ' is-admin' : ''}`;
-  const roleTitle = document.createElement('b');
-  roleTitle.textContent = getRoleName(role).toUpperCase();
-  const roleDescription = document.createElement('span');
-  roleDescription.textContent = isAdmin ? 'Acesso a toda a revista' : 'Sua conta na comunidade Velvet';
-  roleCard.append(roleTitle, roleDescription);
-  profileRoleList.append(roleCard);
+  [...cargos].forEach((role) => {
+    const roleCard = document.createElement('div');
+    roleCard.className = `vv-role${role === 'admin' ? ' is-admin' : ''}`;
+    const roleTitle = document.createElement('b');
+    roleTitle.textContent = getRoleName(role).toUpperCase();
+    const roleDescription = document.createElement('span');
+    roleDescription.textContent = role === 'admin' ? 'Acesso a toda a revista' : 'Sua conta na comunidade Velvet';
+    roleCard.append(roleTitle, roleDescription);
+    profileRoleList.append(roleCard);
+  });
 
   let logout = document.querySelector('[data-profile-logout]');
   if (!logout) {
