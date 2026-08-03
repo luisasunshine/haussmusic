@@ -109,7 +109,7 @@ app.get('/api/public/home', (_req, res) => {
 });
 
 function crud(resource, table, fields) {
-  app.get(`/api/admin/${resource}`, requireAdmin, (_req, res) => res.json(db.prepare(`SELECT * FROM ${table} ORDER BY updated_at DESC`).all().map(toCamel)));
+  app.get(`/api/admin/${resource}`, requireAdmin, (_req, res) => res.json(db.prepare(`SELECT * FROM ${table} ORDER BY ${table === 'categories' ? 'name COLLATE NOCASE' : 'updated_at DESC'}`).all().map(toCamel)));
   app.post(`/api/admin/${resource}`, requireAdmin, (req, res) => {
     const id = uuid(); const date = now(); const data = { ...req.body };
     if (table === 'categories') data.slug = slugify(data.slug || data.name);

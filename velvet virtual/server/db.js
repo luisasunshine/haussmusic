@@ -59,4 +59,15 @@ if (!bannerCount) {
     .run('velvet-initial-cover', 'O som que vem antes do amanhã.', 'Entre o palco, a internet e a pista, uma nova geração está transformando a forma de sentir cultura.', 'assets/velvet-virtual-cover.png', 'LER MATÉRIA', '#materias', 0, 6, 1, date, date);
 }
 
+const standardCategories = [
+  'Música', 'Cinema', 'Televisão', 'Séries', 'Streaming', 'Celebridades', 'Cultura Pop', 'Entretenimento', 'Terror', 'Suspense', 'Mistério', 'True Crime', 'Sobrenatural', 'Ficção Científica', 'Fantasia', 'Ação', 'Comédia', 'Romance', 'Drama', 'Documentários', 'Animação', 'Games', 'Tecnologia', 'Moda', 'Beleza', 'Comportamento', 'Lifestyle', 'Arte', 'Literatura', 'Teatro', 'Dança', 'Fotografia', 'Internet', 'Redes Sociais', 'Influenciadores', 'Virais', 'Fandoms', 'Nostalgia', 'Curiosidades', 'Notícias', 'Entrevistas', 'Críticas', 'Resenhas', 'Lançamentos', 'Estreias', 'Bastidores', 'Premiações', 'Festivais', 'Eventos', 'Shows', 'Agenda Cultural', 'Bilheteria', 'Rankings', 'Paradas Musicais', 'Álbuns', 'Singles', 'Videoclipes', 'Artistas', 'Podcasts', 'Cultura Geek', 'Quadrinhos', 'Anime', 'K-Pop', 'Música Pop', 'Rock', 'Rap e Hip-Hop', 'Funk', 'Eletrônica', 'Sertanejo', 'MPB', 'Música Latina', 'Música Internacional', 'Música Nacional', 'Filmes de Terror', 'Histórias Reais', 'Lendas Urbanas', 'Casos Misteriosos', 'Fenômenos Paranormais', 'Crimes Famosos', 'Teorias', 'Universo dos Famosos', 'Indústria Musical', 'Indústria do Cinema', 'Opinião', 'Listas', 'Especial', 'Retrospectiva'
+].sort((first, second) => first.localeCompare(second, 'pt-BR'));
+const categorySlug = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+const categoryDate = new Date().toISOString();
+const insertCategory = db.prepare('INSERT OR IGNORE INTO categories (id,name,slug,description,created_at,updated_at) VALUES (?,?,?,?,?,?)');
+standardCategories.forEach((name) => {
+  const slug = categorySlug(name);
+  insertCategory.run(`velvet-${slug}`, name, slug, '', categoryDate, categoryDate);
+});
+
 module.exports = { db };
