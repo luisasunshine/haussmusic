@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Flame, Heart, Music, Disc3 } from 'lucide-react';
+import { Flame, Heart, Music, Disc3, Mic } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import RankingCard from '@/components/rankings/RankingCard';
 
@@ -26,25 +26,31 @@ export default function Rankings() {
   // new — is reflected within one refetch instead of only affecting
   // whatever happened to already be in a capped "recent" query.
   const topAlbums = [...posts]
-    .filter(p => (p.plays || 0) > 0)
+    .filter(p => !p.is_podcast && (p.plays || 0) > 0)
     .sort((a, b) => (b.plays || 0) - (a.plays || 0))
     .slice(0, TOP_N);
 
   const topSongs = [...songs]
-    .filter(s => (s.plays || 0) > 0)
+    .filter(s => !s.is_podcast && (s.plays || 0) > 0)
     .sort((a, b) => (b.plays || 0) - (a.plays || 0))
     .slice(0, TOP_N);
 
   // Songs and albums together — likes aren't split by type the way plays
   // are, it's one "most curtido on the platform" chart.
   const topLiked = [...posts, ...songs]
-    .filter(item => (item.likes || 0) > 0)
+    .filter(item => !item.is_podcast && (item.likes || 0) > 0)
     .sort((a, b) => (b.likes || 0) - (a.likes || 0))
+    .slice(0, TOP_N);
+
+  const topPodcasts = [...songs]
+    .filter(s => s.is_podcast && (s.plays || 0) > 0)
+    .sort((a, b) => (b.plays || 0) - (a.plays || 0))
     .slice(0, TOP_N);
 
   const tabConfigs = [
     { value: 'albums', icon: Disc3, label: 'Álbuns', activeLabel: 'Álbuns Mais Ouvidos', type: 'plays', list: topAlbums },
     { value: 'songs', icon: Music, label: 'Músicas', activeLabel: 'Músicas Mais Ouvidas', type: 'plays', list: topSongs },
+    { value: 'podcasts', icon: Mic, label: 'Podcasts', activeLabel: 'Podcasts Mais Ouvidos', type: 'plays', list: topPodcasts },
     { value: 'likes', icon: Heart, label: 'Curtidas', activeLabel: 'Mais Curtidos', type: 'likes', list: topLiked },
   ];
 
@@ -87,7 +93,7 @@ export default function Rankings() {
       {/* Tabs at top, then the numbered list below */}
       <div className="px-4 lg:px-6 xl:px-8">
         <Tabs defaultValue="albums" className="w-full">
-          <TabsList className="bg-[#181818] border border-[#282828] mb-4 w-full grid grid-cols-3 p-1 rounded-xl">
+          <TabsList className="bg-[#181818] border border-[#282828] mb-4 w-full grid grid-cols-4 p-1 rounded-xl">
             {tabConfigs.map(tab => (
               <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:bg-[#c0c0c8]/20 data-[state=active]:text-[#e5e5ea] text-[11px] sm:text-sm lg:text-base flex items-center gap-1.5 lg:gap-2 rounded-lg">
                 <tab.icon className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
