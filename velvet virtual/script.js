@@ -292,6 +292,8 @@ const postEditorForm = document.querySelector('[data-post-form]');
 function closePostEditor() { postEditorPanel.hidden = true; }
 
 async function openPostEditor(post, section) {
+  postEditorPanel.hidden = false;
+  postEditorForm.innerHTML = '<div class="vv-admin-empty"><span>…</span><h3>Abrindo editor</h3><p>Preparando os campos da matéria.</p></div>';
   let categories;
   try { categories = await requestApi('/api/admin/categories'); } catch { categories = []; }
   const categoryOptions = categories.map((category) => `<option value="${category.id}" ${post?.categoryId === category.id ? 'selected' : ''}>${escapeHtml(category.name)}</option>`).join('');
@@ -328,7 +330,12 @@ async function openPostEditor(post, section) {
   }));
 
   let coverUrl = post?.coverUrl || '';
-  postEditorForm.querySelector('[data-cover-slot]').replaceWith(createDropzone(coverUrl, (url) => { coverUrl = url; }));
+  try {
+    postEditorForm.querySelector('[data-cover-slot]').replaceWith(createDropzone(coverUrl, (url) => { coverUrl = url; }));
+  } catch (error) {
+    postEditorForm.querySelector('[data-cover-slot]')?.replaceWith(Object.assign(document.createElement('p'), { textContent: 'Não foi possível preparar o envio da imagem.' }));
+    notify(error.message || 'Não foi possível abrir o envio de capa.', 'error');
+  }
 
   postEditorForm.querySelector('[data-post-cancel]')?.addEventListener('click', closePostEditor);
   postEditorForm.querySelector('[data-post-delete]')?.addEventListener('click', async () => {
@@ -353,7 +360,6 @@ async function openPostEditor(post, section) {
     } catch (error) { alert(error.message); }
   };
 
-  postEditorPanel.hidden = false;
 }
 
 async function renderAdmin(resource) {
@@ -391,6 +397,11 @@ document.addEventListener('click', (event) => {
   if (event.target.matches('[data-editor-close]')) closeEditor();
   if (event.target.matches('[data-auth-close]')) closeAuth();
   if (event.target.matches('[data-post-editor-close]') || event.target === postEditorPanel) closePostEditor();
+  const fallbackPostNew = event.target.closest('.vv-admin-toolbar .vv-admin-add:not([data-live-create]):not([data-post-new])');
+  if (fallbackPostNew && document.querySelector('[data-admin-section="posts"]')?.classList.contains('is-visible')) {
+    event.preventDefault();
+    openPostEditor(null, document.querySelector('[data-admin-section="posts"]')).catch((error) => notify(error.message || 'Não foi possível abrir o editor.', 'error'));
+  }
 });
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !postEditorPanel.hidden) closePostEditor(); });
 editorForm.addEventListener('submit', async (event) => { event.preventDefault(); const { resource, item } = session.editor; const payload = Object.fromEntries(new FormData(editorForm)); ['is_featured', 'is_active'].forEach((name) => { if (editorForm.elements[name]) payload[name] = editorForm.elements[name].checked ? 1 : 0; }); if (resource === 'users' && item && !payload.password) delete payload.password; try { await requestApi(`/api/admin/${resource}${item ? `/${item.id}` : ''}`, { method: item ? 'PATCH' : 'POST', body: JSON.stringify(payload) }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
