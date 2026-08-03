@@ -18,14 +18,6 @@ const libraryItems = [
   { icon: Star, label: 'VELVET HITS', page: 'Rankings' },
 ];
 
-function SidebarIcon({ Icon, active = false }) {
-  return (
-    <span className={`sidebar-icon-halo ${active ? 'is-active' : ''}`}>
-      <Icon className={`relative z-10 w-5 h-5 transition-colors ${active ? 'fill-current' : ''}`} />
-    </span>
-  );
-}
-
 export default function Sidebar({ currentPage }) {
   const { user, isAuthenticated } = useAuth();
 
@@ -67,7 +59,10 @@ export default function Sidebar({ currentPage }) {
                   : 'text-[#B3B3B3] hover:text-white'
               }`}
             >
-              <SidebarIcon Icon={item.icon} active={isActive(item.page)} />
+              <item.icon
+                className={`w-6 h-6 ${isActive(item.page) ? 'fill-current' : ''}`}
+                style={isActive(item.page) ? { filter: 'drop-shadow(0 0 6px rgba(192,192,200,0.7))' } : undefined}
+              />
               <span className="text-[9px] font-medium leading-none">{item.label}</span>
             </motion.div>
           </Link>
@@ -88,7 +83,10 @@ export default function Sidebar({ currentPage }) {
                   : 'text-[#B3B3B3] hover:text-white'
               }`}
             >
-              <SidebarIcon Icon={item.icon} active={isActive(item.page)} />
+              <item.icon
+                className={`w-6 h-6 ${isActive(item.page) ? 'fill-current' : ''}`}
+                style={isActive(item.page) ? { filter: 'drop-shadow(0 0 6px rgba(192,192,200,0.7))' } : undefined}
+              />
               <span className="text-[9px] font-medium leading-none">{item.label}</span>
             </motion.div>
           </Link>
@@ -106,7 +104,10 @@ export default function Sidebar({ currentPage }) {
                   : 'text-[#B3B3B3] hover:text-white'
               }`}
             >
-              <SidebarIcon Icon={Award} active={isActive('ArtistDashboard')} />
+              <Award
+                className={`w-6 h-6 ${isActive('ArtistDashboard') ? 'fill-current' : ''}`}
+                style={isActive('ArtistDashboard') ? { filter: 'drop-shadow(0 0 6px rgba(192,192,200,0.7))' } : undefined}
+              />
               <span className="text-[9px] font-medium leading-none">Artista</span>
             </motion.div>
           </Link>
@@ -124,7 +125,10 @@ export default function Sidebar({ currentPage }) {
                   : 'text-[#B3B3B3] hover:text-white'
               }`}
             >
-              <SidebarIcon Icon={Music2} active={isActive('LabelDashboard')} />
+              <Music2
+                className={`w-6 h-6 ${isActive('LabelDashboard') ? 'fill-current' : ''}`}
+                style={isActive('LabelDashboard') ? { filter: 'drop-shadow(0 0 6px rgba(192,192,200,0.7))' } : undefined}
+              />
               <span className="text-[9px] font-medium leading-none">Gravadora</span>
             </motion.div>
           </Link>
@@ -143,7 +147,10 @@ export default function Sidebar({ currentPage }) {
                   : 'text-[#B3B3B3] hover:text-white'
               }`}
             >
-              <SidebarIcon Icon={Mic} active={isActive('PodcastDashboard')} />
+              <Mic
+                className={`w-6 h-6 ${isActive('PodcastDashboard') ? 'fill-current' : ''}`}
+                style={isActive('PodcastDashboard') ? { filter: 'drop-shadow(0 0 6px rgba(192,192,200,0.7))' } : undefined}
+              />
               <span className="text-[9px] font-medium leading-none">Podcast</span>
             </motion.div>
           </Link>
@@ -161,7 +168,10 @@ export default function Sidebar({ currentPage }) {
                   : 'text-[#B3B3B3] hover:text-white'
               }`}
             >
-              <SidebarIcon Icon={Shield} active={isActive('AdminDashboard')} />
+              <Shield
+                className={`w-6 h-6 ${isActive('AdminDashboard') ? 'fill-current' : ''}`}
+                style={isActive('AdminDashboard') ? { filter: 'drop-shadow(0 0 6px rgba(192,192,200,0.7))' } : undefined}
+              />
               <span className="text-[9px] font-medium leading-none">Admin</span>
             </motion.div>
           </Link>
@@ -175,7 +185,7 @@ export default function Sidebar({ currentPage }) {
               whileTap={{ scale: 0.95 }}
               className="relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-200 text-[#c0c0c8] hover:text-white"
             >
-              <SidebarIcon Icon={LogIn} />
+              <LogIn className="w-6 h-6" />
               <span className="text-[9px] font-medium leading-none">Entrar</span>
             </motion.div>
           </Link>
