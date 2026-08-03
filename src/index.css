@@ -102,6 +102,31 @@
     @apply bg-[#262626] rounded-xl p-4 transition-all duration-300 hover:bg-[#333] cursor-pointer;
   }
 
+  /* Cover-only hover treatment: the artwork lifts and catches a soft
+     metallic sheen while the card itself stays in place. */
+  .cover-hover {
+    transition: transform 300ms ease, box-shadow 300ms ease;
+  }
+
+  .cover-hover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(150deg, rgba(255,255,255,0.28), transparent 42%);
+    transition: opacity 300ms ease;
+  }
+
+  .group:hover .cover-hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 28px -16px rgba(0, 0, 0, 0.95), 0 0 20px rgba(220, 220, 230, 0.16);
+  }
+
+  .group:hover .cover-hover::after {
+    opacity: 1;
+  }
+
   /* Brushed-chrome primary button: light-to-dark sweep + top highlight,
      brightens and lifts on hover, presses in on click. */
   .btn-metal,

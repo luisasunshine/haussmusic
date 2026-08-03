@@ -446,7 +446,7 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(song)}
                             className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : ''}`}
                           >
-                            <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
                               {song.cover_url ? (
                                 <img src={song.cover_url} alt={song.title} className="w-full h-full object-cover" />
                               ) : (
@@ -507,7 +507,7 @@ export default function Home() {
                               className="card-spotify group cursor-pointer"
                               onClick={() => { window.location.href = createPageUrl('Release') + '?id=' + show.id; }}
                             >
-                              <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                              <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
                                 {show.cover_url ? (
                                   <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover" />
                                 ) : (
@@ -557,7 +557,7 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(song)}
                             className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : ''}`}
                           >
-                            <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
                               {song.cover_url ? (
                                 <img src={song.cover_url} alt={song.title} className="w-full h-full object-cover" />
                               ) : (
@@ -612,7 +612,7 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(song)}
                             className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : ''}`}
                           >
-                            <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
                               {song.cover_url ? (
                                 <img src={song.cover_url} alt={song.title} className="w-full h-full object-cover" />
                               ) : (
@@ -671,12 +671,10 @@ export default function Home() {
                           initial={{ opacity: 0, y: 12 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.02 }}
-                          whileHover={scheduled ? undefined : { y: -6, scale: 1.02, transition: { type: 'spring', damping: 18, stiffness: 260 } }}
-                          whileTap={scheduled ? undefined : { scale: 0.98 }}
                           onClick={() => dispatchPlaySong(song)}
                           className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
                         >
-                          <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                          <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
                             {song.cover_url ? (
                               <img src={song.cover_url} alt={song.title} className="w-full h-full object-contain" />
                             ) : (
@@ -741,7 +739,7 @@ export default function Home() {
                             transition={{ delay: i * 0.04 }}
                             className="card-spotify group"
                           >
-                            <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
                               {album.cover_url ? (
                                 <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" />
                               ) : (
@@ -789,7 +787,7 @@ export default function Home() {
                             className="card-spotify group cursor-pointer"
                             onClick={() => { window.location.href = createPageUrl('Release') + '?id=' + show.id; }}
                           >
-                            <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
                               {show.cover_url ? (
                                 <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover" />
                               ) : (
@@ -857,7 +855,7 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(episode)}
                             className="card-spotify group cursor-pointer"
                           >
-                            <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
                               {episode.cover_url ? (
                                 <img src={episode.cover_url} alt={episode.title} className="w-full h-full object-cover" />
                               ) : (
