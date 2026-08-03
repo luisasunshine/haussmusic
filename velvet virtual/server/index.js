@@ -104,8 +104,9 @@ app.get('/api/public/home', (_req, res) => {
   const banners = db.prepare('SELECT * FROM banners WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
   const posts = db.prepare("SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name FROM posts LEFT JOIN categories ON categories.id = posts.category_id LEFT JOIN users ON users.id = posts.created_by WHERE posts.status = 'published' ORDER BY posts.published_at DESC, posts.created_at DESC").all().map(toCamel);
   const categories = db.prepare('SELECT id,name,slug,description FROM categories ORDER BY name').all().map(toCamel);
+  const vimosVoce = db.prepare('SELECT * FROM vimos_voce WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
   const settings = Object.fromEntries(db.prepare('SELECT key,value FROM settings').all().map((item) => [item.key, readJson(item.value)]));
-  res.json({ banners, posts, categories, settings });
+  res.json({ banners, posts, categories, vimosVoce, settings });
 });
 
 app.post('/api/public/posts/:id/view', (req, res) => {
@@ -114,6 +115,53 @@ app.post('/api/public/posts/:id/view', (req, res) => {
   const views = post.views + 1;
   db.prepare('UPDATE posts SET views = ? WHERE id = ?').run(views, req.params.id);
   res.json({ views });
+});
+
+const publicComment = (row) => ({ id: row.id, content: row.content, createdAt: row.created_at, authorName: row.display_name, authorAvatar: row.avatar_url });
+const publishedPost = (id) => db.prepare("SELECT id FROM posts WHERE id = ? AND status = 'published'").get(id);
+
+app.get('/api/public/posts/:id/engagement', (req, res) => {
+  if (!publishedPost(req.params.id)) return res.status(404).json({ error: 'Matéria não encontrada.' });
+  const likes = db.prepare('SELECT COUNT(*) AS total FROM post_likes WHERE post_id = ?').get(req.params.id).total;
+  const liked = req.user ? Boolean(db.prepare('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?').get(req.params.id, req.user.id)) : false;
+  const saved = req.user ? Boolean(db.prepare('SELECT 1 FROM post_saves WHERE post_id = ? AND user_id = ?').get(req.params.id, req.user.id)) : false;
+  const comments = db.prepare('SELECT comments.*, users.display_name, users.avatar_url FROM comments JOIN users ON users.id = comments.user_id WHERE comments.post_id = ? ORDER BY comments.created_at ASC').all(req.params.id).map(publicComment);
+  res.json({ likes, liked, saved, comments });
+});
+
+app.post('/api/public/posts/:id/like', requireAuth, (req, res) => {
+  if (!publishedPost(req.params.id)) return res.status(404).json({ error: 'Matéria não encontrada.' });
+  const existing = db.prepare('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (existing) db.prepare('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?').run(req.params.id, req.user.id);
+  else db.prepare('INSERT INTO post_likes (post_id,user_id,created_at) VALUES (?,?,?)').run(req.params.id, req.user.id, now());
+  const likes = db.prepare('SELECT COUNT(*) AS total FROM post_likes WHERE post_id = ?').get(req.params.id).total;
+  res.json({ liked: !existing, likes });
+});
+
+app.post('/api/public/posts/:id/save', requireAuth, (req, res) => {
+  if (!publishedPost(req.params.id)) return res.status(404).json({ error: 'Matéria não encontrada.' });
+  const existing = db.prepare('SELECT 1 FROM post_saves WHERE post_id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (existing) db.prepare('DELETE FROM post_saves WHERE post_id = ? AND user_id = ?').run(req.params.id, req.user.id);
+  else db.prepare('INSERT INTO post_saves (post_id,user_id,created_at) VALUES (?,?,?)').run(req.params.id, req.user.id, now());
+  res.json({ saved: !existing });
+});
+
+app.post('/api/public/posts/:id/comments', requireAuth, (req, res) => {
+  const content = String(req.body.content || '').trim();
+  if (!content) return res.status(400).json({ error: 'Escreva algo antes de comentar.' });
+  if (content.length > 2000) return res.status(400).json({ error: 'Comentário muito longo (máx. 2000 caracteres).' });
+  if (!publishedPost(req.params.id)) return res.status(404).json({ error: 'Matéria não encontrada.' });
+  const id = uuid(); const date = now();
+  db.prepare('INSERT INTO comments (id,post_id,user_id,content,created_at) VALUES (?,?,?,?,?)').run(id, req.params.id, req.user.id, content, date);
+  res.status(201).json(publicComment({ id, content, created_at: date, display_name: req.user.display_name, avatar_url: req.user.avatar_url }));
+});
+
+app.get('/api/public/saved', requireAuth, (req, res) => {
+  const posts = db.prepare(`SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name
+    FROM post_saves JOIN posts ON posts.id = post_saves.post_id
+    LEFT JOIN categories ON categories.id = posts.category_id LEFT JOIN users ON users.id = posts.created_by
+    WHERE post_saves.user_id = ? AND posts.status = 'published' ORDER BY post_saves.created_at DESC`).all(req.user.id).map(toCamel);
+  res.json({ posts });
 });
 
 function crud(resource, table, fields) {
@@ -133,6 +181,8 @@ function crud(resource, table, fields) {
       if (table === 'banners' && name === 'is_active') return 1;
       if (table === 'banners' && name === 'position') return 0;
       if (table === 'banners' && name === 'duration') return 6;
+      if (table === 'vimos_voce' && name === 'is_active') return 1;
+      if (table === 'vimos_voce' && name === 'position') return 0;
       return null;
     });
     try { db.prepare(`INSERT INTO ${table} (${names.join(',')}) VALUES (${names.map(() => '?').join(',')})`).run(...values); } catch (error) { return res.status(400).json({ error: error.message }); }
@@ -151,6 +201,7 @@ function crud(resource, table, fields) {
 crud('categories', 'categories', ['name', 'slug', 'description']);
 crud('posts', 'posts', ['title', 'slug', 'excerpt', 'content', 'cover_url', 'category_id', 'status', 'published_at', 'views', 'is_featured']);
 crud('banners', 'banners', ['title', 'subtitle', 'image_url', 'cta_label', 'cta_url', 'position', 'duration', 'is_active']);
+crud('vimos-voce', 'vimos_voce', ['title', 'description', 'image_url', 'instagram_url', 'position', 'is_active']);
 
 app.get('/api/admin/users', requireAdmin, (_req, res) => res.json(db.prepare('SELECT id,email,display_name,avatar_url,role,created_at,updated_at FROM users ORDER BY created_at DESC').all().map(toCamel)));
 app.post('/api/admin/users', requireAdmin, async (req, res) => {

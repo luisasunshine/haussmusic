@@ -21,11 +21,10 @@
         </a>
       </div>
       <nav class="vv-nav" aria-label="Navegação principal">
-        <a class="is-active" href="#agora">Agora</a>
-        <a href="#musica">Música</a>
-        <a href="#moda">Moda</a>
-        <a href="#cultura">Cultura</a>
-        <a href="#futuro">Futuro</a>
+        <a class="is-active" data-revista-open href="#noticias">Revista</a>
+        <a href="#podcast">Podcasts</a>
+        <a data-week-open href="#novas">Novas</a>
+        <a data-vimos-open href="#vimos-voce">Vimos Você</a>
       </nav>
       <div class="vv-header-actions">
         <button class="vv-icon-button" data-search-toggle aria-label="Abrir busca">⌕</button>
@@ -113,11 +112,17 @@
       <header class="vv-news-header"><a class="vv-brand" href="#top"><span>VELVET</span><em>VIRTUAL</em></a><button data-news-close aria-label="Fechar notícias">×</button></header>
       <main class="vv-news-main">
         <div class="vv-news-heading"><div><p class="vv-eyebrow">TODAS AS NOTÍCIAS</p><h1>O que está<br /><i>acontecendo.</i></h1></div><p>As novidades da Velvet Virtual, atualizadas diretamente pela redação.</p></div>
+        <div class="vv-news-category-tabs" data-news-category-tabs aria-label="Categorias da revista"></div>
         <div class="vv-news-featured" data-news-featured></div>
         <div class="vv-news-list-header"><h2>Mais recentes</h2><span data-news-count>0 PUBLICAÇÕES</span></div>
         <div class="vv-news-grid" data-news-grid></div>
         <div class="vv-news-empty" data-news-empty><span>✦</span><h2>Nenhuma notícia publicada ainda.</h2><p>As postagens cadastradas no painel administrativo aparecerão nesta página.</p></div>
       </main>
+    </section>
+
+    <section class="vv-vimos-page" data-vimos-page hidden aria-label="Vimos Você">
+      <header class="vv-news-header"><a class="vv-brand" href="#top"><span>VELVET</span><em>VIRTUAL</em></a><button data-vimos-close aria-label="Fechar Vimos Você">×</button></header>
+      <main class="vv-vimos-main"><div class="vv-news-heading"><div><p class="vv-eyebrow">VIMOS VOCÊ</p><h1>Você faz parte<br /><i>da cena.</i></h1></div><p>Registros, pessoas e momentos escolhidos pela redação Velvet.</p></div><div class="vv-vimos-grid" data-vimos-grid></div><div class="vv-news-empty" data-vimos-empty><span>✦</span><h2>Em breve, a gente vê você por aqui.</h2><p>Os próximos registros selecionados pela redação aparecerão nesta página.</p></div></main>
     </section>
 
     <section class="vv-read-page" data-read-page hidden aria-label="Leitura da matéria">
@@ -162,28 +167,33 @@
           <div><button type="button" data-profile-edit-cancel>CANCELAR</button><button type="submit">SALVAR ALTERAÇÕES</button></div>
         </form>
         <div class="vv-profile-tabs" role="tablist">
-          <button class="is-active" type="button">VISÃO GERAL</button>
-          <button type="button">SALVOS</button>
+          <button class="is-active" type="button" data-profile-tab-btn="overview">VISÃO GERAL</button>
+          <button type="button" data-profile-tab-btn="saved">SALVOS</button>
           <button class="vv-admin-tab" type="button">ADMIN</button>
         </div>
-        <div class="vv-profile-content">
-          <div class="vv-profile-stat"><b>0</b><span>EDIÇÕES LIDAS</span></div>
-          <div class="vv-profile-stat"><b>0</b><span>MATÉRIAS SALVAS</span></div>
-          <div class="vv-profile-stat"><b>—</b><span>SEU ESPAÇO VELVET</span></div>
-        </div>
-        <section class="vv-roles" aria-label="Cargos da Velvet Virtual">
-          <div class="vv-roles-heading"><div><p class="vv-eyebrow">COMUNIDADE</p><h3>Cargos Velvet</h3></div></div>
-          <div class="vv-role-list">
-            <div class="vv-role is-admin"><b>ADMIN</b><span>Acesso a tudo</span></div>
-            <div class="vv-role"><b>STAFF</b><span>Equipe Velvet</span></div>
-            <div class="vv-role"><b>LEITOR</b><span>Comunidade</span></div>
-            <div class="vv-role"><b>PODCAST</b><span>Vozes e episódios</span></div>
-            <div class="vv-role"><b>MODELO</b><span>Editorial e campanhas</span></div>
-            <div class="vv-role"><b>INFLUENCER</b><span>Parceiros Velvet</span></div>
-            <div class="vv-role"><b>CREATORS</b><span>Criação e colaborações</span></div>
+        <div data-profile-tab-panel="overview">
+          <div class="vv-profile-content">
+            <div class="vv-profile-stat"><b>0</b><span>EDIÇÕES LIDAS</span></div>
+            <div class="vv-profile-stat" data-profile-saved-count><b>0</b><span>MATÉRIAS SALVAS</span></div>
+            <div class="vv-profile-stat"><b>—</b><span>SEU ESPAÇO VELVET</span></div>
           </div>
-        </section>
-        <div class="vv-admin-note"><span>✦</span><p><b>Acesso de administrador</b><br />Você pode gerenciar conteúdos e configurações da Velvet Virtual.</p><button type="button" data-admin-toggle>ABRIR PAINEL ↗</button></div>
+          <section class="vv-roles" aria-label="Cargos da Velvet Virtual">
+            <div class="vv-roles-heading"><div><p class="vv-eyebrow">COMUNIDADE</p><h3>Cargos Velvet</h3></div></div>
+            <div class="vv-role-list">
+              <div class="vv-role is-admin"><b>ADMIN</b><span>Acesso a tudo</span></div>
+              <div class="vv-role"><b>STAFF</b><span>Equipe Velvet</span></div>
+              <div class="vv-role"><b>LEITOR</b><span>Comunidade</span></div>
+              <div class="vv-role"><b>PODCAST</b><span>Vozes e episódios</span></div>
+              <div class="vv-role"><b>MODELO</b><span>Editorial e campanhas</span></div>
+              <div class="vv-role"><b>INFLUENCER</b><span>Parceiros Velvet</span></div>
+              <div class="vv-role"><b>CREATORS</b><span>Criação e colaborações</span></div>
+            </div>
+          </section>
+          <div class="vv-admin-note"><span>✦</span><p><b>Acesso de administrador</b><br />Você pode gerenciar conteúdos e configurações da Velvet Virtual.</p><button type="button" data-admin-toggle>ABRIR PAINEL ↗</button></div>
+        </div>
+        <div data-profile-tab-panel="saved" hidden>
+          <div class="vv-saved-list" data-saved-list></div>
+        </div>
       </div>
     </section>
     <section class="vv-admin" data-admin-panel hidden aria-label="Painel administrativo">
@@ -194,6 +204,7 @@
           <button data-admin-tab="posts">▤ Postagens</button>
           <button data-admin-tab="banners">▧ Banners de início</button>
           <button data-admin-tab="users">♙ Usuários</button>
+          <button data-admin-tab="vimos-voce">◉ Vimos Você</button>
           <button data-admin-tab="settings">⚙ Configurações</button>
         </nav>
         <button class="vv-admin-exit" data-admin-toggle>← SAIR DO PAINEL</button>
@@ -208,6 +219,7 @@
           <section class="vv-admin-section" data-admin-section="posts"><div class="vv-admin-toolbar"><input placeholder="Buscar postagens..." /><button class="vv-admin-add">+ NOVA POSTAGEM</button></div><div class="vv-admin-empty"><span>▤</span><h3>Nenhuma postagem criada.</h3><p>Use “Nova postagem” para publicar o primeiro conteúdo.</p></div></section>
           <section class="vv-admin-section" data-admin-section="banners"><div class="vv-admin-toolbar"><p>Escolha o que aparece no topo da página inicial.</p><button class="vv-admin-add">+ NOVO BANNER</button></div><div class="vv-admin-empty"><span>▧</span><h3>Nenhum banner ativo.</h3><p>Crie o destaque que irá aparecer no início da revista.</p></div></section>
           <section class="vv-admin-section" data-admin-section="users"><div class="vv-admin-toolbar"><input placeholder="Buscar usuários..." /></div><div class="vv-admin-empty"><span>♙</span><h3>Nenhum usuário cadastrado.</h3><p>Os usuários aparecerão aqui quando criarem suas contas.</p></div></section>
+          <section class="vv-admin-section" data-admin-section="vimos-voce"><div class="vv-admin-toolbar"><p>Fotos e momentos da comunidade Velvet.</p><button class="vv-admin-add">+ ADICIONAR FOTO</button></div><div class="vv-admin-empty"><span>◉</span><h3>Nenhum momento publicado.</h3><p>Adicione uma foto, título, descrição e o link do Instagram.</p></div></section>
           <section class="vv-admin-section" data-admin-section="settings"><div class="vv-settings"><label>Nome da revista<input value="Velvet Virtual" /></label><label>Link do Discord<input value="https://discord.com" /></label><label>Link do Velvet Music<input value="https://velvetentertainment.vercel.app" /></label><button class="vv-admin-add">SALVAR CONFIGURAÇÕES</button></div></section>
         </div>
       </div>

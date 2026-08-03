@@ -11,7 +11,12 @@ const newsGrid = document.querySelector('[data-news-grid]');
 const newsFeatured = document.querySelector('[data-news-featured]');
 const newsEmpty = document.querySelector('[data-news-empty]');
 const newsCount = document.querySelector('[data-news-count]');
+const newsCategoryTabs = document.querySelector('[data-news-category-tabs]');
+const vimosPage = document.querySelector('[data-vimos-page]');
+const vimosGrid = document.querySelector('[data-vimos-grid]');
+const vimosEmpty = document.querySelector('[data-vimos-empty]');
 let activeNewsCategory = null;
+let newsWeekOnly = false;
 const API_URL = window.VELVET_VIRTUAL_API_URL || 'https://velvetvirtual.up.railway.app';
 const toast = document.querySelector('[data-toast]');
 let toastTimer;
@@ -155,14 +160,20 @@ async function loadNews() {
     const response = await fetch(`${API_URL}/api/public/home`);
     if (!response.ok) throw new Error('Falha ao carregar notícias');
     const data = await response.json();
-    const posts = [...data.posts].filter((post) => !activeNewsCategory || post.categoryName === activeNewsCategory).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
+    const weekStart = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const posts = [...data.posts].filter((post) => (!activeNewsCategory || post.categoryName === activeNewsCategory) && (!newsWeekOnly || new Date(post.publishedAt || post.createdAt).getTime() >= weekStart)).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
+    if (newsCategoryTabs) {
+      newsCategoryTabs.replaceChildren();
+      const all = document.createElement('button'); all.type = 'button'; all.textContent = 'TODAS'; all.classList.toggle('is-active', !activeNewsCategory); all.addEventListener('click', () => openNews()); newsCategoryTabs.append(all);
+      (data.categories || []).forEach((category) => { const button = document.createElement('button'); button.type = 'button'; button.textContent = category.name; button.classList.toggle('is-active', activeNewsCategory === category.name); button.addEventListener('click', () => openNews(category.name)); newsCategoryTabs.append(button); });
+    }
     const highlighted = [...posts].filter((post) => Number(post.isFeatured) || Number(post.views) > 0).sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured) || Number(b.views) - Number(a.views)).slice(0, 2);
     const featuredIds = new Set(highlighted.map((post) => post.id));
     highlighted.forEach((post, index) => newsFeatured.append(articleCard(post, index === 0)));
     posts.filter((post) => !featuredIds.has(post.id)).forEach((post) => newsGrid.append(articleCard(post)));
     newsCount.textContent = `${posts.length} PUBLICAÇ${posts.length === 1 ? 'ÃO' : 'ÕES'}`;
-    newsPage.querySelector('.vv-news-heading .vv-eyebrow').textContent = activeNewsCategory ? `CATEGORIA · ${activeNewsCategory.toUpperCase()}` : 'TODAS AS NOTÍCIAS';
-    newsPage.querySelector('.vv-news-list-header h2').textContent = activeNewsCategory ? `Em ${activeNewsCategory}` : 'Mais recentes';
+    newsPage.querySelector('.vv-news-heading .vv-eyebrow').textContent = newsWeekOnly ? 'NOVIDADES DA SEMANA' : activeNewsCategory ? `CATEGORIA · ${activeNewsCategory.toUpperCase()}` : 'TODAS AS NOTÍCIAS';
+    newsPage.querySelector('.vv-news-list-header h2').textContent = newsWeekOnly ? 'Novas nesta semana' : activeNewsCategory ? `Em ${activeNewsCategory}` : 'Mais recentes';
     newsEmpty.hidden = posts.length > 0;
   } catch {
     newsEmpty.hidden = false;
@@ -170,12 +181,30 @@ async function loadNews() {
   }
 }
 
-function openNews(category = null) { activeNewsCategory = category; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#noticias'); loadNews(); }
-function closeNews() { activeNewsCategory = null; newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
+function openNews(category = null, weekOnly = false) { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', weekOnly ? '#novas' : '#noticias'); loadNews(); }
+function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
+document.querySelectorAll('[data-revista-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(); }));
+document.querySelectorAll('[data-week-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(null, true); }));
 document.querySelectorAll('[data-category-news]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); openNews(link.dataset.categoryNews); }));
 document.querySelectorAll('[data-news-close]').forEach((button) => button.addEventListener('click', closeNews));
 if (window.location.hash === '#noticias') openNews();
+if (window.location.hash === '#novas') openNews(null, true);
+
+async function loadVimosVoce() {
+  vimosGrid.replaceChildren();
+  try {
+    const response = await fetch(`${API_URL}/api/public/home`); if (!response.ok) throw new Error();
+    const items = (await response.json()).vimosVoce || [];
+    items.forEach((item) => { const article = document.createElement('article'); article.className = 'vv-vimos-card'; article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">VIMOS VOCÊ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || '')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`; vimosGrid.append(article); });
+    vimosEmpty.hidden = items.length > 0;
+  } catch { vimosEmpty.hidden = false; }
+}
+function openVimos() { vimosPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
+function closeVimos() { vimosPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
+document.querySelectorAll('[data-vimos-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openVimos(); }));
+document.querySelectorAll('[data-vimos-close]').forEach((button) => button.addEventListener('click', closeVimos));
+if (window.location.hash === '#vimos-voce') openVimos();
 
 async function loadFooterSettings() {
   try {
@@ -347,6 +376,7 @@ function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, 
 function openEditor(resource, item = null) {
   const schemas = {
     banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
+    'vimos-voce': [['title', 'Título', 'text'], ['description', 'Descrição', 'textarea'], ['image_url', 'Foto', 'url'], ['instagram_url', 'Link do Instagram', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Publicação ativa', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
     users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargo', 'select', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
   };
@@ -552,9 +582,10 @@ async function renderAdmin(resource) {
       section.querySelector('form').addEventListener('submit', async (event) => { event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget)); await requestApi('/api/admin/settings', { method: 'PUT', body: JSON.stringify(values) }); alert('Configurações salvas.'); }); return;
     }
     const items = await requestApi(`/api/admin/${resource}`);
-    const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p>${resource === 'users' ? '' : `<button class="vv-admin-add" data-live-create="${resource}">+ CRIAR</button>`}</div>`;
-    if (!items.length) { section.innerHTML = toolbar + adminEmpty(resource === 'banners' ? '▧' : resource === 'categories' ? '◇' : '♙', 'Nada por aqui ainda.', 'Crie o primeiro item usando o botão acima.'); return; }
+    const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'vimos-voce' ? 'Fotos e momentos da comunidade Velvet.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p>${resource === 'users' ? '' : `<button class="vv-admin-add" data-live-create="${resource}">+ ${resource === 'vimos-voce' ? 'ADICIONAR FOTO' : 'CRIAR'}</button>`}</div>`;
+    if (!items.length) { section.innerHTML = toolbar + adminEmpty(resource === 'banners' ? '▧' : resource === 'vimos-voce' ? '◉' : resource === 'categories' ? '◇' : '♙', 'Nada por aqui ainda.', 'Crie o primeiro item usando o botão acima.'); return; }
     if (resource === 'banners') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'ATIVO' : 'INATIVO'}</span> · ORDEM ${item.position || 0}</p></div><button data-live-edit="banners" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
+    if (resource === 'vimos-voce') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.description || 'Sem descrição')} · ORDEM ${item.position || 0}</p></div><button data-live-edit="vimos-voce" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'categories') section.innerHTML = toolbar + `<div class="vv-category-admin">${items.map((item) => `<div><b>${escapeHtml(item.name)}</b><span>${escapeHtml(item.description || item.slug)}</span><button data-live-edit="categories" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
     if (resource === 'users') section.innerHTML = toolbar + `<div class="vv-admin-table"><div class="vv-admin-row is-head"><span>USUÁRIO</span><span>E-MAIL</span><span>CARGO</span><span></span></div>${items.map((item) => `<div class="vv-admin-row"><b>${escapeHtml(item.displayName)}</b><span>${escapeHtml(item.email)}</span><i>${escapeHtml(item.role)}</i><button data-live-edit="users" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
     section.dataset.items = JSON.stringify(items);

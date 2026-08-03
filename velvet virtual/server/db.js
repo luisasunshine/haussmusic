@@ -38,8 +38,28 @@ db.exec(`
     cta_label TEXT, cta_url TEXT, position INTEGER NOT NULL DEFAULT 0,
     duration INTEGER NOT NULL DEFAULT 6, is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS vimos_voce (
+    id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT, image_url TEXT,
+    instagram_url TEXT, position INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+  );
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS post_likes (
+    post_id TEXT NOT NULL, user_id TEXT NOT NULL, created_at TEXT NOT NULL,
+    PRIMARY KEY (post_id, user_id),
+    FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
+  );
+  CREATE TABLE IF NOT EXISTS post_saves (
+    post_id TEXT NOT NULL, user_id TEXT NOT NULL, created_at TEXT NOT NULL,
+    PRIMARY KEY (post_id, user_id),
+    FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
+  );
+  CREATE TABLE IF NOT EXISTS comments (
+    id TEXT PRIMARY KEY, post_id TEXT NOT NULL, user_id TEXT NOT NULL,
+    content TEXT NOT NULL, created_at TEXT NOT NULL,
+    FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
   );
 `);
 
