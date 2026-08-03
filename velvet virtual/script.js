@@ -359,3 +359,90 @@ document.querySelector('.vv-subscribe-form').addEventListener('submit', (event) 
   message.textContent = 'Você entrou para a lista. Bem-vinda à Velvet Virtual.';
   event.currentTarget.reset();
 });
+
+// Perfil: navegar é livre; ações pessoais só existem para contas autenticadas.
+const profileName = document.querySelector('.vv-profile-head h2');
+const profileEmail = document.querySelector('.vv-profile-head h2 + p');
+const profileAvatar = document.querySelector('.vv-profile-avatar');
+const profileRole = document.querySelector('.vv-current-role');
+const profileAdminTab = document.querySelector('.vv-admin-tab');
+const profileAdminNote = document.querySelector('.vv-admin-note');
+const profileManageRoles = document.querySelector('.vv-roles-heading button');
+const profileRoleList = document.querySelector('.vv-role-list');
+
+function getRoleName(role) {
+  return ({ admin: 'Admin', staff: 'Staff', leitor: 'Leitor', podcast: 'Podcast', modelo: 'Modelo', influencer: 'Influencer', creators: 'Creators' })[role] || 'Leitor';
+}
+
+function updateProfileView() {
+  if (!session.user) return;
+  const user = session.user;
+  const role = user.isAdmin ? 'admin' : (user.role || 'leitor');
+  const name = user.name || user.email?.split('@')[0] || 'Leitor Velvet';
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'VV';
+  const isAdmin = role === 'admin';
+
+  profileName.textContent = name;
+  profileEmail.textContent = user.email || 'Conta Velvet';
+  profileAvatar.textContent = initials;
+  profileAvatar.style.backgroundImage = user.avatarUrl ? `url("${user.avatarUrl}")` : '';
+  profileAvatar.style.backgroundSize = 'cover';
+  profileAvatar.style.backgroundPosition = 'center';
+  profileRole.textContent = `${getRoleName(role).toUpperCase()} · ${isAdmin ? 'ACESSO TOTAL' : 'MEMBRO VELVET'}`;
+  profileAdminTab.hidden = !isAdmin;
+  profileAdminNote.hidden = !isAdmin;
+  if (profileManageRoles) profileManageRoles.hidden = !isAdmin;
+
+  profileRoleList.replaceChildren();
+  const roleCard = document.createElement('div');
+  roleCard.className = `vv-role${isAdmin ? ' is-admin' : ''}`;
+  const roleTitle = document.createElement('b');
+  roleTitle.textContent = getRoleName(role).toUpperCase();
+  const roleDescription = document.createElement('span');
+  roleDescription.textContent = isAdmin ? 'Acesso a toda a revista' : 'Sua conta na comunidade Velvet';
+  roleCard.append(roleTitle, roleDescription);
+  profileRoleList.append(roleCard);
+
+  let logout = document.querySelector('[data-profile-logout]');
+  if (!logout) {
+    logout = document.createElement('button');
+    logout.type = 'button';
+    logout.className = 'vv-profile-logout';
+    logout.dataset.profileLogout = '';
+    logout.textContent = 'SAIR DA CONTA';
+    document.querySelector('.vv-profile-card').append(logout);
+    logout.addEventListener('click', () => {
+      localStorage.removeItem('vv_auth_token');
+      session.token = null;
+      session.user = null;
+      profilePanel.hidden = true;
+      document.body.classList.remove('is-locked');
+      notify('Você saiu da sua conta Velvet.');
+    });
+  }
+}
+
+window.requireVelvetLogin = (action = 'continuar') => {
+  if (session.user) return true;
+  openAuth(`Entre ou crie uma conta para ${action}.`);
+  return false;
+};
+
+profileButtons.forEach((button) => button.addEventListener('click', () => {
+  if (button.classList.contains('vv-profile-close')) return;
+  window.setTimeout(() => {
+    if (!session.user) {
+      profilePanel.hidden = true;
+      document.body.classList.remove('is-locked');
+      openAuth('Entre ou crie uma conta para acessar seu perfil.');
+      return;
+    }
+    updateProfileView();
+  }, 0);
+}));
+
+document.addEventListener('click', (event) => {
+  const personalAction = event.target.closest('[data-requires-auth]');
+  if (!personalAction) return;
+  if (!window.requireVelvetLogin(personalAction.dataset.requiresAuth || 'continuar')) event.preventDefault();
+});
