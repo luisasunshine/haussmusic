@@ -38,6 +38,7 @@ function formatPlays(n) {
 
 export default function Home() {
   const [activePill, setActivePill] = useState('all');
+  const [activePodcastCategory, setActivePodcastCategory] = useState('all');
   const [currentPlayingSong, setCurrentPlayingSong] = useState(null);
   const [activeSongId, setActiveSongId] = useState(null);
   const [user, setUser] = useState(null);
@@ -147,6 +148,10 @@ export default function Home() {
   const musicSongs = allSongs.filter(s => !s.is_podcast);
   const podcastShows = posts.filter(p => p.is_podcast).slice(0, 12);
   const podcastEpisodes = [...allSongs].filter(s => s.is_podcast).sort((a, b) => (b.plays || 0) - (a.plays || 0));
+  const podcastCategories = [...new Set(podcastEpisodes.flatMap((episode) => Array.isArray(episode.categories) ? episode.categories : []))].sort();
+  const visiblePodcastEpisodes = activePodcastCategory === 'all'
+    ? podcastEpisodes
+    : podcastEpisodes.filter((episode) => episode.categories?.includes(activePodcastCategory));
   const topPlayed = [...musicSongs].sort((a, b) => (b.plays || 0) - (a.plays || 0)).slice(0, 8);
   const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const recentSongs = [...musicSongs]
@@ -809,6 +814,71 @@ export default function Home() {
                     </div>
                   ) : (
                     <p className="text-[#B3B3B3] text-center py-10">Nenhum podcast publicado ainda</p>
+                  )}
+
+                  {podcastEpisodes.length > 0 && (
+                    <section className="mt-10">
+                      <div className="flex items-end justify-between gap-4 mb-4">
+                        <div>
+                          <h2 className="text-xl lg:text-2xl font-bold text-white">Ouça por categoria</h2>
+                          <p className="text-sm text-[#B3B3B3]">Encontre episódios pelo assunto que mais te interessa</p>
+                        </div>
+                      </div>
+
+                      {podcastCategories.length > 0 && (
+                        <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-none">
+                          <button
+                            onClick={() => setActivePodcastCategory('all')}
+                            className={activePodcastCategory === 'all' ? 'btn-pill-active whitespace-nowrap' : 'btn-pill-inactive whitespace-nowrap'}
+                          >
+                            Todos
+                          </button>
+                          {podcastCategories.map((category) => (
+                            <button
+                              key={category}
+                              onClick={() => setActivePodcastCategory(category)}
+                              className={activePodcastCategory === category ? 'btn-pill-active whitespace-nowrap' : 'btn-pill-inactive whitespace-nowrap'}
+                            >
+                              {category}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+                        {visiblePodcastEpisodes.slice(0, 12).map((episode, index) => (
+                          <motion.div
+                            key={episode.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.04 }}
+                            onClick={() => dispatchPlaySong(episode)}
+                            className="card-spotify group cursor-pointer"
+                          >
+                            <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                              {episode.cover_url ? (
+                                <img src={episode.cover_url} alt={episode.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
+                                  <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
+                                </div>
+                              )}
+                              <motion.button
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={(event) => { event.stopPropagation(); dispatchPlaySong(episode); }}
+                                className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                              >
+                                {currentPlayingSong?.id === episode.id ? <Pause className="w-5 h-5 text-black fill-black" /> : <Play className="w-5 h-5 text-black fill-black ml-0.5" />}
+                              </motion.button>
+                            </div>
+                            <h3 className="font-bold text-white text-sm truncate">{episode.title}</h3>
+                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{episode.artist}</p>
+                            {episode.categories?.length > 0 && <p className="text-[11px] text-[#c0c0c8] truncate mt-1">{episode.categories.join(' · ')}</p>}
+                          </motion.div>
+                        ))}
+                      </div>
+                    </section>
                   )}
                 </section>
               )}
