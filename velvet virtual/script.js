@@ -391,6 +391,24 @@ async function renderAdmin(resource) {
 }
 
 document.querySelectorAll('[data-admin-tab]').forEach((tab) => tab.addEventListener('click', () => renderAdmin(tab.dataset.adminTab)));
+// Delegação em captura: mantém os atalhos de postagem ativos mesmo após a lista ser redesenhada.
+document.addEventListener('click', (event) => {
+  const newPost = event.target.closest('[data-post-new], .vv-admin-header .vv-admin-add, [data-admin-section="posts"] .vv-admin-toolbar .vv-admin-add');
+  if (newPost) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    openPostEditor(null, document.querySelector('[data-admin-section="posts"]')).catch((error) => notify(error.message || 'Não foi possível abrir o editor.', 'error'));
+    return;
+  }
+  const editPost = event.target.closest('[data-post-edit]');
+  if (!editPost) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  const section = document.querySelector('[data-admin-section="posts"]');
+  let post = JSON.parse(section?.dataset.items || '[]').find((item) => item.id === editPost.dataset.postEdit);
+  if (!post) { notify('Recarregue a lista de postagens e tente novamente.', 'error'); return; }
+  openPostEditor(post, section).catch((error) => notify(error.message || 'Não foi possível abrir o editor.', 'error'));
+}, true);
 document.addEventListener('click', (event) => {
   const create = event.target.closest('[data-live-create]'); if (create) openEditor(create.dataset.liveCreate);
   const edit = event.target.closest('[data-live-edit]'); if (edit) { const section = document.querySelector(`[data-admin-section="${edit.dataset.liveEdit}"]`); const item = JSON.parse(section.dataset.items || '[]').find((row) => row.id === edit.dataset.id); openEditor(edit.dataset.liveEdit, item); }
