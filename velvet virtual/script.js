@@ -130,6 +130,24 @@ async function loadHomeFeatured() {
   } catch { /* Mantém o estado vazio enquanto a API não estiver disponível. */ }
 }
 
+function vimosCard(item) {
+  const article = document.createElement('article'); article.className = 'vv-vimos-card';
+  article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">VIMOS VOCÊ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || 'Um momento escolhido pela Velvet.')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`;
+  return article;
+}
+
+async function loadHomeVimos() {
+  const target = document.querySelector('[data-home-vimos]'); if (!target) return;
+  try {
+    const response = await fetch(`${API_URL}/api/public/home`); if (!response.ok) throw new Error();
+    const items = (await response.json()).vimosVoce || [];
+    if (!items.length) return;
+    const grid = document.createElement('div'); grid.className = 'vv-vimos-grid vv-vimos-home-grid';
+    items.slice(0, 3).forEach((item) => grid.append(vimosCard(item)));
+    target.replaceChildren(grid);
+  } catch { /* Mantém a mensagem editorial enquanto a API não estiver disponível. */ }
+}
+
 // Increments the view counter once per post per browser session (so
 // reopening the same matéria repeatedly doesn't inflate the count), then
 // patches every place that number is currently on screen — the reading
@@ -336,6 +354,7 @@ async function loadFooterSettings() {
 }
 loadFooterSettings();
 loadHomeFeatured();
+loadHomeVimos();
 
 async function loadHeroCarousel() {
   try {
