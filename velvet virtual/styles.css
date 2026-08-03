@@ -109,3 +109,35 @@ h1,h2,h3,p{margin-top:0}.vv-hero h1{font-size:clamp(52px,7vw,108px);line-height:
 .vv-read-body{color:#d8d5dd;font-size:16px;line-height:1.8}
 .vv-read-body p{margin:0 0 20px}
 @media (max-width:800px){.vv-read-main{padding-inline:18px}}
+
+/* Curtir / comentar / salvar, at the end of a matéria */
+.vv-read-actions{display:flex;gap:10px;margin:36px 0 28px;padding:18px 0;border-top:1px solid #282828;border-bottom:1px solid #282828}
+.vv-read-action{display:flex;align-items:center;gap:7px;padding:10px 16px;border:1px solid #383838;border-radius:100px;background:transparent;color:#B3B3B3;font:600 11px 'DM Mono',monospace;letter-spacing:.04em}
+.vv-read-action:hover{border-color:#c0c0c8;color:#fff}
+.vv-read-action[data-read-like].is-active{border-color:#ff6b6b;background:rgba(255,107,107,.12);color:#ff9b9b}
+.vv-read-action[data-read-save].is-active{border-color:#ffd24d;background:rgba(255,210,77,.12);color:#ffd24d}
+.vv-read-comments h3{margin:0 0 18px;font-size:19px;letter-spacing:-.03em}
+.vv-comment-form{display:flex;gap:10px;margin-bottom:26px;align-items:flex-start}
+.vv-comment-form textarea{flex:1;min-height:44px;max-height:160px;padding:11px 13px;border:1px solid #383838;border-radius:8px;background:#121212;color:#fff;font:14px Manrope,Arial,sans-serif;resize:vertical}
+.vv-comment-form textarea:focus{outline:none;border-color:#c0c0c8}
+.vv-comment-form button{flex-shrink:0;padding:11px 16px;border:0;border-radius:8px;background:#c0c0c8;color:#111;font:700 9px 'DM Mono',monospace;letter-spacing:.06em}
+.vv-comment-form button:disabled{opacity:.5}
+.vv-comment-login{margin:0 0 26px;padding:14px;border:1px solid #282828;border-radius:8px;background:#141414;color:#8a8a8a;font-size:12px}
+.vv-comment-login button{border:0;background:none;color:#c0c0c8;font-weight:700;text-decoration:underline;padding:0;cursor:pointer}
+.vv-comment{display:flex;gap:12px;padding:16px 0;border-top:1px solid #232323}
+.vv-comment:first-child{border-top:0}
+.vv-comment-avatar{width:34px;height:34px;border-radius:50%;background:#282828 center/cover no-repeat;display:grid;place-items:center;color:#8a8a8a;font:700 12px 'DM Mono',monospace;flex-shrink:0}
+.vv-comment-body{flex:1;min-width:0}
+.vv-comment-body b{font-size:12.5px}
+.vv-comment-body time{margin-left:8px;color:#696969;font-size:10px}
+.vv-comment-body p{margin:5px 0 0;color:#c7c4cd;font-size:13.5px;line-height:1.55;white-space:pre-wrap}
+.vv-comments-empty{padding:20px 0;color:#696969;font-size:12px}
+
+/* Salvos, inside the profile panel */
+.vv-saved-list{display:grid;gap:9px;padding:0 32px 32px}
+.vv-saved-item{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid #282828;border-radius:8px;background:#181818;cursor:pointer;text-align:left;width:100%}
+.vv-saved-item:hover{border-color:#3a3a3a}
+.vv-saved-item-cover{width:52px;height:52px;border-radius:6px;background:#121212 center/cover no-repeat;flex-shrink:0}
+.vv-saved-item b{display:block;font-size:13px}
+.vv-saved-item span{color:#696969;font-size:11px}
+.vv-saved-empty{padding:12px 32px 30px;color:#696969;font-size:12px}

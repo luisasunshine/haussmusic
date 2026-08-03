@@ -101,6 +101,35 @@ function articleCard(post, large = false) {
   return article;
 }
 
+function homeStory(post, kind = 'recent') {
+  const story = document.createElement('article');
+  story.className = kind === 'top' ? 'vv-story vv-story-large' : 'vv-story vv-story-small';
+  story.tabIndex = 0; story.setAttribute('role', 'button'); story.setAttribute('aria-label', `Ler matéria: ${post.title}`);
+  if (kind === 'top') {
+    story.style.backgroundImage = post.coverUrl ? `url('${post.coverUrl}')` : 'linear-gradient(135deg,#25232c,#0b0b0f)';
+    story.innerHTML = `<div class="vv-story-overlay"></div><div class="vv-story-content"><p class="vv-label vv-label-cyan">MAIS VISTA</p><h3>${escapeHtml(post.title)}</h3><p class="vv-story-byline">${viewsLabel(post)} · ${escapeHtml(post.categoryName || 'VELVET')}</p></div>`;
+  } else {
+    story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div><div class="vv-story-text"><p class="vv-label">RECENTE</p><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.excerpt || `${post.categoryName || 'Velvet'} · nova matéria`)}</p></div>`;
+  }
+  story.addEventListener('click', () => openPost(post));
+  story.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPost(post); } });
+  return story;
+}
+
+async function loadHomeFeatured() {
+  const target = document.querySelector('[data-home-featured]'); if (!target) return;
+  try {
+    const response = await fetch(`${API_URL}/api/public/home`); if (!response.ok) throw new Error();
+    const posts = (await response.json()).posts || [];
+    if (!posts.length) return;
+    const recent = [...posts].sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
+    const top = [...posts].sort((a, b) => Number(b.views || 0) - Number(a.views || 0) || new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt))[0];
+    const grid = document.createElement('div'); grid.className = 'vv-feature-grid'; grid.append(homeStory(top, 'top'));
+    recent.filter((post) => post.id !== top.id).slice(0, 2).forEach((post) => grid.append(homeStory(post)));
+    target.replaceChildren(grid);
+  } catch { /* Mantém o estado vazio enquanto a API não estiver disponível. */ }
+}
+
 // Increments the view counter once per post per browser session (so
 // reopening the same matéria repeatedly doesn't inflate the count), then
 // patches every place that number is currently on screen — the reading
@@ -136,7 +165,93 @@ function metaLine(post) {
   const dateLabel = (post.publishedAt || post.createdAt) ? new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
   return [post.authorName, dateLabel, viewsLabel(post)].filter(Boolean).join(' · ');
 }
+let currentReadPost = null;
+
+function resetEngagementUI() {
+  document.querySelector('[data-read-like]').classList.remove('is-active');
+  document.querySelector('[data-read-like-icon]').textContent = '♡';
+  document.querySelector('[data-read-like-count]').textContent = '0';
+  document.querySelector('[data-read-save]').classList.remove('is-active');
+  document.querySelector('[data-read-save-icon]').textContent = '🔖';
+  document.querySelector('[data-comments-list]').innerHTML = '';
+  document.querySelector('[data-comments-count]').textContent = '0';
+  document.querySelector('[data-comment-form] textarea').value = '';
+  document.querySelector('[data-comment-login]').hidden = !!session.user;
+  document.querySelector('[data-comment-form]').hidden = !session.user;
+}
+function updateLikeButton(post) {
+  document.querySelector('[data-read-like]').classList.toggle('is-active', Boolean(post.liked));
+  document.querySelector('[data-read-like-icon]').textContent = post.liked ? '❤' : '♡';
+  document.querySelector('[data-read-like-count]').textContent = Number(post.likes || 0);
+}
+function updateSaveButton(post) {
+  document.querySelector('[data-read-save]').classList.toggle('is-active', Boolean(post.saved));
+  document.querySelector('[data-read-save-icon]').textContent = post.saved ? '✅' : '🔖';
+}
+function commentAvatarHtml(comment) {
+  const initials = (comment.authorName || 'V').trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'V';
+  return comment.authorAvatar
+    ? `<div class="vv-comment-avatar" style="background-image:url('${escapeHtml(comment.authorAvatar)}')"></div>`
+    : `<div class="vv-comment-avatar">${escapeHtml(initials)}</div>`;
+}
+function renderComments(comments) {
+  document.querySelector('[data-comments-count]').textContent = comments.length;
+  const list = document.querySelector('[data-comments-list]');
+  list.innerHTML = comments.length
+    ? comments.map((comment) => `<div class="vv-comment">${commentAvatarHtml(comment)}<div class="vv-comment-body"><b>${escapeHtml(comment.authorName || 'Leitor Velvet')}</b><time>${new Date(comment.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</time><p>${escapeHtml(comment.content)}</p></div></div>`).join('')
+    : '<p class="vv-comments-empty">Nenhum comentário ainda. Seja a primeira pessoa a comentar.</p>';
+}
+async function loadEngagement(post) {
+  try {
+    const data = await requestApi(`/api/public/posts/${post.id}/engagement`);
+    if (currentReadPost !== post) return; // user moved to a different matéria while this was in flight
+    Object.assign(post, { likes: data.likes, liked: data.liked, saved: data.saved, comments: data.comments });
+    updateLikeButton(post); updateSaveButton(post); renderComments(data.comments);
+  } catch { /* keep the neutral state set by resetEngagementUI */ }
+}
+document.querySelector('[data-read-like]').addEventListener('click', async () => {
+  if (!currentReadPost || !window.requireVelvetLogin('curtir matérias')) return;
+  try {
+    const data = await requestApi(`/api/public/posts/${currentReadPost.id}/like`, { method: 'POST' });
+    Object.assign(currentReadPost, data);
+    updateLikeButton(currentReadPost);
+  } catch (error) { notify(error.message, 'error'); }
+});
+document.querySelector('[data-read-save]').addEventListener('click', async () => {
+  if (!currentReadPost || !window.requireVelvetLogin('salvar matérias')) return;
+  try {
+    const data = await requestApi(`/api/public/posts/${currentReadPost.id}/save`, { method: 'POST' });
+    currentReadPost.saved = data.saved;
+    updateSaveButton(currentReadPost);
+    notify(data.saved ? 'Matéria salva no seu perfil.' : 'Matéria removida de Salvos.');
+  } catch (error) { notify(error.message, 'error'); }
+});
+document.querySelector('[data-read-comment-focus]').addEventListener('click', () => {
+  if (!window.requireVelvetLogin('comentar')) return;
+  const textarea = document.querySelector('[data-comment-form] textarea');
+  textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  textarea.focus();
+});
+document.querySelector('[data-comment-login-button]').addEventListener('click', () => window.requireVelvetLogin('comentar'));
+document.querySelector('[data-comment-form]').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!currentReadPost) return;
+  const form = event.currentTarget;
+  const content = form.elements.content.value.trim();
+  if (!content) return;
+  const button = form.querySelector('button');
+  button.disabled = true;
+  try {
+    const comment = await requestApi(`/api/public/posts/${currentReadPost.id}/comments`, { method: 'POST', body: JSON.stringify({ content }) });
+    currentReadPost.comments = [...(currentReadPost.comments || []), comment];
+    renderComments(currentReadPost.comments);
+    form.elements.content.value = '';
+  } catch (error) { notify(error.message, 'error'); }
+  finally { button.disabled = false; }
+});
+
 function openPost(post) {
+  currentReadPost = post;
   readPage.dataset.postId = post.id;
   document.querySelector('[data-read-category]').textContent = post.categoryName || 'VELVET';
   document.querySelector('[data-read-title]').textContent = post.title;
@@ -145,12 +260,14 @@ function openPost(post) {
   cover.hidden = !post.coverUrl;
   cover.innerHTML = post.coverUrl ? `<img src="${escapeHtml(post.coverUrl)}" alt="">` : '';
   document.querySelector('[data-read-body]').innerHTML = contentToHtml(post.content) || '<p>Conteúdo em preparação.</p>';
+  resetEngagementUI();
   readPage.hidden = false;
   readPage.scrollTop = 0;
   window.history.replaceState(null, '', '#materia');
   registerView(post);
+  loadEngagement(post);
 }
-function closeRead() { readPage.hidden = true; window.history.replaceState(null, '', '#noticias'); }
+function closeRead() { readPage.hidden = true; currentReadPost = null; window.history.replaceState(null, '', '#noticias'); }
 document.querySelectorAll('[data-read-close]').forEach((button) => button.addEventListener('click', closeRead));
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !readPage.hidden) closeRead(); });
 
@@ -220,6 +337,7 @@ async function loadFooterSettings() {
   } catch { /* Os links padrão permanecem visíveis. */ }
 }
 loadFooterSettings();
+loadHomeFeatured();
 
 async function loadHeroCarousel() {
   try {
@@ -726,6 +844,37 @@ function updateProfileView() {
     });
   }
 }
+
+function savedItemHtml(post) {
+  return `<button type="button" class="vv-saved-item" data-saved-open="${post.id}">
+    <div class="vv-saved-item-cover" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div>
+    <div><b>${escapeHtml(post.title)}</b><span>${escapeHtml(post.categoryName || 'VELVET')}</span></div>
+  </button>`;
+}
+async function loadSavedPosts() {
+  const list = document.querySelector('[data-saved-list]');
+  list.innerHTML = '<p class="vv-saved-empty">Carregando...</p>';
+  try {
+    const data = await requestApi('/api/public/saved');
+    const countEl = document.querySelector('[data-profile-saved-count] b');
+    if (countEl) countEl.textContent = data.posts.length;
+    list.innerHTML = data.posts.length ? data.posts.map(savedItemHtml).join('') : '<p class="vv-saved-empty">Você ainda não salvou nenhuma matéria.</p>';
+    list.querySelectorAll('[data-saved-open]').forEach((button) => button.addEventListener('click', () => {
+      const post = data.posts.find((item) => item.id === button.dataset.savedOpen);
+      if (!post) return;
+      profilePanel.hidden = true;
+      document.body.classList.remove('is-locked');
+      openPost(post);
+    }));
+  } catch (error) { list.innerHTML = `<p class="vv-saved-empty">${escapeHtml(error.message)}</p>`; }
+}
+document.querySelectorAll('[data-profile-tab-btn]').forEach((button) => button.addEventListener('click', () => {
+  document.querySelectorAll('[data-profile-tab-btn]').forEach((item) => item.classList.toggle('is-active', item === button));
+  const target = button.dataset.profileTabBtn;
+  document.querySelectorAll('[data-profile-tab-panel]').forEach((panel) => { panel.hidden = panel.dataset.profileTabPanel !== target; });
+  if (target === 'saved') loadSavedPosts();
+}));
+document.querySelector('.vv-admin-tab')?.addEventListener('click', () => { document.querySelector('[data-admin-toggle]')?.click(); });
 
 window.requireVelvetLogin = (action = 'continuar') => {
   if (session.user) return true;

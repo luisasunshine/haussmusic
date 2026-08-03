@@ -69,7 +69,7 @@
           <h2>O que está virando <i>assunto.</i></h2>
           <button type="button" class="vv-text-link" data-news-open>VER TODAS <span>→</span></button>
         </div>
-        <div class="vv-content-empty"><span>✦</span><h3>A redação está preparando a próxima edição.</h3><p>As matérias publicadas no painel administrativo aparecerão aqui.</p></div>
+        <div data-home-featured><div class="vv-content-empty"><span>✦</span><h3>A redação está preparando a próxima edição.</h3><p>As matérias publicadas no painel administrativo aparecerão aqui.</p></div></div>
       </section>
 
       <section class="vv-radar" id="podcast">
@@ -133,6 +133,20 @@
         <p class="vv-read-meta" data-read-meta></p>
         <div class="vv-read-cover" data-read-cover hidden></div>
         <div class="vv-read-body" data-read-body></div>
+        <div class="vv-read-actions" data-read-actions>
+          <button type="button" class="vv-read-action" data-read-like aria-label="Curtir"><span data-read-like-icon>♡</span> <span data-read-like-count>0</span></button>
+          <button type="button" class="vv-read-action" data-read-comment-focus>💬 Comentar</button>
+          <button type="button" class="vv-read-action" data-read-save aria-label="Salvar"><span data-read-save-icon>🔖</span> Salvar</button>
+        </div>
+        <section class="vv-read-comments">
+          <h3>Comentários (<span data-comments-count>0</span>)</h3>
+          <div class="vv-comment-login" data-comment-login hidden>Entre com sua conta Velvet para comentar. <button type="button" data-comment-login-button>Entrar</button></div>
+          <form class="vv-comment-form" data-comment-form hidden>
+            <textarea name="content" maxlength="2000" placeholder="Escreva um comentário..." required></textarea>
+            <button type="submit">ENVIAR</button>
+          </form>
+          <div data-comments-list></div>
+        </section>
       </main>
     </section>
 
