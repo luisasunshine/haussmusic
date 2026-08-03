@@ -153,6 +153,49 @@ async function loadFooterSettings() {
 }
 loadFooterSettings();
 
+async function loadHeroCarousel() {
+  try {
+    const response = await fetch(`${API_URL}/api/public/home`);
+    if (!response.ok) return;
+    const banners = (await response.json()).banners || [];
+    if (!banners.length) return;
+    const hero = document.querySelector('.vv-hero');
+    const title = hero.querySelector('h1');
+    const deck = hero.querySelector('.vv-deck');
+    const cta = hero.querySelector('.vv-button');
+    const controls = document.createElement('div');
+    controls.className = 'vv-hero-carousel-controls';
+    const previous = document.createElement('button'); previous.type = 'button'; previous.textContent = '‹'; previous.setAttribute('aria-label', 'Banner anterior');
+    const dots = document.createElement('div'); dots.className = 'vv-hero-dots';
+    const next = document.createElement('button'); next.type = 'button'; next.textContent = '›'; next.setAttribute('aria-label', 'Próximo banner');
+    controls.append(previous, dots, next); hero.append(controls);
+    let active = 0;
+    let timer;
+    const show = (index) => {
+      active = (index + banners.length) % banners.length;
+      const banner = banners[active];
+      hero.classList.add('is-changing');
+      window.setTimeout(() => {
+        if (banner.imageUrl) hero.style.backgroundImage = `linear-gradient(90deg,rgba(1,1,3,.97) 0%,rgba(1,1,4,.88) 35%,rgba(1,1,4,.18) 70%,rgba(1,1,4,.25)),linear-gradient(0deg,rgba(1,1,4,.7),transparent 47%),url("${banner.imageUrl}")`;
+        title.textContent = banner.title || 'Velvet Virtual';
+        deck.textContent = banner.subtitle || '';
+        cta.firstChild.textContent = `${banner.ctaLabel || 'LER MATÉRIA'} `;
+        cta.href = banner.ctaUrl || '#materias';
+        dots.querySelectorAll('button').forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === active));
+        hero.classList.remove('is-changing');
+      }, 130);
+      window.clearTimeout(timer);
+      if (banners.length > 1) timer = window.setTimeout(() => show(active + 1), Math.max(3, Number(banner.duration) || 6) * 1000);
+    };
+    banners.forEach((banner, index) => { const dot = document.createElement('button'); dot.type = 'button'; dot.setAttribute('aria-label', `Abrir banner ${index + 1}`); dot.addEventListener('click', () => show(index)); dots.append(dot); });
+    previous.addEventListener('click', () => show(active - 1));
+    next.addEventListener('click', () => show(active + 1));
+    if (banners.length === 1) controls.hidden = true;
+    show(0);
+  } catch { /* A capa estática continua disponível. */ }
+}
+loadHeroCarousel();
+
 async function loadVelvetPodcasts() {
   const container = document.querySelector('[data-podcast-list]');
   if (!container) return;
@@ -264,7 +307,7 @@ function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, 
 
 function openEditor(resource, item = null) {
   const schemas = {
-    banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'URL da imagem', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
+    banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
     users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargo', 'select', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
   };

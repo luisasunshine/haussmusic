@@ -36,7 +36,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS banners (
     id TEXT PRIMARY KEY, title TEXT NOT NULL, subtitle TEXT, image_url TEXT,
     cta_label TEXT, cta_url TEXT, position INTEGER NOT NULL DEFAULT 0,
-    is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+    duration INTEGER NOT NULL DEFAULT 6, is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
@@ -48,13 +48,15 @@ if (!postColumns.includes('views')) db.exec('ALTER TABLE posts ADD COLUMN views 
 if (!postColumns.includes('is_featured')) db.exec('ALTER TABLE posts ADD COLUMN is_featured INTEGER NOT NULL DEFAULT 0');
 const userColumns = db.prepare('PRAGMA table_info(users)').all().map((column) => column.name);
 if (!userColumns.includes('google_id')) db.exec('ALTER TABLE users ADD COLUMN google_id TEXT');
+const bannerColumns = db.prepare('PRAGMA table_info(banners)').all().map((column) => column.name);
+if (!bannerColumns.includes('duration')) db.exec('ALTER TABLE banners ADD COLUMN duration INTEGER NOT NULL DEFAULT 6');
 
 // A capa inicial também é um banner real, para aparecer e poder ser editada no Admin.
 const bannerCount = db.prepare('SELECT COUNT(*) AS total FROM banners').get().total;
 if (!bannerCount) {
   const date = new Date().toISOString();
-  db.prepare('INSERT INTO banners (id,title,subtitle,image_url,cta_label,cta_url,position,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)')
-    .run('velvet-initial-cover', 'O som que vem antes do amanhã.', 'Entre o palco, a internet e a pista, uma nova geração está transformando a forma de sentir cultura.', 'assets/velvet-virtual-cover.png', 'LER MATÉRIA', '#materias', 0, 1, date, date);
+  db.prepare('INSERT INTO banners (id,title,subtitle,image_url,cta_label,cta_url,position,duration,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+    .run('velvet-initial-cover', 'O som que vem antes do amanhã.', 'Entre o palco, a internet e a pista, uma nova geração está transformando a forma de sentir cultura.', 'assets/velvet-virtual-cover.png', 'LER MATÉRIA', '#materias', 0, 6, 1, date, date);
 }
 
 module.exports = { db };

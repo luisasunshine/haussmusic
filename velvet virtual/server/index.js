@@ -124,6 +124,7 @@ function crud(resource, table, fields) {
       if (table === 'posts' && name === 'is_featured') return 0;
       if (table === 'banners' && name === 'is_active') return 1;
       if (table === 'banners' && name === 'position') return 0;
+      if (table === 'banners' && name === 'duration') return 6;
       return null;
     });
     try { db.prepare(`INSERT INTO ${table} (${names.join(',')}) VALUES (${names.map(() => '?').join(',')})`).run(...values); } catch (error) { return res.status(400).json({ error: error.message }); }
@@ -141,7 +142,7 @@ function crud(resource, table, fields) {
 }
 crud('categories', 'categories', ['name', 'slug', 'description']);
 crud('posts', 'posts', ['title', 'slug', 'excerpt', 'content', 'cover_url', 'category_id', 'status', 'published_at', 'views', 'is_featured']);
-crud('banners', 'banners', ['title', 'subtitle', 'image_url', 'cta_label', 'cta_url', 'position', 'is_active']);
+crud('banners', 'banners', ['title', 'subtitle', 'image_url', 'cta_label', 'cta_url', 'position', 'duration', 'is_active']);
 
 app.get('/api/admin/users', requireAdmin, (_req, res) => res.json(db.prepare('SELECT id,email,display_name,avatar_url,role,created_at,updated_at FROM users ORDER BY created_at DESC').all().map(toCamel)));
 app.post('/api/admin/users', requireAdmin, async (req, res) => {
