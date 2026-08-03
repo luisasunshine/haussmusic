@@ -48,6 +48,16 @@ function autoDistributeLyrics(raw, duration) {
   }).join('\n');
 }
 
+const PODCAST_CATEGORIES = [
+  'Entrevistas', 'Conversas / Talk Show', 'Comédia / Humor', 'Notícias / Atualidades',
+  'True Crime', 'Terror / Horror', 'Espiritualidade / Esoterismo', 'Relacionamentos',
+  'Psicologia / Comportamento', 'Negócios / Finanças', 'Games', 'Tecnologia',
+  'Cinema / Séries / TV', 'Música', 'Cultura / Entretenimento', 'LGBTQIA+',
+  'Moda / Beleza', 'Gastronomia', 'Viagens', 'Educação', 'Saúde / Fitness', 'Esportes',
+  'Arte / Criatividade', 'Histórias / Storytelling', 'Carreira', 'História', 'Ciência',
+  'Sociedade / Documentário', 'Religião / Fé', 'Mistério / Paranormal', 'Celebridades / Famoso',
+];
+
 const GENRES = ['pop', 'rock', 'hip-hop', 'electronic', 'jazz', 'r&b', 'latin', 'indie', 'forró', 'other'];
 const GENRE_LABELS = { pop: 'Pop', rock: 'Rock', 'hip-hop': 'Hip-Hop', electronic: 'Eletrônico', jazz: 'Jazz', 'r&b': 'R&B', latin: 'Latino', indie: 'Indie', forró: 'Forró', other: 'Outro' };
 const TYPES = [
@@ -105,7 +115,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
       ? (track.credits || []).filter((c) => (c.title || '').trim() || (c.description || '').trim())
       : [],
     is_podcast: podcastMode,
-    ...(podcastMode ? { background_video_url: '' } : {}),
+    ...(podcastMode ? { background_video_url: '', categories: formData.categories || [] } : {}),
   });
 
   const getTodayDate = () => {
@@ -115,7 +125,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
 
   const [formData, setFormData] = useState({
     title: '', artist: '', artist_id: '', artist_email: '', featuring: '', description: '', cover_url: '',
-    background_video_url: '', type: 'single', genre: 'pop', release_date: '', tracks: [], status: 'draft',
+    background_video_url: '', type: 'single', genre: 'pop', categories: [], release_date: '', tracks: [], status: 'draft',
     is_scheduled: false, scheduled_datetime: '',
     label_id: labelContext?.label_id || null, label_name: labelContext?.label_name || null, 
     label_logo: labelContext?.label_logo || null, published_by_label: !!labelContext
@@ -435,14 +445,16 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                       className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#c0c0c8]/40 transition-colors"
                     />
                   </div>
-                  <div className={`grid ${formData.is_scheduled ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
-                    <select
-                      value={formData.genre}
-                      onChange={e => setFormData(p => ({ ...p, genre: e.target.value }))}
-                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm focus:outline-none focus:border-[#c0c0c8]/40 transition-colors [&>option]:bg-[#1a1a1a]"
-                    >
-                      {GENRES.map(g => <option key={g} value={g}>{GENRE_LABELS[g]}</option>)}
-                    </select>
+                  <div className={`grid ${(!podcastMode && !formData.is_scheduled) ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+                    {!podcastMode && (
+                      <select
+                        value={formData.genre}
+                        onChange={e => setFormData(p => ({ ...p, genre: e.target.value }))}
+                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm focus:outline-none focus:border-[#c0c0c8]/40 transition-colors [&>option]:bg-[#1a1a1a]"
+                      >
+                        {GENRES.map(g => <option key={g} value={g}>{GENRE_LABELS[g]}</option>)}
+                      </select>
+                    )}
                     {!formData.is_scheduled && (
                       <input
                         type="date" value={formData.release_date} max={getTodayDate()}
@@ -453,6 +465,42 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                   </div>
 
                 </div>
+
+                {/* Podcast categories — pick one or more */}
+                {podcastMode && (
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300 mb-2">
+                      <Tag className="w-4 h-4 text-[#c0c0c8]" /> Categorias
+                      {formData.categories?.length > 0 && (
+                        <span className="text-xs font-normal text-zinc-500">({formData.categories.length})</span>
+                      )}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {PODCAST_CATEGORIES.map((cat) => {
+                        const on = (formData.categories || []).includes(cat);
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setFormData(p => ({
+                              ...p,
+                              categories: on
+                                ? (p.categories || []).filter(c => c !== cat)
+                                : [...(p.categories || []), cat],
+                            }))}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                              on
+                                ? 'bg-[#c0c0c8]/15 text-[#e5e5ea] border-[#c0c0c8]/40'
+                                : 'bg-white/[0.03] text-zinc-400 border-white/[0.08] hover:border-white/20 hover:text-white'
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Scheduled Release */}
                 <label className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] cursor-pointer hover:border-white/10 transition-colors">

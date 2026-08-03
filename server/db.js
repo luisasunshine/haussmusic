@@ -45,6 +45,8 @@ db.exec(`
     managed_artists text not null default '[]',
     representatives text not null default '[]',
     social_links text not null default '{}',
+    podcast_name text,
+    podcast_logo text,
     created_date text not null,
     updated_date text not null
   );
@@ -62,6 +64,7 @@ db.exec(`
     duration real,
     genre text,
     lyrics text default '[]',
+    categories text default '[]',
     plays real not null default 0,
     likes real not null default 0,
     is_favorite integer not null default 0,
@@ -93,6 +96,7 @@ db.exec(`
     release_date text,
     tracks text not null default '[]',
     status text not null default 'draft',
+    categories text default '[]',
     is_featured integer not null default 0,
     is_scheduled integer not null default 0,
     is_podcast integer not null default 0,
@@ -215,6 +219,10 @@ for (const [table, column, definition] of [
   ['songs', 'credits', "text default '[]'"],
   ['songs', 'is_podcast', 'integer not null default 0'],
   ['posts', 'is_podcast', 'integer not null default 0'],
+  ['songs', 'categories', "text default '[]'"],
+  ['posts', 'categories', "text default '[]'"],
+  ['users', 'podcast_name', 'text'],
+  ['users', 'podcast_logo', 'text'],
   ['banners', 'button_text', 'text'],
   ['banners', 'category', 'text'],
   ['banners', 'duration_seconds', 'real not null default 7'],
@@ -278,7 +286,7 @@ db.exec(`
 // /uploads/<file>, never a third-party URL). Shared with fileCleanup.js so
 // there's one list of "where uploaded file URLs can live" to keep in sync.
 const FILE_FIELDS_BY_TABLE = {
-  users: ['profile_picture', 'profile_banner'],
+  users: ['profile_picture', 'profile_banner', 'podcast_logo'],
   songs: ['cover_url', 'background_video_url', 'audio_url'],
   posts: ['cover_url', 'background_video_url'],
   banners: ['image_url'],
@@ -303,8 +311,8 @@ db.exec(`update posts set tracks = replace(tracks, 'http://', 'https://') where 
 // entity name (as used by the frontend) -> { table, json: [...], bool: [...] }
 const ENTITIES = {
   User: { table: 'users', json: ['managed_artists', 'representatives', 'social_links', 'user_type'], bool: ['verified', 'profile_completed'] },
-  Song: { table: 'songs', json: ['lyrics', 'credits'], bool: ['is_favorite', 'published_by_label', 'is_podcast'] },
-  Post: { table: 'posts', json: ['tracks'], bool: ['is_featured', 'is_scheduled', 'published_by_label', 'is_podcast'] },
+  Song: { table: 'songs', json: ['lyrics', 'credits', 'categories'], bool: ['is_favorite', 'published_by_label', 'is_podcast'] },
+  Post: { table: 'posts', json: ['tracks', 'categories'], bool: ['is_featured', 'is_scheduled', 'published_by_label', 'is_podcast'] },
   Playlist: { table: 'playlists', json: ['song_ids'], bool: ['is_public'] },
   Banner: { table: 'banners', json: [], bool: ['is_active'] },
   Label: { table: 'labels', json: ['representatives', 'managed_artists'], bool: [] },

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mic, Heart, Eye, Calendar, Edit2, Trash2, Play, Plus, Clock, Radio, Headphones } from 'lucide-react';
+import { Mic, Heart, Eye, Calendar, Edit2, Trash2, Play, Plus, Clock, Radio, Headphones, Upload, Loader2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import ReleaseCreatorPanel from '@/components/releases/ReleaseCreatorPanel';
 import { hasUserType } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -13,6 +15,10 @@ export default function PodcastDashboard() {
   const [user, setUser] = useState(null);
   const [showCreator, setShowCreator] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [showBrand, setShowBrand] = useState(false);
+  const [brandForm, setBrandForm] = useState({ podcast_name: '', podcast_logo: '' });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [savingBrand, setSavingBrand] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -21,8 +27,40 @@ export default function PodcastDashboard() {
         window.location.href = '/';
       }
       setUser(u);
+      setBrandForm({ podcast_name: u.podcast_name || '', podcast_logo: u.podcast_logo || '' });
     }).catch(() => window.location.href = '/');
   }, []);
+
+  // The podcaster's brand: its own name + logo, shown in the hero instead of
+  // the personal account name/photo. Falls back to the account when unset.
+  const brandName = user?.podcast_name || user?.display_name || user?.full_name;
+  const brandLogo = user?.podcast_logo || user?.profile_picture;
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setBrandForm(f => ({ ...f, podcast_logo: file_url }));
+    } catch {
+      toast.error('Erro ao enviar a logo');
+    }
+    setUploadingLogo(false);
+  };
+
+  const saveBrand = async () => {
+    setSavingBrand(true);
+    try {
+      const updated = await base44.auth.updateMe({ podcast_name: brandForm.podcast_name, podcast_logo: brandForm.podcast_logo });
+      setUser(updated);
+      setShowBrand(false);
+      toast.success('Podcast atualizado!');
+    } catch {
+      toast.error('Erro ao salvar');
+    }
+    setSavingBrand(false);
+  };
 
   const { data: myPodcasts = [] } = useQuery({
     queryKey: ['my-podcasts', user?.email],
@@ -95,20 +133,32 @@ export default function PodcastDashboard() {
         <div className="relative px-6 lg:px-8 pt-8 pb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="relative flex-shrink-0">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-[#c0c0c8]/30 shadow-2xl shadow-[#c0c0c8]/20">
-                {user.profile_picture ? (
-                  <img src={user.profile_picture} alt="" className="w-full h-full object-cover" />
+              <button
+                onClick={() => setShowBrand(true)}
+                title="Alterar logo e nome do podcast"
+                className="group relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-[#c0c0c8]/30 shadow-2xl shadow-[#c0c0c8]/20 block"
+              >
+                {brandLogo ? (
+                  <img src={brandLogo} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8] to-[#e5e5ea] flex items-center justify-center">
                     <Mic className="w-12 h-12 text-white/60" />
                   </div>
                 )}
-              </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                  <Pencil className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </button>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }} className="flex-1">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }} className="flex-1 min-w-0">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#c0c0c8] bg-[#c0c0c8]/10 px-3 py-1 rounded-full">Podcast</span>
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-1 mt-2">{user.display_name || user.full_name}</h1>
+              <div className="flex items-center gap-3 mt-2">
+                <h1 className="text-3xl md:text-5xl font-black text-white mb-1 truncate">{brandName}</h1>
+                <button onClick={() => setShowBrand(true)} title="Editar podcast" className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0">
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </div>
               <p className="text-zinc-400 text-sm md:text-base">Dashboard de Podcast — Publique episódios e acompanhe suas métricas</p>
             </motion.div>
 
@@ -258,6 +308,47 @@ export default function PodcastDashboard() {
           queryClient.invalidateQueries({ queryKey: ['my-episodes'] });
         }}
       />
+
+      {/* Podcast brand (logo + name) editor */}
+      <Dialog open={showBrand} onOpenChange={setShowBrand}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Editar podcast</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-zinc-400 -mt-2">Defina a logo e o nome do seu podcast — é o que aparece aqui no seu painel.</p>
+          <div className="flex items-center gap-4 py-2">
+            <label className="relative group cursor-pointer flex-shrink-0">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden ring-2 ring-[#c0c0c8]/30 bg-white/5 flex items-center justify-center">
+                {brandForm.podcast_logo ? (
+                  <img src={brandForm.podcast_logo} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <Mic className="w-8 h-8 text-white/40" />
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                  {uploadingLogo ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Upload className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />}
+                </div>
+              </div>
+              <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+            </label>
+            <div className="flex-1">
+              <label className="text-sm text-zinc-400 mb-1 block">Nome do podcast</label>
+              <Input
+                value={brandForm.podcast_name}
+                onChange={(e) => setBrandForm(f => ({ ...f, podcast_name: e.target.value }))}
+                placeholder="Ex: Papo Reto"
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <p className="text-xs text-zinc-600 mt-2">Clique na imagem pra enviar a logo.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={saveBrand} disabled={savingBrand || uploadingLogo} className="w-full btn-metal">
+              {savingBrand ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
