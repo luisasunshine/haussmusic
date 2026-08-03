@@ -11,6 +11,7 @@ const newsGrid = document.querySelector('[data-news-grid]');
 const newsFeatured = document.querySelector('[data-news-featured]');
 const newsEmpty = document.querySelector('[data-news-empty]');
 const newsCount = document.querySelector('[data-news-count]');
+let activeNewsCategory = null;
 const API_URL = window.VELVET_VIRTUAL_API_URL || 'https://velvetvirtual.up.railway.app';
 const toast = document.querySelector('[data-toast]');
 let toastTimer;
@@ -94,7 +95,10 @@ function articleCard(post, large = false) {
 
 const readPage = document.querySelector('[data-read-page]');
 function contentToHtml(content) {
-  return escapeHtml(content || '').split(/\n{2,}/).map((block) => `<p>${block.trim().replace(/\n/g, '<br>')}</p>`).join('');
+  const renderInline = (text) => escapeHtml(text)
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="vv-inline-image" src="$2" alt="$1" loading="lazy">')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1 ↗</a>');
+  return String(content || '').split(/\n{2,}/).filter(Boolean).map((block) => `<p>${renderInline(block.trim()).replace(/\n/g, '<br>')}</p>`).join('');
 }
 function openPost(post) {
   document.querySelector('[data-read-category]').textContent = post.categoryName || 'VELVET';
@@ -119,12 +123,14 @@ async function loadNews() {
     const response = await fetch(`${API_URL}/api/public/home`);
     if (!response.ok) throw new Error('Falha ao carregar notícias');
     const data = await response.json();
-    const posts = [...data.posts].sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
+    const posts = [...data.posts].filter((post) => !activeNewsCategory || post.categoryName === activeNewsCategory).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
     const highlighted = [...posts].filter((post) => Number(post.isFeatured) || Number(post.views) > 0).sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured) || Number(b.views) - Number(a.views)).slice(0, 2);
     const featuredIds = new Set(highlighted.map((post) => post.id));
     highlighted.forEach((post, index) => newsFeatured.append(articleCard(post, index === 0)));
     posts.filter((post) => !featuredIds.has(post.id)).forEach((post) => newsGrid.append(articleCard(post)));
     newsCount.textContent = `${posts.length} PUBLICAÇ${posts.length === 1 ? 'ÃO' : 'ÕES'}`;
+    newsPage.querySelector('.vv-news-heading .vv-eyebrow').textContent = activeNewsCategory ? `CATEGORIA · ${activeNewsCategory.toUpperCase()}` : 'TODAS AS NOTÍCIAS';
+    newsPage.querySelector('.vv-news-list-header h2').textContent = activeNewsCategory ? `Em ${activeNewsCategory}` : 'Mais recentes';
     newsEmpty.hidden = posts.length > 0;
   } catch {
     newsEmpty.hidden = false;
@@ -132,9 +138,10 @@ async function loadNews() {
   }
 }
 
-function openNews() { newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#noticias'); loadNews(); }
-function closeNews() { newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
-document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', openNews));
+function openNews(category = null) { activeNewsCategory = category; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#noticias'); loadNews(); }
+function closeNews() { activeNewsCategory = null; newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
+document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
+document.querySelectorAll('[data-category-news]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); openNews(link.dataset.categoryNews); }));
 document.querySelectorAll('[data-news-close]').forEach((button) => button.addEventListener('click', closeNews));
 if (window.location.hash === '#noticias') openNews();
 
@@ -402,7 +409,11 @@ async function openPostEditor(post, section) {
     <label>Título<input name="title" required value="${escapeHtml(post?.title || '')}"></label>
     <label>Categoria<select name="category_id"><option value="">Sem categoria</option>${categoryOptions}</select></label>
     <label>Resumo<textarea name="excerpt">${escapeHtml(post?.excerpt || '')}</textarea></label>
-    <label>Conteúdo<textarea name="content" required>${escapeHtml(post?.content || '')}</textarea></label>
+    <label>Conteúdo
+      <div class="vv-content-toolbar"><button type="button" data-content-link>↗ INSERIR LINK</button><button type="button" data-content-image>▧ INSERIR IMAGEM</button><input type="file" accept="image/*" hidden data-content-image-file></div>
+      <textarea name="content" required>${escapeHtml(post?.content || '')}</textarea>
+      <span class="vv-content-help">Use os botões para inserir links e imagens entre os parágrafos.</span>
+    </label>
     <label>Capa</label>
     <div data-cover-slot></div>
     <label>Publicação
@@ -433,6 +444,37 @@ async function openPostEditor(post, section) {
     postEditorForm.querySelector('[data-cover-slot]')?.replaceWith(Object.assign(document.createElement('p'), { textContent: 'Não foi possível preparar o envio da imagem.' }));
     notify(error.message || 'Não foi possível abrir o envio de capa.', 'error');
   }
+
+  const contentField = postEditorForm.elements.content;
+  const insertContent = (value) => {
+    const start = contentField.selectionStart ?? contentField.value.length;
+    const end = contentField.selectionEnd ?? start;
+    contentField.value = `${contentField.value.slice(0, start)}${value}${contentField.value.slice(end)}`;
+    contentField.focus();
+    const cursor = start + value.length;
+    contentField.setSelectionRange(cursor, cursor);
+  };
+  postEditorForm.querySelector('[data-content-link]').addEventListener('click', () => {
+    const label = window.prompt('Texto do link:');
+    if (!label) return;
+    const url = window.prompt('Cole a URL completa (https://):');
+    if (!url || !/^https?:\/\//i.test(url)) { notify('Informe um link começando com https://', 'error'); return; }
+    insertContent(`${contentField.value.trim() ? '\n\n' : ''}[${label}](${url})`);
+  });
+  const inlineImageInput = postEditorForm.querySelector('[data-content-image-file]');
+  postEditorForm.querySelector('[data-content-image]').addEventListener('click', () => inlineImageInput.click());
+  inlineImageInput.addEventListener('change', async () => {
+    const file = inlineImageInput.files?.[0];
+    if (!file) return;
+    try {
+      const blob = await requestCrop(file, { aspect: 16 / 9, aspectOptions: DROPZONE_ASPECT_OPTIONS });
+      if (!blob) return;
+      const url = await uploadFile(new File([blob], 'imagem-na-materia.jpg', { type: 'image/jpeg' }), () => {});
+      insertContent(`${contentField.value.trim() ? '\n\n' : ''}![Imagem da matéria](${url})`);
+      notify('Imagem inserida no conteúdo.');
+    } catch (error) { notify(error.message || 'Não foi possível enviar a imagem.', 'error'); }
+    finally { inlineImageInput.value = ''; }
+  });
 
   postEditorForm.querySelector('[data-post-cancel]')?.addEventListener('click', closePostEditor);
   postEditorForm.querySelector('[data-post-delete]')?.addEventListener('click', async () => {
