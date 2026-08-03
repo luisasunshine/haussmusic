@@ -16,15 +16,16 @@
     <header class="vv-header">
       <div class="vv-brand-area">
         <button class="vv-brand-menu-button" data-brand-menu-toggle aria-expanded="false" aria-controls="brand-menu" aria-label="Abrir menu da Velvet Virtual"><span></span><span></span><span></span></button>
-        <a class="vv-brand" href="#top" aria-label="Velvet Virtual, início">
+        <a class="vv-brand" data-home-link href="#top" aria-label="Velvet Virtual, início">
           <span>VELVET</span><em>VIRTUAL</em>
         </a>
       </div>
       <nav class="vv-nav" aria-label="Navegação principal">
-        <a class="is-active" data-revista-open href="#noticias">Revista</a>
-        <a href="#podcast">Podcasts</a>
-        <a data-week-open href="#novas">Novas</a>
-        <a data-vimos-open href="#vimos-voce">Vimos Você</a>
+        <a class="is-active" data-home-link data-nav-link href="#top">Início</a>
+        <a data-revista-open data-nav-link href="#noticias">Revista</a>
+        <a data-nav-link href="#podcast">Podcasts</a>
+        <a data-week-open data-nav-link href="#novas">Novas</a>
+        <a data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a>
       </nav>
       <div class="vv-header-actions">
         <button class="vv-icon-button" data-search-toggle aria-label="Abrir busca">⌕</button>

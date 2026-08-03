@@ -23,6 +23,20 @@ let newsWeekOnly = false;
 const API_URL = window.VELVET_VIRTUAL_API_URL || 'https://velvetvirtual.up.railway.app';
 const toast = document.querySelector('[data-toast]');
 let toastTimer;
+function goHome(event) {
+  event?.preventDefault();
+  searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true;
+  document.querySelector('[data-read-page]').hidden = true;
+  if (profilePanel) profilePanel.hidden = true;
+  document.body.classList.remove('is-locked');
+  window.history.replaceState(null, '', '#top');
+  document.querySelector('#top')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('[data-nav-link]').forEach((link) => link.classList.toggle('is-active', link.hasAttribute('data-home-link')));
+}
+document.querySelectorAll('[data-home-link]').forEach((link) => link.addEventListener('click', goHome));
+document.querySelectorAll('[data-nav-link]').forEach((link) => link.addEventListener('click', () => {
+  document.querySelectorAll('[data-nav-link]').forEach((item) => item.classList.toggle('is-active', item === link));
+}));
 function notify(message, type = 'success') {
   const icon = toast.querySelector('[data-toast-icon]');
   toast.querySelector('[data-toast-message]').textContent = message;
