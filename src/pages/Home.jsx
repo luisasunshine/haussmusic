@@ -671,12 +671,14 @@ export default function Home() {
                           initial={{ opacity: 0, y: 12 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.02 }}
+                          whileHover={scheduled ? undefined : { y: -6, scale: 1.02, transition: { type: 'spring', damping: 18, stiffness: 260 } }}
+                          whileTap={scheduled ? undefined : { scale: 0.98 }}
                           onClick={() => dispatchPlaySong(song)}
                           className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
                         >
                           <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
                             {song.cover_url ? (
-                              <img src={song.cover_url} alt={song.title} className="w-full h-full object-cover" />
+                              <img src={song.cover_url} alt={song.title} className="w-full h-full object-contain" />
                             ) : (
                               <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/20 to-[#18181b] flex items-center justify-center">
                                 <Music2 className="w-8 h-8 text-[#535353]" />
