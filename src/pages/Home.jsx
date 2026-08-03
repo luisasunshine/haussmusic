@@ -19,6 +19,7 @@ const pills = [
   { label: 'Músicas', key: 'songs' },
   { label: 'Álbuns', key: 'albums' },
   { label: 'Artistas', key: 'artists' },
+  { label: 'Podcasts', key: 'podcasts' },
 ];
 
 function formatDuration(sec) {
@@ -761,6 +762,61 @@ export default function Home() {
                     </div>
                   ) : (
                     <p className="text-[#B3B3B3] text-center py-10">Nenhum álbum encontrado</p>
+                  )}
+                </section>
+              )}
+
+              {/* PODCASTS view: podcast shows */}
+              {activePill === 'podcasts' && (
+                <section className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-xl lg:text-2xl font-bold text-white">Podcasts</h2>
+                      <p className="text-sm text-[#B3B3B3]">Conversas e histórias em áudio</p>
+                    </div>
+                    <Mic className="w-5 h-5 text-[#c0c0c8]" />
+                  </div>
+                  {podcastShows.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+                      {podcastShows.map((show, i) => {
+                        const firstEp = podcastEpisodes.find((episode) => episode.album === show.title);
+                        return (
+                          <motion.div
+                            key={show.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.04 }}
+                            className="card-spotify group cursor-pointer"
+                            onClick={() => { window.location.href = createPageUrl('Release') + '?id=' + show.id; }}
+                          >
+                            <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                              {show.cover_url ? (
+                                <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
+                                  <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
+                                </div>
+                              )}
+                              <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded">Podcast</span>
+                              {firstEp && (
+                                <motion.button
+                                  whileHover={{ scale: 1.08 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={(event) => { event.stopPropagation(); dispatchPlaySong(firstEp); }}
+                                  className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                >
+                                  <Play className="w-5 h-5 text-black fill-black ml-0.5" />
+                                </motion.button>
+                              )}
+                            </div>
+                            <h3 className="font-bold text-white text-sm truncate">{show.title}</h3>
+                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{show.artist}</p>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-[#B3B3B3] text-center py-10">Nenhum podcast publicado ainda</p>
                   )}
                 </section>
               )}
