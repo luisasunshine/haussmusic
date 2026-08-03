@@ -556,10 +556,63 @@ const profileEditForm = document.querySelector('[data-profile-edit-form]');
 const profileEditMessage = document.querySelector('[data-profile-edit-message]');
 const profileAvatarUpload = document.querySelector('[data-profile-avatar-upload]');
 const avatarCropper = document.querySelector('[data-avatar-cropper]');
-const avatarCropImage = document.querySelector('[data-avatar-crop-image]');
+const avatarCropStage = document.querySelector('[data-crop-stage]');
+const avatarCropCanvas = document.querySelector('[data-avatar-crop-canvas]');
+const avatarCropLoading = document.querySelector('[data-crop-loading]');
 const avatarCropZoom = document.querySelector('[data-avatar-crop-zoom]');
+const avatarCropCtx = avatarCropCanvas.getContext('2d');
 let avatarCropSource = null;
 let croppedAvatarFile = null;
+
+// Mirrors Velvet Music's ImageCropper: a 300px interactive stage (pointer
+// drags and the zoom slider operate in this space) rendered onto a much
+// higher-resolution export canvas, so the saved avatar isn't a blurry
+// stretched-out square.
+const CROP_DISPLAY_SIZE = 300;
+const CROP_EXPORT_SIZE = 1024;
+const cropPixelRatio = CROP_EXPORT_SIZE / CROP_DISPLAY_SIZE;
+let cropImage = null;
+let cropZoom = 1;
+let cropOffset = { x: 0, y: 0 };
+let cropDragging = false;
+let cropDragStart = { x: 0, y: 0 };
+
+function drawCrop() {
+  if (!cropImage) return;
+  avatarCropCanvas.width = CROP_EXPORT_SIZE;
+  avatarCropCanvas.height = CROP_EXPORT_SIZE;
+  const baseScale = Math.max(CROP_EXPORT_SIZE / cropImage.width, CROP_EXPORT_SIZE / cropImage.height);
+  const scale = baseScale * cropZoom;
+  const drawW = cropImage.width * scale;
+  const drawH = cropImage.height * scale;
+  const x = (CROP_EXPORT_SIZE - drawW) / 2 + cropOffset.x * cropPixelRatio;
+  const y = (CROP_EXPORT_SIZE - drawH) / 2 + cropOffset.y * cropPixelRatio;
+  avatarCropCtx.clearRect(0, 0, CROP_EXPORT_SIZE, CROP_EXPORT_SIZE);
+  avatarCropCtx.drawImage(cropImage, x, y, drawW, drawH);
+}
+function setCropZoom(value) {
+  cropZoom = Math.min(4, Math.max(0.5, value));
+  avatarCropZoom.value = String(cropZoom);
+  drawCrop();
+}
+function resetCrop() { cropZoom = 1; cropOffset = { x: 0, y: 0 }; avatarCropZoom.value = '1'; drawCrop(); }
+
+function cropPointerPos(event) {
+  const point = event.touches ? event.touches[0] : event;
+  return { x: point.clientX, y: point.clientY };
+}
+avatarCropStage.addEventListener('mousedown', (event) => { event.preventDefault(); cropDragging = true; avatarCropStage.classList.add('is-dragging'); const p = cropPointerPos(event); cropDragStart = { x: p.x - cropOffset.x, y: p.y - cropOffset.y }; });
+avatarCropStage.addEventListener('touchstart', (event) => { cropDragging = true; avatarCropStage.classList.add('is-dragging'); const p = cropPointerPos(event); cropDragStart = { x: p.x - cropOffset.x, y: p.y - cropOffset.y }; }, { passive: true });
+window.addEventListener('mousemove', (event) => { if (!cropDragging) return; const p = cropPointerPos(event); cropOffset = { x: p.x - cropDragStart.x, y: p.y - cropDragStart.y }; drawCrop(); });
+avatarCropStage.addEventListener('touchmove', (event) => { if (!cropDragging) return; event.preventDefault(); const p = cropPointerPos(event); cropOffset = { x: p.x - cropDragStart.x, y: p.y - cropDragStart.y }; drawCrop(); }, { passive: false });
+window.addEventListener('mouseup', () => { cropDragging = false; avatarCropStage.classList.remove('is-dragging'); });
+avatarCropStage.addEventListener('touchend', () => { cropDragging = false; avatarCropStage.classList.remove('is-dragging'); });
+avatarCropStage.addEventListener('wheel', (event) => { event.preventDefault(); setCropZoom(cropZoom - event.deltaY * 0.001); }, { passive: false });
+avatarCropZoom.addEventListener('input', () => { cropZoom = Number(avatarCropZoom.value); drawCrop(); });
+document.querySelector('[data-crop-zoom-out]').addEventListener('click', () => setCropZoom(cropZoom - 0.1));
+document.querySelector('[data-crop-zoom-in]').addEventListener('click', () => setCropZoom(cropZoom + 0.1));
+document.querySelector('[data-crop-reset]').addEventListener('click', resetCrop);
+
 function resetProfileAvatarUpload() {
   croppedAvatarFile = null;
   profileAvatarUpload.querySelector('b').textContent = 'ENVIAR NOVA FOTO';
@@ -591,29 +644,33 @@ profileEditForm.elements.avatar.addEventListener('change', () => {
   }
   if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
   avatarCropSource = URL.createObjectURL(file);
-  avatarCropImage.onload = () => { avatarCropper.hidden = false; };
-  avatarCropImage.onerror = () => { profileEditMessage.textContent = 'Não foi possível abrir esta imagem. Tente uma foto em JPG ou PNG.'; profileEditForm.elements.avatar.value = ''; if (avatarCropSource) URL.revokeObjectURL(avatarCropSource); avatarCropSource = null; };
-  avatarCropImage.src = avatarCropSource;
-  avatarCropZoom.value = '1';
-  avatarCropImage.style.setProperty('--crop-scale', '1');
+  avatarCropLoading.dataset.visible = '';
+  avatarCropper.hidden = false;
+  const img = new Image();
+  img.onload = () => {
+    cropImage = img;
+    resetCrop();
+    delete avatarCropLoading.dataset.visible;
+  };
+  img.onerror = () => {
+    profileEditMessage.textContent = 'Não foi possível abrir esta imagem. Tente uma foto em JPG ou PNG.';
+    profileEditForm.elements.avatar.value = '';
+    avatarCropper.hidden = true;
+    if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
+    avatarCropSource = null;
+  };
+  img.src = avatarCropSource;
 });
-avatarCropZoom.addEventListener('input', () => avatarCropImage.style.setProperty('--crop-scale', avatarCropZoom.value));
 document.querySelectorAll('[data-avatar-crop-cancel]').forEach((button) => button.addEventListener('click', () => {
   avatarCropper.hidden = true;
   profileEditForm.elements.avatar.value = '';
   if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
   avatarCropSource = null;
+  cropImage = null;
   resetProfileAvatarUpload();
 }));
 document.querySelector('[data-avatar-crop-apply]').addEventListener('click', () => {
-  const scale = Number(avatarCropZoom.value);
-  const side = Math.min(avatarCropImage.naturalWidth, avatarCropImage.naturalHeight) / scale;
-  const startX = (avatarCropImage.naturalWidth - side) / 2;
-  const startY = (avatarCropImage.naturalHeight - side) / 2;
-  const canvas = document.createElement('canvas');
-  canvas.width = 512; canvas.height = 512;
-  canvas.getContext('2d').drawImage(avatarCropImage, startX, startY, side, side, 0, 0, 512, 512);
-  canvas.toBlob((blob) => {
+  avatarCropCanvas.toBlob((blob) => {
     if (!blob) return;
     croppedAvatarFile = new File([blob], 'velvet-profile.jpg', { type: 'image/jpeg' });
     profileAvatarUpload.querySelector('b').textContent = 'FOTO RECORTADA';
@@ -621,6 +678,7 @@ document.querySelector('[data-avatar-crop-apply]').addEventListener('click', () 
     avatarCropper.hidden = true;
     if (avatarCropSource) URL.revokeObjectURL(avatarCropSource);
     avatarCropSource = null;
+    cropImage = null;
   }, 'image/jpeg', .92);
 });
 profileEditForm.addEventListener('submit', async (event) => {
