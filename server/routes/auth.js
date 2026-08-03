@@ -10,9 +10,26 @@ const router = express.Router();
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'steffanbaum123@gmail.com')
   .split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
 const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
+const LEGACY_UPLOAD_ORIGIN = 'https://haussmusic-production.up.railway.app';
 
 const userConfig = () => getEntityConfig('User');
 const nowIso = () => new Date().toISOString();
+
+function repairLegacyUploadUrls(value, req) {
+  if (Array.isArray(value)) return value.map((item) => repairLegacyUploadUrls(item, req));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, repairLegacyUploadUrls(item, req)]));
+  }
+  if (typeof value !== 'string' || !value.startsWith(`${LEGACY_UPLOAD_ORIGIN}/uploads/`)) return value;
+
+  const publicOrigin = (process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  return `${publicOrigin}${value.slice(LEGACY_UPLOAD_ORIGIN.length)}`;
+}
+
+function safeUserResponse(req, user) {
+  const { password_hash, ...safeUser } = deserializeRow(userConfig(), user);
+  return repairLegacyUploadUrls(safeUser, req);
+}
 
 function userCount() {
   return db.prepare('select count(*) as n from users').get().n;
@@ -86,8 +103,7 @@ router.post('/login', async (req, res) => {
   if (!ok) return res.json({ error: 'Senha incorreta' });
 
   const token = signToken(user.id);
-  const { password_hash, ...safeUser } = deserializeRow(userConfig(), user);
-  res.json({ success: true, token, user: safeUser });
+  res.json({ success: true, token, user: safeUserResponse(req, user) });
 });
 
 router.post('/google', async (req, res) => {
@@ -122,15 +138,13 @@ router.post('/google', async (req, res) => {
   }
 
   const token = signToken(user.id);
-  const { password_hash, ...safeUser } = deserializeRow(userConfig(), user);
-  res.json({ token, user: safeUser });
+  res.json({ token, user: safeUserResponse(req, user) });
 });
 
 router.get('/me', requireAuth, (req, res) => {
   const user = db.prepare('select * from users where id = ?').get(req.userId);
   if (!user) return res.status(401).json({ error: 'Not authenticated' });
-  const { password_hash, ...safeUser } = deserializeRow(userConfig(), user);
-  res.json(safeUser);
+  res.json(safeUserResponse(req, user));
 });
 
 router.put('/me', requireAuth, (req, res) => {
@@ -148,8 +162,7 @@ router.put('/me', requireAuth, (req, res) => {
   }
   const user = db.prepare('select * from users where id = ?').get(req.userId);
   cleanupOrphanedFiles(extractUploadUrls(existing, 'users'));
-  const { password_hash, ...safeUser } = deserializeRow(config, user);
-  res.json(safeUser);
+  res.json(safeUserResponse(req, user));
 });
 
 module.exports = router;
