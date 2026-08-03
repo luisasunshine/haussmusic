@@ -243,7 +243,7 @@
     .vv-native-file-input{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important;border:0!important}
     @media (max-width:800px){.vv-profile-edit-toggle{margin-left:18px}.vv-profile-edit-form{margin-left:18px;margin-right:18px}}
   </style>
-  <section class="vv-cropper" data-avatar-cropper hidden aria-label="Recortar foto de perfil">
+  <section class="vv-cropper" data-avatar-cropper hidden aria-label="Recortar imagem">
     <div class="vv-cropper-card">
       <div class="vv-cropper-head">
         <div class="vv-cropper-head-title"><span>✂</span><h2>Recortar imagem</h2></div>
@@ -255,6 +255,7 @@
         <i class="vv-crop-corner vv-crop-corner-tl" aria-hidden="true"></i><i class="vv-crop-corner vv-crop-corner-tr" aria-hidden="true"></i><i class="vv-crop-corner vv-crop-corner-bl" aria-hidden="true"></i><i class="vv-crop-corner vv-crop-corner-br" aria-hidden="true"></i>
         <div class="vv-crop-loading" data-crop-loading><span></span></div>
       </div>
+      <div class="vv-crop-aspects" data-crop-aspects hidden></div>
       <p class="vv-crop-hint">Arraste para reposicionar · Scroll para dar zoom</p>
       <div class="vv-crop-controls">
         <button type="button" data-crop-zoom-out aria-label="Diminuir zoom">−</button>
@@ -290,6 +291,9 @@
     .vv-crop-loading[data-visible]{display:grid}
     .vv-crop-loading span{width:26px;height:26px;border:2px solid rgba(192,192,200,.35);border-top-color:#c0c0c8;border-radius:50%;animation:vv-crop-spin .8s linear infinite}
     @keyframes vv-crop-spin{to{transform:rotate(360deg)}}
+    .vv-crop-aspects{display:flex;gap:6px;margin-top:14px;padding:4px;border:1px solid #383838;border-radius:8px;background:#0d0d0d}
+    .vv-crop-aspects button{flex:1;padding:8px;border:0;border-radius:5px;background:transparent;color:#8a8a8a;font:700 9px 'DM Mono',monospace;letter-spacing:.06em}
+    .vv-crop-aspects button.is-active{background:#c0c0c8;color:#111}
     .vv-crop-hint{margin:10px 0 0;text-align:center;color:#696969;font-size:11px}
     .vv-crop-controls{display:flex;align-items:center;gap:8px;margin-top:16px}
     .vv-crop-controls button{flex-shrink:0;width:32px;height:32px;border:1px solid #383838;border-radius:8px;background:#121212;color:#e5e5ea;font-size:15px;line-height:1}
