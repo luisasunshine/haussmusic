@@ -657,7 +657,14 @@ function getVisitorId() {
   }
   return value;
 }
-const session = { token: localStorage.getItem('vv_auth_token'), user: null, editor: null };
+let storedUser = null;
+try { storedUser = JSON.parse(localStorage.getItem('vv_auth_user') || 'null'); } catch { /* Mantém a sessão sem dados em cache. */ }
+const session = { token: localStorage.getItem('vv_auth_token'), user: storedUser, editor: null };
+function persistSession(token, user) {
+  session.token = token; session.user = user;
+  localStorage.setItem('vv_auth_token', token);
+  localStorage.setItem('vv_auth_user', JSON.stringify(user));
+}
 const authPanel = document.querySelector('[data-auth-panel]');
 const editorPanel = document.querySelector('[data-editor]');
 const editorForm = document.querySelector('[data-editor-form]');
@@ -665,7 +672,7 @@ const editorForm = document.querySelector('[data-editor-form]');
 async function requestApi(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(session.token ? { Authorization: `Bearer ${session.token}` } : {}), ...(options.headers || {}) } });
   const payload = response.status === 204 ? null : await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || 'Não foi possível concluir a ação.');
+  if (!response.ok) { const error = new Error(payload.error || 'Não foi possível concluir a ação.'); error.status = response.status; throw error; }
   return payload;
 }
 
@@ -1048,11 +1055,11 @@ editorForm.addEventListener('submit', async (event) => {
 document.querySelector('[data-editor-delete]').addEventListener('click', async () => { const { resource, item } = session.editor; if (!item || !confirm('Apagar este item permanentemente?')) return; try { await requestApi(`/api/admin/${resource}/${item.id}`, { method: 'DELETE' }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
 
 document.querySelector('[data-auth-switch]').addEventListener('click', () => { const creating = document.querySelector('[data-auth-name]').hidden; document.querySelector('[data-auth-name]').hidden = !creating; document.querySelector('[data-auth-title]').textContent = creating ? 'Criar conta' : 'Entrar'; document.querySelector('[data-auth-submit]').textContent = creating ? 'CRIAR CONTA' : 'ENTRAR'; document.querySelector('[data-auth-switch]').textContent = creating ? 'JÁ TENHO UMA CONTA' : 'CRIAR UMA CONTA'; });
-document.querySelector('[data-auth-form]').addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget; const creating = !document.querySelector('[data-auth-name]').hidden; const message = document.querySelector('[data-auth-message]'); try { const response = await requestApi(`/api/auth/${creating ? 'register' : 'login'}`, { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(form))) }); session.token = response.token; session.user = response.user; localStorage.setItem('vv_auth_token', response.token); closeAuth(); alert(`Bem-vinda, ${response.user.displayName}.`); } catch (error) { message.textContent = error.message; } });
+document.querySelector('[data-auth-form]').addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget; const creating = !document.querySelector('[data-auth-name]').hidden; const message = document.querySelector('[data-auth-message]'); try { const response = await requestApi(`/api/auth/${creating ? 'register' : 'login'}`, { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(form))) }); persistSession(response.token, response.user); closeAuth(); alert(`Bem-vinda, ${response.user.displayName}.`); } catch (error) { message.textContent = error.message; } });
 function finishGoogleLogin(response) {
   const message = document.querySelector('[data-auth-message]');
   requestApi('/api/auth/google', { method: 'POST', body: JSON.stringify({ idToken: response.credential }) })
-    .then((data) => { session.token = data.token; session.user = data.user; localStorage.setItem('vv_auth_token', data.token); closeAuth(); alert(`Bem-vinda, ${data.user.displayName}.`); })
+    .then((data) => { persistSession(data.token, data.user); closeAuth(); alert(`Bem-vinda, ${data.user.displayName}.`); })
     .catch((error) => { message.textContent = error.message; });
 }
 function initializeGoogleLogin() {
@@ -1064,7 +1071,15 @@ function initializeGoogleLogin() {
   button.dataset.ready = 'true';
 }
 initializeGoogleLogin();
-async function restoreSession() { if (!session.token) return; try { session.user = (await requestApi('/api/auth/me')).user; } catch { localStorage.removeItem('vv_auth_token'); session.token = null; } }
+async function restoreSession(attempt = 0) {
+  if (!session.token) return;
+  try {
+    session.user = (await requestApi('/api/auth/me')).user;
+    localStorage.setItem('vv_auth_user', JSON.stringify(session.user));
+  } catch {
+    if (attempt < 4) window.setTimeout(() => restoreSession(attempt + 1), 1500 * (attempt + 1));
+  }
+}
 restoreSession();
 document.querySelector('.vv-admin-header .vv-admin-add').addEventListener('click', () => {
   document.querySelector('[data-admin-tab="posts"]')?.click();
@@ -1146,6 +1161,7 @@ function updateProfileView() {
     document.querySelector('.vv-profile-card').append(logout);
     logout.addEventListener('click', () => {
       localStorage.removeItem('vv_auth_token');
+      localStorage.removeItem('vv_auth_user');
       session.token = null;
       session.user = null;
       profilePanel.hidden = true;
@@ -1387,6 +1403,7 @@ profileEditForm.addEventListener('submit', async (event) => {
       if (!uploadResponse.ok) throw new Error(uploadData.error || 'Não foi possível enviar a foto.');
       session.user = uploadData.user;
     }
+    localStorage.setItem('vv_auth_user', JSON.stringify(session.user));
     updateProfileView();
     profileEditForm.hidden = true;
     profileEditForm.reset();
