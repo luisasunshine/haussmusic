@@ -469,25 +469,47 @@ const creatorRoleMeta = {
 };
 let activeCreatorRole = 'modelo';
 let activeCreatorId = null;
+let creatorDirectoryUsers = [];
 const creatorInitials = (name = '') => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'VV';
 function creatorAvatar(user, className = 'vv-creator-avatar') {
   return `<div class="${className}"${user.avatarUrl ? ` style="background-image:url('${escapeHtml(user.avatarUrl)}')"` : ''}>${user.avatarUrl ? '' : creatorInitials(user.displayName)}</div>`;
+}
+function renderCreatorDirectory() {
+  const search = document.querySelector('[data-creators-search]');
+  const term = String(search?.value || '').trim().toLocaleLowerCase('pt-BR');
+  const ownId = String(session.user?.id || '');
+  const users = creatorDirectoryUsers
+    .filter((user) => !term || String(user.displayName || '').toLocaleLowerCase('pt-BR').includes(term))
+    .sort((a, b) => Number(String(b.id) === ownId) - Number(String(a.id) === ownId));
+  creatorsGrid.innerHTML = users.length
+    ? users.map((user) => `<button type="button" class="vv-creator-card${String(user.id) === ownId ? ' is-own-profile' : ''}" data-creator-id="${user.id}">${creatorAvatar(user)}<span><b>${escapeHtml(user.displayName)}</b><small>${String(user.id) === ownId ? 'SEU PERFIL · ' : ''}${Number(user.portfolioCount || 0)} PUBLICAÇÕES</small></span><i>→</i></button>`).join('')
+    : `<div class="vv-creators-empty"><span>◇</span><h2>${term ? 'Nenhum perfil encontrado.' : 'Nenhum perfil por aqui ainda.'}</h2><p>${term ? 'Tente pesquisar outro nome.' : 'Usuários com este cargo aparecerão automaticamente.'}</p></div>`;
+  creatorsGrid.querySelectorAll('[data-creator-id]').forEach((button) => button.addEventListener('click', () => openCreatorProfile(button.dataset.creatorId)));
 }
 async function loadCreatorDirectory(role) {
   const meta = creatorRoleMeta[role];
   document.querySelector('[data-creators-title]').textContent = meta.title;
   document.querySelector('[data-creators-description]').textContent = meta.description;
   document.querySelectorAll('.vv-creator-role-tabs button').forEach((button) => button.classList.toggle('is-active', button.dataset.creatorsOpen === role));
+  const search = document.querySelector('[data-creators-search]');
+  if (search) { search.value = ''; search.placeholder = `Pesquisar ${meta.title.toLocaleLowerCase('pt-BR')}`; }
   creatorProfile.hidden = true; creatorsGrid.hidden = false;
   creatorsGrid.innerHTML = '<p class="vv-creators-loading">Carregando perfis...</p>';
   try {
     const response = await fetch(`${API_URL}/api/public/creators?role=${encodeURIComponent(role)}`, { cache: 'no-store' });
     if (!response.ok) throw new Error();
     const { users } = await response.json();
-    creatorsGrid.innerHTML = users.length ? users.map((user) => `<button type="button" class="vv-creator-card" data-creator-id="${user.id}">${creatorAvatar(user)}<span><b>${escapeHtml(user.displayName)}</b><small>${Number(user.portfolioCount || 0)} PUBLICAÇÕES</small></span><i>→</i></button>`).join('') : '<div class="vv-creators-empty"><span>◇</span><h2>Nenhum perfil por aqui ainda.</h2><p>Usuários com este cargo aparecerão automaticamente.</p></div>';
-    creatorsGrid.querySelectorAll('[data-creator-id]').forEach((button) => button.addEventListener('click', () => openCreatorProfile(button.dataset.creatorId)));
+    if (session.token) {
+      try {
+        session.user = (await requestApi('/api/auth/me')).user;
+        localStorage.setItem('vv_auth_user', JSON.stringify(session.user));
+      } catch { /* Mantém a listagem pública disponível. */ }
+    }
+    creatorDirectoryUsers = users;
+    renderCreatorDirectory();
   } catch { creatorsGrid.innerHTML = '<div class="vv-creators-empty"><h2>Não foi possível carregar os perfis.</h2><p>Tente novamente em instantes.</p></div>'; }
 }
+document.querySelector('[data-creators-search]')?.addEventListener('input', renderCreatorDirectory);
 function openCreators(role = 'modelo') {
   if (!creatorRoleMeta[role]) role = 'modelo';
   activeCreatorRole = role; activeCreatorId = null;
