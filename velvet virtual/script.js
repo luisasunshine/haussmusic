@@ -471,6 +471,7 @@ loadHomeVimos();
 
 async function loadMagazine() {
   const book = document.querySelector('[data-magazine-book]');
+  const homeCover = document.querySelector('[data-magazine-home-cover]');
   const empty = document.querySelector('[data-magazine-empty]');
   const counter = document.querySelector('[data-magazine-counter]');
   const previous = document.querySelector('[data-magazine-prev]');
@@ -480,6 +481,10 @@ async function loadMagazine() {
     const response = await fetch(`${API_URL}/api/public/home`);
     if (!response.ok) throw new Error();
     const pages = (await response.json()).magazinePages || [];
+    if (homeCover && pages[0]?.imageUrl) {
+      homeCover.style.backgroundImage = `linear-gradient(0deg,rgba(0,0,0,.4),rgba(0,0,0,.03)),url("${pages[0].imageUrl}")`;
+      homeCover.classList.add('has-cover');
+    }
     if (!pages.length) { empty.hidden = false; book.hidden = true; previous.disabled = true; next.disabled = true; return; }
     empty.hidden = true; book.hidden = false; book.replaceChildren();
     const pageElements = pages.map((page, index) => {
