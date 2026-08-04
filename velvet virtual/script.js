@@ -380,8 +380,15 @@ async function loadNews() {
     const posts = [...data.posts].filter((post) => (!activeNewsCategory || hasCategory(post, activeNewsCategory)) && (!newsWeekOnly || (hasCategory(post, 'Lançamentos') && new Date(post.publishedAt || post.createdAt).getTime() >= weekStart))).sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
     if (newsCategoryTabs) {
       newsCategoryTabs.replaceChildren();
-      const all = document.createElement('button'); all.type = 'button'; all.textContent = 'TODAS'; all.classList.toggle('is-active', !activeNewsCategory); all.addEventListener('click', () => openNews()); newsCategoryTabs.append(all);
-      (data.categories || []).forEach((category) => { const button = document.createElement('button'); button.type = 'button'; button.textContent = category.name; button.classList.toggle('is-active', activeNewsCategory === category.name); button.addEventListener('click', () => openNews(category.name)); newsCategoryTabs.append(button); });
+      const dropdown = document.createElement('details'); dropdown.className = 'vv-category-dropdown';
+      const summary = document.createElement('summary'); summary.innerHTML = `<span><small>FILTRAR POR CATEGORIA</small><b>${escapeHtml(activeNewsCategory || 'Todas as categorias')}</b></span><i>⌄</i>`;
+      const list = document.createElement('div'); list.className = 'vv-category-dropdown-list';
+      const addCategory = (label, value = null) => {
+        const button = document.createElement('button'); button.type = 'button'; button.textContent = label; button.classList.toggle('is-active', activeNewsCategory === value); button.addEventListener('click', () => { dropdown.open = false; openNews(value); }); list.append(button);
+      };
+      addCategory('Todas', null);
+      (data.categories || []).forEach((category) => addCategory(category.name, category.name));
+      dropdown.append(summary, list); newsCategoryTabs.append(dropdown);
     }
     const highlighted = [...posts].filter((post) => Number(post.isFeatured) || Number(post.views) > 0).sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured) || Number(b.views) - Number(a.views)).slice(0, 2);
     const featuredIds = new Set(highlighted.map((post) => post.id));
