@@ -1,6 +1,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const tls = require('tls');
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -43,9 +44,47 @@ function newsletterHtml({ eyebrow, title, text, imageUrl, buttonLabel, buttonUrl
   return `<!doctype html><html><body style="margin:0;background:#08080a;color:#fff;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#08080a"><tr><td align="center" style="padding:32px 14px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#121216;border:1px solid #303036"><tr><td style="padding:26px 32px;border-bottom:1px solid #303036"><b style="font-size:24px;letter-spacing:-1px">VELVET</b> <span style="color:#999;font-size:10px;letter-spacing:3px">VIRTUAL</span></td></tr>${image}<tr><td style="padding:42px 32px 30px"><p style="margin:0 0 15px;color:#b9bac1;font:700 10px monospace;letter-spacing:2px">${emailEscape(eyebrow)}</p><h1 style="margin:0 0 20px;color:#fff;font-size:46px;line-height:.98;letter-spacing:-3px">${emailEscape(title)}</h1><p style="margin:0 0 28px;color:#b9b9c0;font-size:15px;line-height:1.7">${emailEscape(text)}</p><a href="${emailEscape(buttonUrl)}" style="display:inline-block;padding:15px 22px;background:#e1e2e6;color:#09090b;text-decoration:none;font:700 11px monospace;letter-spacing:1px">${emailEscape(buttonLabel)} &nbsp;→</a></td></tr><tr><td style="padding:22px 32px;border-top:1px solid #303036;color:#717179;font-size:10px;line-height:1.6">Você recebeu este e-mail porque assinou a Newsletter Velvet Virtual.<br><a href="${apiUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}" style="color:#aaaab2">Cancelar inscrição</a></td></tr></table></td></tr></table></body></html>`;
 }
 async function sendNewsletterEmail(to, subject, html) {
-  if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY não configurada.');
-  const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: emailFrom, to: [to], subject, html }) });
-  if (!response.ok) throw new Error(`Resend recusou o envio (${response.status}).`);
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) return sendGmailEmail(to, subject, html);
+  if (process.env.RESEND_API_KEY) {
+    const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: emailFrom, to: [to], subject, html }) });
+    if (!response.ok) throw new Error(`Resend recusou o envio (${response.status}).`);
+    return;
+  }
+  throw new Error('Configure Gmail ou Resend para enviar a newsletter.');
+}
+function sendGmailEmail(to, subject, html) {
+  const user = String(process.env.GMAIL_USER || '').trim();
+  const password = String(process.env.GMAIL_APP_PASSWORD || '').replace(/\s+/g, '');
+  return new Promise((resolve, reject) => {
+    const socket = tls.connect({ host: 'smtp.gmail.com', port: 465, servername: 'smtp.gmail.com', rejectUnauthorized: true });
+    let buffer = ''; const responses = []; const waiters = [];
+    const finishResponse = (line) => { if (waiters.length) waiters.shift()(line); else responses.push(line); };
+    socket.setTimeout(30000, () => socket.destroy(new Error('Tempo esgotado ao conectar ao Gmail.')));
+    socket.on('data', (chunk) => {
+      buffer += chunk.toString('utf8');
+      const lines = buffer.split(/\r?\n/); buffer = lines.pop();
+      lines.forEach((line) => { if (/^\d{3} /.test(line)) finishResponse(line); });
+    });
+    socket.on('error', reject);
+    const read = () => responses.length ? Promise.resolve(responses.shift()) : new Promise((done) => waiters.push(done));
+    const command = async (value, expected) => { socket.write(`${value}\r\n`); const response = await read(); if (!expected.includes(Number(response.slice(0, 3)))) throw new Error(`Gmail recusou o envio (${response}).`); return response; };
+    socket.once('secureConnect', async () => {
+      try {
+        let response = await read(); if (!response.startsWith('220')) throw new Error(`SMTP indisponível (${response}).`);
+        await command('EHLO velvetvirtual.com', [250]);
+        await command('AUTH LOGIN', [334]);
+        await command(Buffer.from(user).toString('base64'), [334]);
+        await command(Buffer.from(password).toString('base64'), [235]);
+        await command(`MAIL FROM:<${user}>`, [250]);
+        await command(`RCPT TO:<${to}>`, [250, 251]);
+        await command('DATA', [354]);
+        const encodedSubject = `=?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`;
+        const message = [`From: Velvet Virtual <${user}>`, `To: <${to}>`, `Subject: ${encodedSubject}`, 'MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', Buffer.from(html).toString('base64').replace(/(.{76})/g, '$1\r\n')].join('\r\n');
+        await command(`${message}\r\n.`, [250]);
+        socket.write('QUIT\r\n'); socket.end(); resolve();
+      } catch (error) { socket.destroy(); reject(error); }
+    });
+  });
 }
 async function notifyNewsletter(event) {
   const subscribers = db.prepare('SELECT * FROM newsletter_subscribers WHERE is_active = 1').all();
@@ -106,7 +145,7 @@ app.post('/api/newsletter/subscribe', async (req, res) => {
       emailSent = true;
     } catch (error) { console.error(`[newsletter] boas-vindas ${email}: ${error.message}`); }
   }
-  res.status(201).json({ ok: true, emailSent, emailConfigured: Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM) });
+  res.status(201).json({ ok: true, emailSent, emailConfigured: Boolean((process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) || process.env.RESEND_API_KEY) });
 });
 app.get('/api/newsletter/unsubscribe', (req, res) => {
   db.prepare('UPDATE newsletter_subscribers SET is_active = 0, updated_at = ? WHERE unsubscribe_token = ?').run(now(), String(req.query.token || ''));
