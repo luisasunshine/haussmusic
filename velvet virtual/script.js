@@ -502,8 +502,21 @@ async function openCreatorProfile(id) {
     const response = await fetch(`${API_URL}/api/public/creators/${encodeURIComponent(id)}?role=${encodeURIComponent(activeCreatorRole)}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Perfil não encontrado.');
     const { user, posts } = await response.json();
-    const roles = new Set(String(session.user?.role || '').split(',').map((role) => role.trim()));
-    const canPublish = session.user?.id === user.id && roles.has(activeCreatorRole);
+    // Confirma a conta no servidor antes de decidir se este portfólio é do visitante.
+    // Assim o botão também aparece logo após uma troca de cargo, sem depender do
+    // perfil possivelmente antigo que ficou salvo no navegador.
+    if (session.token) {
+      try {
+        session.user = (await requestApi('/api/auth/me')).user;
+        localStorage.setItem('vv_auth_user', JSON.stringify(session.user));
+      } catch { /* A API da publicação continuará protegendo a ação. */ }
+    }
+    const accountRoles = Array.isArray(session.user?.roles)
+      ? session.user.roles
+      : String(session.user?.role || '').split(',');
+    const roles = new Set(accountRoles.map((role) => String(role).trim().toLowerCase()).filter(Boolean));
+    const ownsProfile = String(session.user?.id || '') === String(user.id || '');
+    const canPublish = ownsProfile && roles.has(activeCreatorRole);
     creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← TODOS OS PERFIS</button><header>${creatorAvatar(user, 'vv-creator-profile-avatar')}<div><p class="vv-eyebrow">${escapeHtml(creatorRoleMeta[activeCreatorRole].title.toUpperCase())}</p><h2>${escapeHtml(user.displayName)}</h2><span>${posts.length} PUBLICAÇÕES</span></div>${canPublish ? '<button type="button" class="vv-admin-add" data-portfolio-new>+ NOVA PUBLICAÇÃO</button>' : ''}</header><div class="vv-portfolio-grid">${posts.length ? posts.map((post) => `<article><img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}"><div><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.content || '')}</p>${canPublish ? `<button type="button" data-portfolio-delete="${post.id}">EXCLUIR</button>` : ''}</div></article>`).join('') : '<div class="vv-creators-empty"><h3>Este portfólio está começando.</h3><p>As próximas publicações aparecerão aqui.</p></div>'}</div>`;
     creatorProfile.querySelector('[data-creator-back]').addEventListener('click', () => loadCreatorDirectory(activeCreatorRole));
     creatorProfile.querySelector('[data-portfolio-new]')?.addEventListener('click', openPortfolioEditor);
