@@ -19,6 +19,7 @@ const newsEmpty = document.querySelector('[data-news-empty]');
 const newsCount = document.querySelector('[data-news-count]');
 const newsCategoryTabs = document.querySelector('[data-news-category-tabs]');
 const vimosPage = document.querySelector('[data-vimos-page]');
+const magazinePage = document.querySelector('[data-magazine-page]');
 const vimosGrid = document.querySelector('[data-vimos-grid]');
 const vimosEmpty = document.querySelector('[data-vimos-empty]');
 let activeNewsCategory = null;
@@ -28,7 +29,7 @@ const toast = document.querySelector('[data-toast]');
 let toastTimer;
 function goHome(event) {
   event?.preventDefault();
-  searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true;
+  searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true;
   document.querySelector('[data-read-page]').hidden = true;
   if (profilePanel) profilePanel.hidden = true;
   document.body.classList.remove('is-locked');
@@ -394,7 +395,7 @@ async function loadNews() {
   }
 }
 
-function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
+function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
 function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.classList.remove('is-week-page'); newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
 document.querySelectorAll('[data-revista-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(); }));
@@ -413,18 +414,21 @@ async function loadVimosVoce() {
     vimosEmpty.hidden = items.length > 0;
   } catch { vimosEmpty.hidden = false; }
 }
-function openVimos() { newsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
+function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
 function closeVimos() { vimosPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-vimos-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openVimos(); }));
+function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
+document.querySelectorAll('[data-magazine-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openMagazine(); }));
 document.querySelectorAll('[data-vimos-close]').forEach((button) => button.addEventListener('click', closeVimos));
 document.querySelectorAll('[data-section-nav]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
-  newsPage.hidden = true; vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
+  newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
   document.body.classList.remove('is-locked');
   const target = document.querySelector(`#${link.dataset.sectionNav}`); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   window.history.replaceState(null, '', `#${link.dataset.sectionNav}`);
 }));
 if (window.location.hash === '#vimos-voce') openVimos();
+if (window.location.hash === '#revista') openMagazine();
 
 async function loadFooterSettings() {
   try {

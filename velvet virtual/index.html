@@ -22,7 +22,7 @@
       </div>
       <nav class="vv-nav" aria-label="Navegação principal">
         <a class="is-active" data-home-link data-nav-link href="#top">Início</a>
-        <a data-section-nav="revista-velvet" data-nav-link href="#revista-velvet">Revista</a>
+        <a data-magazine-open data-nav-link href="#revista">Revista</a>
         <a data-nav-link href="#podcast">Podcasts</a>
         <a data-week-open data-nav-link href="#novas">Novas</a>
         <a data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a>
@@ -71,23 +71,6 @@
         <div data-home-featured><div class="vv-content-empty"><span>✦</span><h3>A redação está preparando a próxima edição.</h3><p>As matérias publicadas no painel administrativo aparecerão aqui.</p></div></div>
       </section>
 
-      <section class="vv-magazine" id="revista-velvet" aria-labelledby="vv-magazine-title">
-        <div class="vv-magazine-heading">
-          <p class="vv-eyebrow">REVISTA VELVET</p>
-          <h2 id="vv-magazine-title">Folheie a nossa<br /><i>nova edição.</i></h2>
-          <p>Clique ou arraste o card para o lado e descubra o próximo.</p>
-        </div>
-        <div class="vv-magazine-reader" data-magazine-reader>
-          <div class="vv-magazine-book" data-magazine-book aria-live="polite"></div>
-          <div class="vv-magazine-controls">
-            <button type="button" data-magazine-prev aria-label="Página anterior">‹</button>
-            <span data-magazine-counter hidden></span>
-            <button type="button" data-magazine-next aria-label="Próxima página">›</button>
-          </div>
-          <p class="vv-magazine-empty" data-magazine-empty>As páginas da próxima edição aparecerão aqui.</p>
-        </div>
-      </section>
-
       <section class="vv-radar" id="podcast">
         <div class="vv-radar-intro">
           <p class="vv-eyebrow">VELVET PODCAST</p>
@@ -125,8 +108,24 @@
       </section>
     </main>
 
+    <section class="vv-magazine-page" data-magazine-page hidden aria-label="Revista Velvet">
+      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">Início</a><a class="is-active" data-magazine-open data-nav-link href="#revista">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a data-week-open data-nav-link href="#novas">Novas</a><a data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a></nav></header>
+      <section class="vv-magazine" id="revista-velvet" aria-labelledby="vv-magazine-title">
+        <div class="vv-magazine-heading">
+          <p class="vv-eyebrow">EDIÇÃO DIGITAL · REVISTA VELVET</p>
+          <h2 id="vv-magazine-title">Uma revista para<br /><i>sentir agora.</i></h2>
+          <p>Clique à direita para avançar, à esquerda para voltar, ou arraste os cards.</p>
+        </div>
+        <div class="vv-magazine-reader" data-magazine-reader>
+          <div class="vv-magazine-book" data-magazine-book aria-live="polite"></div>
+          <div class="vv-magazine-controls"><button type="button" data-magazine-prev aria-label="Página anterior">‹</button><span data-magazine-counter hidden></span><button type="button" data-magazine-next aria-label="Próxima página">›</button></div>
+          <p class="vv-magazine-empty" data-magazine-empty>As páginas da próxima edição aparecerão aqui.</p>
+        </div>
+      </section>
+    </section>
+
     <section class="vv-news-page" data-news-page hidden aria-label="Todas as notícias">
-      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">Início</a><a data-section-nav="revista-velvet" data-nav-link href="#revista-velvet">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a class="is-active" data-week-open data-nav-link href="#novas">Novas</a><a data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a></nav></header>
+      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">Início</a><a data-magazine-open data-nav-link href="#revista">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a class="is-active" data-week-open data-nav-link href="#novas">Novas</a><a data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a></nav></header>
       <main class="vv-news-main">
         <div class="vv-news-heading"><div><p class="vv-eyebrow">TODAS AS NOTÍCIAS</p><h1 data-news-title>O que está<br /><i>acontecendo.</i></h1></div><p data-news-description>As novidades da Velvet Virtual, atualizadas diretamente pela redação.</p></div>
         <div class="vv-news-category-tabs" data-news-category-tabs aria-label="Categorias da revista"></div>
@@ -138,12 +137,12 @@
     </section>
 
     <section class="vv-vimos-page" data-vimos-page hidden aria-label="Vimos Você">
-      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">Início</a><a data-section-nav="revista-velvet" data-nav-link href="#revista-velvet">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a data-week-open data-nav-link href="#novas">Novas</a><a class="is-active" data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a></nav></header>
+      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">Início</a><a data-magazine-open data-nav-link href="#revista">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a data-week-open data-nav-link href="#novas">Novas</a><a class="is-active" data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a></nav></header>
       <main class="vv-vimos-main"><div class="vv-news-heading"><div><p class="vv-eyebrow">VIMOS VOCÊ</p><h1>Você faz parte<br /><i>da cena.</i></h1></div><p>Registros, pessoas e momentos escolhidos pela redação Velvet.</p></div><div class="vv-vimos-grid" data-vimos-grid></div><div class="vv-news-empty" data-vimos-empty><span>✦</span><h2>Em breve, a gente vê você por aqui.</h2><p>Os próximos registros selecionados pela redação aparecerão nesta página.</p></div></main>
     </section>
 
     <section class="vv-read-page" data-read-page hidden aria-label="Leitura da matéria">
-      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">Início</a><a data-section-nav="revista-velvet" data-nav-link href="#revista-velvet">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a class="is-active" data-week-open data-nav-link href="#novas">Novas</a><a data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a></nav></header>
+      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">Início</a><a data-magazine-open data-nav-link href="#revista">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a class="is-active" data-week-open data-nav-link href="#novas">Novas</a><a data-vimos-open data-nav-link href="#vimos-voce">Vimos Você</a></nav></header>
       <main class="vv-read-main">
         <p class="vv-eyebrow" data-read-category>VELVET</p>
         <h1 data-read-title></h1>
