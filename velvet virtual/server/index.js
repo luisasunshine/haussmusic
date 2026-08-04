@@ -27,9 +27,12 @@ const profileUpload = multer({ storage: profileStorage, limits: { fileSize: 12 *
 const now = () => new Date().toISOString();
 const slugify = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const publicUser = (user) => ({ id: user.id, email: user.email, displayName: user.display_name, avatarUrl: user.avatar_url, role: user.role });
+const publicCreator = (user) => ({ id: user.id, displayName: user.display_name, avatarUrl: user.avatar_url, role: user.role });
 const toCamel = (row) => row && Object.fromEntries(Object.entries(row).map(([key, value]) => [key.replace(/_([a-z])/g, (_, char) => char.toUpperCase()), value]));
 const readJson = (value) => { try { return JSON.parse(value); } catch { return value; } };
 const normalizeCategoryIds = (value) => [...new Set((Array.isArray(value) ? value : String(value || '').split(',')).map((item) => String(item).trim()).filter(Boolean))];
+const PORTFOLIO_ROLES = ['modelo', 'influencer', 'creators'];
+const hasUserRole = (user, role) => String(user?.role || '').split(',').map((value) => value.trim()).includes(role);
 function attachPostCategories(rows) {
   if (!rows.length) return [];
   const grouped = new Map();
@@ -240,6 +243,51 @@ app.get('/api/public/saved', requireAuth, (req, res) => {
     LEFT JOIN categories ON categories.id = posts.category_id LEFT JOIN users ON users.id = posts.created_by
     WHERE post_saves.user_id = ? AND posts.status = 'published' ORDER BY post_saves.created_at DESC`).all(req.user.id));
   res.json({ posts });
+});
+
+app.get('/api/public/creators', (req, res) => {
+  const role = String(req.query.role || '').toLowerCase();
+  if (!PORTFOLIO_ROLES.includes(role)) return res.status(400).json({ error: 'Categoria de perfil inválida.' });
+  const users = db.prepare('SELECT id,display_name,avatar_url,role FROM users ORDER BY display_name COLLATE NOCASE').all()
+    .filter((user) => hasUserRole(user, role))
+    .map((user) => ({ ...publicCreator(user), portfolioCount: db.prepare('SELECT COUNT(*) AS total FROM portfolio_posts WHERE user_id = ? AND role = ?').get(user.id, role).total }));
+  res.json({ users });
+});
+
+app.get('/api/public/creators/:id', (req, res) => {
+  const role = String(req.query.role || '').toLowerCase();
+  const user = db.prepare('SELECT id,email,display_name,avatar_url,role FROM users WHERE id = ?').get(req.params.id);
+  if (!user || !PORTFOLIO_ROLES.includes(role) || !hasUserRole(user, role)) return res.status(404).json({ error: 'Perfil não encontrado.' });
+  const posts = db.prepare('SELECT * FROM portfolio_posts WHERE user_id = ? AND role = ? ORDER BY created_at DESC').all(user.id, role).map(toCamel);
+  res.json({ user: publicCreator(user), posts });
+});
+
+app.post('/api/portfolio/uploads', requireAuth, (req, res, next) => {
+  if (!PORTFOLIO_ROLES.some((role) => hasUserRole(req.user, role))) return res.status(403).json({ error: 'Seu cargo não permite publicar portfólios.' });
+  next();
+}, profileUpload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Selecione uma imagem.' });
+  const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
+  res.status(201).json({ url: `${base}/uploads/${req.file.filename}` });
+});
+
+app.post('/api/portfolio/posts', requireAuth, (req, res) => {
+  const role = String(req.body.role || '').toLowerCase();
+  const title = String(req.body.title || '').trim();
+  const content = String(req.body.content || '').trim();
+  const imageUrl = String(req.body.image_url || '').trim();
+  if (!PORTFOLIO_ROLES.includes(role) || !hasUserRole(req.user, role)) return res.status(403).json({ error: 'Seu cargo não permite publicar nesta categoria.' });
+  if (!title || !imageUrl) return res.status(400).json({ error: 'Informe título e imagem.' });
+  const id = uuid(); const date = now();
+  db.prepare('INSERT INTO portfolio_posts (id,user_id,role,title,content,image_url,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)').run(id, req.user.id, role, title, content, imageUrl, date, date);
+  res.status(201).json(toCamel(db.prepare('SELECT * FROM portfolio_posts WHERE id = ?').get(id)));
+});
+
+app.delete('/api/portfolio/posts/:id', requireAuth, (req, res) => {
+  const post = db.prepare('SELECT * FROM portfolio_posts WHERE id = ?').get(req.params.id);
+  if (!post || (post.user_id !== req.user.id && !isAdmin(req.user))) return res.status(403).json({ error: 'Você não pode excluir esta publicação.' });
+  db.prepare('DELETE FROM portfolio_posts WHERE id = ?').run(req.params.id);
+  res.status(204).end();
 });
 
 function crud(resource, table, fields) {

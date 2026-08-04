@@ -60,7 +60,7 @@
       </section>
 
       <section class="vv-ticker" aria-label="Categorias em alta">
-        <button type="button" class="vv-ticker-all" data-news-open>EM ALTA</button><b>✦</b><a href="#noticias" data-category-news="Música">MÚSICA</a><b>✦</b><a href="#noticias" data-category-news="Cinema">CINEMA</a><b>✦</b><a href="#noticias" data-category-news="Séries">SÉRIES</a><b>✦</b><a href="#noticias" data-category-news="Cultura Pop">CULTURA POP</a><b>✦</b><a href="#noticias" data-category-news="Games">GAMES</a><b>✦</b><a href="#noticias" data-category-news="Moda">MODA</a><b>✦</b><a href="#noticias" data-category-news="Tecnologia">TECNOLOGIA</a>
+        <button type="button" class="vv-ticker-all" data-news-open>EM ALTA</button><b>✦</b><button type="button" data-creators-open="modelo">MODELOS</button><b>✦</b><button type="button" data-creators-open="influencer">INFLUENCERS</button><b>✦</b><button type="button" data-creators-open="creators">CREATORS</button><b>✦</b><button type="button" data-vimos-open>TE VI POR AÍ</button>
       </section>
 
       <section class="vv-section vv-featured" id="materias">
@@ -136,6 +136,20 @@
           <p class="vv-magazine-empty" data-magazine-empty>As páginas da próxima edição aparecerão aqui.</p>
         </div>
       </section>
+    </section>
+
+    <section class="vv-creators-page" data-creators-page hidden aria-label="Perfis Velvet">
+      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top"><span>VELVET</span><em>VIRTUAL</em></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação principal"><a data-home-link data-nav-link href="#top">Início</a><a data-magazine-open data-nav-link href="#revista">Revista</a><a data-section-nav="podcast" data-nav-link href="#podcast">Podcasts</a><a data-week-open data-nav-link href="#novas">Novidades</a><a data-vimos-open data-nav-link href="#vimos-voce">Te vi por aí</a></nav></header>
+      <main class="vv-creators-main">
+        <div class="vv-creators-heading"><p class="vv-eyebrow" data-creators-eyebrow>COMUNIDADE VELVET</p><h1 data-creators-title>Modelos</h1><p data-creators-description>Conheça os perfis e portfólios da comunidade.</p></div>
+        <div class="vv-creator-role-tabs"><button data-creators-open="modelo">MODELOS</button><button data-creators-open="influencer">INFLUENCERS</button><button data-creators-open="creators">CREATORS</button></div>
+        <div class="vv-creators-grid" data-creators-grid></div>
+        <div class="vv-creator-profile" data-creator-profile hidden></div>
+      </main>
+    </section>
+
+    <section class="vv-portfolio-editor" data-portfolio-editor hidden aria-label="Nova publicação do portfólio">
+      <form data-portfolio-form><button type="button" class="vv-editor-close" data-portfolio-close aria-label="Fechar">×</button><p class="vv-eyebrow">NOVO PORTFÓLIO</p><h2>Nova publicação</h2><label>Foto<input name="image" type="file" accept="image/*" required></label><label>Título<input name="title" maxlength="120" required></label><label>Texto<textarea name="content" maxlength="2000"></textarea></label><button type="submit" class="vv-admin-add">PUBLICAR</button><p data-portfolio-message></p></form>
     </section>
 
     <section class="vv-news-page" data-news-page hidden aria-label="Todas as notícias">

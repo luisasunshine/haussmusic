@@ -20,6 +20,9 @@ const newsCount = document.querySelector('[data-news-count]');
 const newsCategoryTabs = document.querySelector('[data-news-category-tabs]');
 const vimosPage = document.querySelector('[data-vimos-page]');
 const magazinePage = document.querySelector('[data-magazine-page]');
+const creatorsPage = document.querySelector('[data-creators-page]');
+const creatorsGrid = document.querySelector('[data-creators-grid]');
+const creatorProfile = document.querySelector('[data-creator-profile]');
 const vimosGrid = document.querySelector('[data-vimos-grid]');
 const vimosEmpty = document.querySelector('[data-vimos-empty]');
 let activeNewsCategory = null;
@@ -32,7 +35,7 @@ function syncActiveNav(selector) {
 }
 function goHome(event) {
   event?.preventDefault();
-  searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true;
+  searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true;
   document.querySelector('[data-read-page]').hidden = true;
   if (profilePanel) profilePanel.hidden = true;
   document.body.classList.remove('is-locked');
@@ -406,7 +409,7 @@ async function loadNews() {
   }
 }
 
-function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; syncActiveNav('[data-week-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
+function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; syncActiveNav('[data-week-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
 function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.classList.remove('is-week-page'); newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
 document.querySelectorAll('[data-revista-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(); }));
@@ -425,15 +428,15 @@ async function loadVimosVoce() {
     vimosEmpty.hidden = items.length > 0;
   } catch { vimosEmpty.hidden = false; }
 }
-function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; syncActiveNav('[data-vimos-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
+function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; syncActiveNav('[data-vimos-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
 function closeVimos() { vimosPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-vimos-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openVimos(); }));
-function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; syncActiveNav('[data-magazine-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
+function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; syncActiveNav('[data-magazine-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
 document.querySelectorAll('[data-magazine-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openMagazine(); }));
 document.querySelectorAll('[data-vimos-close]').forEach((button) => button.addEventListener('click', closeVimos));
 document.querySelectorAll('[data-section-nav]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
-  newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
+  newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
   document.body.classList.remove('is-locked');
   const target = document.querySelector(`#${link.dataset.sectionNav}`); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   syncActiveNav(`[href="#${link.dataset.sectionNav}"]`);
@@ -458,6 +461,57 @@ magazinePage?.querySelector('.vv-overlay-nav')?.addEventListener('click', (event
 }, true);
 if (window.location.hash === '#vimos-voce') openVimos();
 if (window.location.hash === '#revista') openMagazine();
+
+const creatorRoleMeta = {
+  modelo: { title: 'Modelos', description: 'Rostos, editoriais e trabalhos da comunidade Velvet.' },
+  influencer: { title: 'Influencers', description: 'Criadores que transformam presença em linguagem.' },
+  creators: { title: 'Creators', description: 'Portfólios de quem cria, dirige, fotografa e movimenta a cena.' },
+};
+let activeCreatorRole = 'modelo';
+let activeCreatorId = null;
+const creatorInitials = (name = '') => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'VV';
+function creatorAvatar(user, className = 'vv-creator-avatar') {
+  return `<div class="${className}"${user.avatarUrl ? ` style="background-image:url('${escapeHtml(user.avatarUrl)}')"` : ''}>${user.avatarUrl ? '' : creatorInitials(user.displayName)}</div>`;
+}
+async function loadCreatorDirectory(role) {
+  const meta = creatorRoleMeta[role];
+  document.querySelector('[data-creators-title]').textContent = meta.title;
+  document.querySelector('[data-creators-description]').textContent = meta.description;
+  document.querySelectorAll('.vv-creator-role-tabs button').forEach((button) => button.classList.toggle('is-active', button.dataset.creatorsOpen === role));
+  creatorProfile.hidden = true; creatorsGrid.hidden = false;
+  creatorsGrid.innerHTML = '<p class="vv-creators-loading">Carregando perfis...</p>';
+  try {
+    const response = await fetch(`${API_URL}/api/public/creators?role=${encodeURIComponent(role)}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error();
+    const { users } = await response.json();
+    creatorsGrid.innerHTML = users.length ? users.map((user) => `<button type="button" class="vv-creator-card" data-creator-id="${user.id}">${creatorAvatar(user)}<span><b>${escapeHtml(user.displayName)}</b><small>${Number(user.portfolioCount || 0)} PUBLICAÇÕES</small></span><i>→</i></button>`).join('') : '<div class="vv-creators-empty"><span>◇</span><h2>Nenhum perfil por aqui ainda.</h2><p>Usuários com este cargo aparecerão automaticamente.</p></div>';
+    creatorsGrid.querySelectorAll('[data-creator-id]').forEach((button) => button.addEventListener('click', () => openCreatorProfile(button.dataset.creatorId)));
+  } catch { creatorsGrid.innerHTML = '<div class="vv-creators-empty"><h2>Não foi possível carregar os perfis.</h2><p>Tente novamente em instantes.</p></div>'; }
+}
+function openCreators(role = 'modelo') {
+  if (!creatorRoleMeta[role]) role = 'modelo';
+  activeCreatorRole = role; activeCreatorId = null;
+  newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
+  creatorsPage.hidden = false; document.body.classList.add('is-locked'); creatorsPage.scrollTop = 0;
+  window.history.replaceState(null, '', `#${role}`); loadCreatorDirectory(role);
+}
+async function openCreatorProfile(id) {
+  activeCreatorId = id; creatorsGrid.hidden = true; creatorProfile.hidden = false;
+  creatorProfile.innerHTML = '<p class="vv-creators-loading">Abrindo portfólio...</p>';
+  try {
+    const response = await fetch(`${API_URL}/api/public/creators/${encodeURIComponent(id)}?role=${encodeURIComponent(activeCreatorRole)}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Perfil não encontrado.');
+    const { user, posts } = await response.json();
+    const roles = new Set(String(session.user?.role || '').split(',').map((role) => role.trim()));
+    const canPublish = session.user?.id === user.id && roles.has(activeCreatorRole);
+    creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← TODOS OS PERFIS</button><header>${creatorAvatar(user, 'vv-creator-profile-avatar')}<div><p class="vv-eyebrow">${escapeHtml(creatorRoleMeta[activeCreatorRole].title.toUpperCase())}</p><h2>${escapeHtml(user.displayName)}</h2><span>${posts.length} PUBLICAÇÕES</span></div>${canPublish ? '<button type="button" class="vv-admin-add" data-portfolio-new>+ NOVA PUBLICAÇÃO</button>' : ''}</header><div class="vv-portfolio-grid">${posts.length ? posts.map((post) => `<article><img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}"><div><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.content || '')}</p>${canPublish ? `<button type="button" data-portfolio-delete="${post.id}">EXCLUIR</button>` : ''}</div></article>`).join('') : '<div class="vv-creators-empty"><h3>Este portfólio está começando.</h3><p>As próximas publicações aparecerão aqui.</p></div>'}</div>`;
+    creatorProfile.querySelector('[data-creator-back]').addEventListener('click', () => loadCreatorDirectory(activeCreatorRole));
+    creatorProfile.querySelector('[data-portfolio-new]')?.addEventListener('click', openPortfolioEditor);
+    creatorProfile.querySelectorAll('[data-portfolio-delete]').forEach((button) => button.addEventListener('click', async () => { if (!confirm('Excluir esta publicação?')) return; try { await requestApi(`/api/portfolio/posts/${button.dataset.portfolioDelete}`, { method: 'DELETE' }); openCreatorProfile(id); } catch (error) { notify(error.message, 'error'); } }));
+  } catch (error) { creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← VOLTAR</button><div class="vv-creators-empty"><h2>${escapeHtml(error.message)}</h2></div>`; creatorProfile.querySelector('button').onclick = () => loadCreatorDirectory(activeCreatorRole); }
+}
+document.querySelectorAll('[data-creators-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openCreators(button.dataset.creatorsOpen); }));
+['modelo', 'influencer', 'creators'].forEach((role) => { if (window.location.hash === `#${role}`) openCreators(role); });
 
 async function loadFooterSettings() {
   try {
@@ -682,6 +736,31 @@ async function requestApi(path, options = {}) {
   if (!response.ok) { const error = new Error(payload.error || 'Não foi possível concluir a ação.'); error.status = response.status; throw error; }
   return payload;
 }
+
+const portfolioEditor = document.querySelector('[data-portfolio-editor]');
+const portfolioForm = document.querySelector('[data-portfolio-form]');
+function openPortfolioEditor() { portfolioForm.reset(); portfolioEditor.hidden = false; document.querySelector('[data-portfolio-message]').textContent = ''; }
+function closePortfolioEditor() { portfolioEditor.hidden = true; }
+document.querySelector('[data-portfolio-close]')?.addEventListener('click', closePortfolioEditor);
+portfolioEditor?.addEventListener('click', (event) => { if (event.target === portfolioEditor) closePortfolioEditor(); });
+portfolioForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const submit = portfolioForm.querySelector('[type="submit"]');
+  const message = document.querySelector('[data-portfolio-message]');
+  const file = portfolioForm.elements.image.files[0];
+  if (!file) return;
+  submit.disabled = true; message.textContent = 'Enviando imagem...';
+  try {
+    const imageData = new FormData(); imageData.append('image', file);
+    const uploadResponse = await fetch(`${API_URL}/api/portfolio/uploads`, { method: 'POST', headers: { Authorization: `Bearer ${session.token}` }, body: imageData });
+    const upload = await uploadResponse.json().catch(() => ({}));
+    if (!uploadResponse.ok) throw new Error(upload.error || 'Não foi possível enviar a imagem.');
+    message.textContent = 'Publicando...';
+    await requestApi('/api/portfolio/posts', { method: 'POST', body: JSON.stringify({ role: activeCreatorRole, title: portfolioForm.elements.title.value.trim(), content: portfolioForm.elements.content.value.trim(), image_url: upload.url }) });
+    closePortfolioEditor(); notify('Publicação adicionada ao portfólio.'); openCreatorProfile(activeCreatorId);
+  } catch (error) { message.textContent = error.message; }
+  finally { submit.disabled = false; }
+});
 
 function openAuth(message = '') { authPanel.hidden = false; document.body.classList.add('is-locked'); document.querySelector('[data-auth-message]').textContent = message; }
 function closeAuth() { authPanel.hidden = true; document.body.classList.remove('is-locked'); }

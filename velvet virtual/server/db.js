@@ -54,6 +54,12 @@ db.exec(`
     position INTEGER NOT NULL DEFAULT 0, is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL, updated_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS portfolio_posts (
+    id TEXT PRIMARY KEY, user_id TEXT NOT NULL, role TEXT NOT NULL,
+    title TEXT NOT NULL, content TEXT, image_url TEXT NOT NULL,
+    created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
   );
