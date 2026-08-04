@@ -203,7 +203,7 @@ async function loadHomeFeatured() {
 
 function vimosCard(item) {
   const article = document.createElement('article'); article.className = 'vv-vimos-card';
-  article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">VIMOS VOCÊ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || 'Um momento escolhido pela Velvet.')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`;
+  article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">TE VI POR AÍ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || 'Um momento escolhido pela Velvet.')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`;
   return article;
 }
 
@@ -391,7 +391,7 @@ async function loadNews() {
     newsPage.querySelector('.vv-news-heading .vv-eyebrow').textContent = newsWeekOnly ? 'NOVIDADES DA SEMANA' : activeNewsCategory ? `CATEGORIA · ${activeNewsCategory.toUpperCase()}` : 'TODAS AS NOTÍCIAS';
     newsPage.querySelector('[data-news-title]').innerHTML = newsWeekOnly ? 'O que chegou<br /><i>agora.</i>' : 'O que está<br /><i>acontecendo.</i>';
     newsPage.querySelector('[data-news-description]').textContent = newsWeekOnly ? 'Lançamentos publicados nos últimos sete dias para você ouvir, assistir e descobrir primeiro.' : 'As novidades da Velvet Virtual, atualizadas diretamente pela redação.';
-    newsPage.querySelector('.vv-news-list-header h2').textContent = newsWeekOnly ? 'Novas nesta semana' : activeNewsCategory ? `Em ${activeNewsCategory}` : 'Mais recentes';
+    newsPage.querySelector('.vv-news-list-header h2').textContent = newsWeekOnly ? 'Novidades nesta semana' : activeNewsCategory ? `Em ${activeNewsCategory}` : 'Mais recentes';
     newsEmpty.hidden = posts.length > 0;
   } catch {
     newsEmpty.hidden = false;
@@ -414,7 +414,7 @@ async function loadVimosVoce() {
   try {
     const response = await fetch(`${API_URL}/api/public/home`); if (!response.ok) throw new Error();
     const items = (await response.json()).vimosVoce || [];
-    items.forEach((item) => { const article = document.createElement('article'); article.className = 'vv-vimos-card'; article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">VIMOS VOCÊ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || '')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`; vimosGrid.append(article); });
+    items.forEach((item) => { const article = document.createElement('article'); article.className = 'vv-vimos-card'; article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">TE VI POR AÍ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || '')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`; vimosGrid.append(article); });
     vimosEmpty.hidden = items.length > 0;
   } catch { vimosEmpty.hidden = false; }
 }
