@@ -394,15 +394,15 @@ async function loadNews() {
   }
 }
 
-function openNews(category = null, weekOnly = false) { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', weekOnly ? '#novas' : '#noticias'); loadNews(); }
+function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
 function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.classList.remove('is-week-page'); newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
 document.querySelectorAll('[data-revista-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(); }));
-document.querySelectorAll('[data-week-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(null, true); }));
+document.querySelectorAll('[data-week-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(null, false, 'novas'); }));
 document.querySelectorAll('[data-category-news]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); openNews(link.dataset.categoryNews); }));
 document.querySelectorAll('[data-news-close]').forEach((button) => button.addEventListener('click', closeNews));
 if (window.location.hash === '#noticias') openNews();
-if (window.location.hash === '#novas') openNews(null, true);
+if (window.location.hash === '#novas') openNews(null, false, 'novas');
 
 async function loadVimosVoce() {
   vimosGrid.replaceChildren();

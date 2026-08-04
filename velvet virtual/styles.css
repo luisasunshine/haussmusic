@@ -176,3 +176,11 @@ h1,h2,h3,p{margin-top:0}.vv-hero h1{font-size:clamp(52px,7vw,108px);line-height:
 /* Brilhos metálicos */
 .vv-hero:after{background:radial-gradient(ellipse at 14% 88%,rgba(255,255,255,.28) 0%,rgba(210,212,220,.2) 18%,rgba(132,135,145,.1) 37%,transparent 62%)}
 .vv-magazine{background:radial-gradient(ellipse at 73% 50%,rgba(255,255,255,.18) 0%,rgba(202,204,212,.12) 22%,rgba(120,123,132,.06) 42%,transparent 68%),#08080c}
+
+/* Revista em destaque */
+.vv-magazine{min-height:980px;grid-template-columns:minmax(260px,.55fr) minmax(520px,1.45fr);gap:clamp(55px,8vw,140px);padding-block:clamp(95px,10vw,145px);background:radial-gradient(ellipse at 72% 48%,rgba(255,255,255,.2) 0%,rgba(202,204,212,.12) 20%,rgba(110,113,122,.05) 43%,transparent 68%),linear-gradient(135deg,#050507,#0d0d12 58%,#050506)}
+.vv-magazine-heading{max-width:410px}.vv-magazine-heading h2{font-size:clamp(55px,6.2vw,96px);line-height:.88}.vv-magazine-heading>p:last-child{max-width:340px;font-size:14px}
+.vv-magazine-reader:after{content:'';position:absolute;z-index:-1;width:min(58vw,720px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.11),rgba(190,192,200,.045) 38%,transparent 67%);filter:blur(12px)}
+.vv-magazine-book{--book-w:min(46vw,560px);filter:drop-shadow(0 38px 48px rgba(0,0,0,.68))}.vv-magazine-face{border:1px solid rgba(255,255,255,.2);box-shadow:0 20px 55px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.08)}
+.vv-magazine-controls{margin-top:32px;padding:8px 14px;border:1px solid rgba(255,255,255,.1);border-radius:100px;background:rgba(16,16,20,.72);backdrop-filter:blur(12px)}
+@media (max-width:800px){.vv-magazine{min-height:auto;grid-template-columns:1fr;gap:48px;padding-block:75px}.vv-magazine-heading{margin-inline:auto}.vv-magazine-book{--book-w:min(86vw,470px)}}
