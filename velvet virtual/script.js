@@ -457,42 +457,62 @@ async function loadMagazine() {
     if (!pages.length) { empty.hidden = false; book.hidden = true; previous.disabled = true; next.disabled = true; return; }
     empty.hidden = true; book.hidden = false; book.replaceChildren();
     const pageElements = pages.map((page, index) => {
-      const sheet = document.createElement('article');
-      sheet.className = 'vv-magazine-page'; sheet.style.zIndex = pages.length - index;
-      sheet.innerHTML = `<div class="vv-magazine-face vv-magazine-front"><img src="${escapeHtml(page.imageUrl)}" alt="${escapeHtml(page.title || `Página ${index + 1}`)}" draggable="false"><span class="vv-magazine-page-number">${index + 1}</span></div><div class="vv-magazine-face vv-magazine-back"></div>`;
-      book.append(sheet); return sheet;
+      const card = document.createElement('article');
+      card.className = 'vv-magazine-page';
+      card.innerHTML = `<div class="vv-magazine-face vv-magazine-front"><img src="${escapeHtml(page.imageUrl)}" alt="${escapeHtml(page.title || `Página ${index + 1}`)}" draggable="false"><span class="vv-magazine-page-number">${index + 1}</span></div>`;
+      book.append(card); return card;
     });
     let current = 0;
     const paint = () => {
-      pageElements.forEach((page, index) => { page.classList.toggle('is-turned', index < current); page.style.removeProperty('--turn'); page.style.zIndex = index < current ? index + 1 : pages.length - index; });
+      pageElements.forEach((page, index) => {
+        page.className = `vv-magazine-page${index < current ? ' is-past' : index === current ? ' is-active' : index === current + 1 ? ' is-next' : ' is-stacked'}`;
+        page.style.removeProperty('--swipe-x'); page.style.removeProperty('--swipe-rotate'); page.style.removeProperty('--swipe-progress');
+        page.style.zIndex = pages.length - index;
+      });
       counter.textContent = `${Math.min(current + 1, pages.length)} / ${pages.length}`;
       previous.disabled = current === 0; next.disabled = current === pages.length;
     };
-    const go = (direction) => { current = Math.max(0, Math.min(pages.length, current + direction)); paint(); };
-    previous.onclick = () => go(-1); next.onclick = () => go(1);
+    let animating = false;
+    const dismiss = (direction = 1, fromDrag = false) => {
+      if (animating || current >= pages.length) return;
+      animating = true;
+      const card = pageElements[current];
+      if (!fromDrag) card.getBoundingClientRect();
+      card.classList.add('is-dismissing');
+      card.style.setProperty('--swipe-x', `${direction * 145}%`);
+      card.style.setProperty('--swipe-rotate', `${direction * 16}deg`);
+      card.style.setProperty('--swipe-progress', '1');
+      window.setTimeout(() => { current += 1; animating = false; paint(); }, 560);
+    };
+    const restore = () => { if (animating || current === 0) return; current -= 1; paint(); pageElements[current].classList.add('is-restoring'); window.setTimeout(() => pageElements[current]?.classList.remove('is-restoring'), 560); };
+    previous.onclick = restore; next.onclick = () => dismiss(1);
     let drag = null;
     book.addEventListener('pointerdown', (event) => {
-      if (event.button !== undefined && event.button !== 0) return;
+      if (animating || current >= pages.length || (event.button !== undefined && event.button !== 0)) return;
       const rect = book.getBoundingClientRect();
-      const direction = event.clientX < rect.left + rect.width * .42 && current > 0 ? -1 : (current < pages.length ? 1 : -1);
-      if ((direction === 1 && current >= pages.length) || (direction === -1 && current <= 0)) return;
-      drag = { startX: event.clientX, width: rect.width, direction, page: pageElements[direction === 1 ? current : current - 1], progress: direction === 1 ? 0 : 1 };
+      drag = { startX: event.clientX, width: rect.width, page: pageElements[current], delta: 0, pointerId: event.pointerId };
       book.classList.add('is-dragging'); book.setPointerCapture(event.pointerId); event.preventDefault();
     });
     book.addEventListener('pointermove', (event) => {
       if (!drag) return;
-      const delta = event.clientX - drag.startX;
-      drag.progress = drag.direction === 1 ? Math.max(0, Math.min(1, -delta / drag.width)) : 1 - Math.max(0, Math.min(1, delta / drag.width));
-      drag.page.style.setProperty('--turn', drag.progress);
+      drag.delta = event.clientX - drag.startX;
+      const progress = Math.min(1, Math.abs(drag.delta) / (drag.width * .72));
+      drag.page.style.setProperty('--swipe-x', `${drag.delta}px`);
+      drag.page.style.setProperty('--swipe-rotate', `${(drag.delta / drag.width) * 13}deg`);
+      drag.page.style.setProperty('--swipe-progress', progress);
     });
-    const finishDrag = () => {
+    const finishDrag = (event) => {
       if (!drag) return;
-      if (drag.direction === 1 && drag.progress > .28) current += 1;
-      if (drag.direction === -1 && drag.progress < .72) current -= 1;
-      drag.page.style.removeProperty('--turn'); drag = null; book.classList.remove('is-dragging'); paint();
+      const { page, delta, width } = drag;
+      drag = null; book.classList.remove('is-dragging');
+      if (Math.abs(delta) > width * .2) { dismiss(delta < 0 ? -1 : 1, true); return; }
+      if (Math.abs(delta) < 8) { const rect = book.getBoundingClientRect(); dismiss(event.clientX < rect.left + rect.width / 2 ? -1 : 1, true); return; }
+      page.classList.add('is-snapping');
+      page.style.setProperty('--swipe-x', '0px'); page.style.setProperty('--swipe-rotate', '0deg'); page.style.setProperty('--swipe-progress', '0');
+      window.setTimeout(() => { page.classList.remove('is-snapping'); page.style.removeProperty('--swipe-x'); page.style.removeProperty('--swipe-rotate'); page.style.removeProperty('--swipe-progress'); }, 420);
     };
     book.addEventListener('pointerup', finishDrag); book.addEventListener('pointercancel', finishDrag);
-    book.addEventListener('keydown', (event) => { if (event.key === 'ArrowRight') go(1); if (event.key === 'ArrowLeft') go(-1); });
+    book.addEventListener('keydown', (event) => { if (event.key === 'ArrowRight') dismiss(1); if (event.key === 'ArrowLeft') restore(); });
     book.tabIndex = 0; paint();
   } catch { empty.hidden = false; empty.textContent = 'Não foi possível carregar a revista agora.'; }
 }

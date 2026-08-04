@@ -155,3 +155,20 @@ h1,h2,h3,p{margin-top:0}.vv-hero h1{font-size:clamp(52px,7vw,108px);line-height:
 .vv-cargo-checkboxes{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
 .vv-cargo-option{display:flex!important;align-items:center;gap:8px;min-height:42px;padding:0 13px;border:1px solid #383838;border-radius:5px;background:#121212;color:#e5e5ea;font:500 11px Manrope,Arial,sans-serif;letter-spacing:normal}
 .vv-cargo-option input{width:auto!important;min-height:0!important}
+
+/* Revista Velvet — deck fluido de cards */
+.vv-magazine-book{perspective:none;filter:drop-shadow(0 28px 34px rgba(0,0,0,.55));overflow:visible}
+.vv-magazine-book:before{display:none}
+.vv-magazine-page{--swipe-x:0px;--swipe-rotate:0deg;--swipe-progress:0;transform-origin:center 90%;transform:translate3d(var(--swipe-x),0,0) rotate(var(--swipe-rotate));opacity:calc(1 - var(--swipe-progress) * .92);filter:blur(calc(var(--swipe-progress) * 2px));transition:transform .56s cubic-bezier(.18,.78,.18,1),opacity .48s ease,filter .48s ease;will-change:transform,opacity,filter;pointer-events:none}
+.vv-magazine-page.is-active{pointer-events:auto}
+.vv-magazine-page.is-next{transform:translate3d(0,13px,0) scale(.965);opacity:.68;filter:brightness(.72);transition:transform .56s cubic-bezier(.18,.78,.18,1),opacity .56s ease,filter .56s ease}
+.vv-magazine-page.is-stacked{transform:translate3d(0,22px,0) scale(.93);opacity:0;pointer-events:none}
+.vv-magazine-page.is-past{display:none}
+.vv-magazine-page.is-dismissing{pointer-events:none;transition:transform .56s cubic-bezier(.2,.72,.13,1),opacity .42s ease-in,filter .42s ease-in}
+.vv-magazine-page.is-snapping{transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .35s ease,filter .35s ease}
+.vv-magazine-page.is-restoring{animation:vv-card-restore .55s cubic-bezier(.18,.78,.18,1)}
+.vv-magazine-book.is-dragging .vv-magazine-page.is-active{transition:none}
+.vv-magazine-face{backface-visibility:visible;border-radius:11px;box-shadow:0 14px 36px rgba(0,0,0,.38)}
+.vv-magazine-front:before{content:'';position:absolute;z-index:2;inset:0;background:linear-gradient(90deg,rgba(8,8,12,calc(var(--swipe-progress) * .72)),transparent 58%);opacity:var(--swipe-progress);pointer-events:none}
+@keyframes vv-card-restore{from{transform:translate3d(-115%,0,0) rotate(-12deg);opacity:0}to{transform:translate3d(0,0,0) rotate(0);opacity:1}}
+@media (prefers-reduced-motion:reduce){.vv-magazine-page{transition-duration:.15s!important;animation-duration:.15s!important}}
