@@ -477,6 +477,14 @@ function creatorAvatar(user, className = 'vv-creator-avatar') {
 const portfolioMedia = (post) => /\.(mp4|webm|mov)(?:$|[?#])/i.test(post.imageUrl || '')
   ? `<video src="${escapeHtml(post.imageUrl)}" controls playsinline preload="metadata" aria-label="${escapeHtml(post.title)}"></video>`
   : `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}">`;
+function creatorSocialLinks(user) {
+  const links = [
+    [user.instagramUrl, 'INSTAGRAM'],
+    [user.youtubeUrl, 'YOUTUBE'],
+    [user.customUrl, user.customLabel || 'LINK'],
+  ].filter(([url]) => url);
+  return links.length ? `<nav class="vv-creator-social-links" aria-label="Redes sociais">${links.map(([url, label]) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} ↗</a>`).join('')}</nav>` : '';
+}
 function renderCreatorDirectory() {
   const search = document.querySelector('[data-creators-search]');
   const term = String(search?.value || '').trim().toLocaleLowerCase('pt-BR');
@@ -542,9 +550,10 @@ async function openCreatorProfile(id) {
     const roles = new Set(accountRoles.map((role) => String(role).trim().toLowerCase()).filter(Boolean));
     const ownsProfile = String(session.user?.id || '') === String(user.id || '');
     const canPublish = ownsProfile && roles.has(activeCreatorRole);
-    creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← TODOS OS PERFIS</button><header>${creatorAvatar(user, 'vv-creator-profile-avatar')}<div><p class="vv-eyebrow">${escapeHtml(creatorRoleMeta[activeCreatorRole].title.toUpperCase())}</p><h2>${escapeHtml(user.displayName)}</h2><span>${posts.length} PUBLICAÇÕES</span></div>${canPublish ? '<button type="button" class="vv-admin-add" data-portfolio-new>+ NOVA PUBLICAÇÃO</button>' : ''}</header><div class="vv-portfolio-grid">${posts.length ? posts.map((post) => `<article>${portfolioMedia(post)}<div><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.content || '')}</p>${canPublish ? `<button type="button" data-portfolio-delete="${post.id}">EXCLUIR</button>` : ''}</div></article>`).join('') : '<div class="vv-creators-empty"><h3>Este portfólio está começando.</h3><p>As próximas publicações aparecerão aqui.</p></div>'}</div>`;
+    creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← TODOS OS PERFIS</button><header>${creatorAvatar(user, 'vv-creator-profile-avatar')}<div><p class="vv-eyebrow">${escapeHtml(creatorRoleMeta[activeCreatorRole].title.toUpperCase())}</p><h2>${escapeHtml(user.displayName)}</h2><span>${posts.length} PUBLICAÇÕES</span>${creatorSocialLinks(user)}</div>${canPublish ? '<div class="vv-creator-owner-actions"><button type="button" class="vv-admin-add" data-portfolio-new>+ NOVA PUBLICAÇÃO</button><button type="button" class="vv-social-edit-button" data-social-edit>REDES SOCIAIS</button></div>' : ''}</header><div class="vv-portfolio-grid">${posts.length ? posts.map((post) => `<article>${portfolioMedia(post)}<div><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.content || '')}</p>${canPublish ? `<button type="button" data-portfolio-delete="${post.id}">EXCLUIR</button>` : ''}</div></article>`).join('') : '<div class="vv-creators-empty"><h3>Este portfólio está começando.</h3><p>As próximas publicações aparecerão aqui.</p></div>'}</div>`;
     creatorProfile.querySelector('[data-creator-back]').addEventListener('click', () => loadCreatorDirectory(activeCreatorRole));
     creatorProfile.querySelector('[data-portfolio-new]')?.addEventListener('click', openPortfolioEditor);
+    creatorProfile.querySelector('[data-social-edit]')?.addEventListener('click', () => openSocialEditor(user));
     creatorProfile.querySelectorAll('[data-portfolio-delete]').forEach((button) => button.addEventListener('click', async () => { if (!confirm('Excluir esta publicação?')) return; try { await requestApi(`/api/portfolio/posts/${button.dataset.portfolioDelete}`, { method: 'DELETE' }); openCreatorProfile(id); } catch (error) { notify(error.message, 'error'); } }));
   } catch (error) { creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← VOLTAR</button><div class="vv-creators-empty"><h2>${escapeHtml(error.message)}</h2></div>`; creatorProfile.querySelector('button').onclick = () => loadCreatorDirectory(activeCreatorRole); }
 }
@@ -813,6 +822,31 @@ portfolioForm?.addEventListener('submit', async (event) => {
     message.textContent = 'Publicando...';
     await requestApi('/api/portfolio/posts', { method: 'POST', body: JSON.stringify({ role: activeCreatorRole, title: portfolioForm.elements.title.value.trim(), content: portfolioForm.elements.content.value.trim(), image_url: upload.url }) });
     closePortfolioEditor(); notify('Publicação adicionada ao portfólio.'); openCreatorProfile(activeCreatorId);
+  } catch (error) { message.textContent = error.message; }
+  finally { submit.disabled = false; }
+});
+
+const socialEditor = document.querySelector('[data-social-editor]');
+const socialForm = document.querySelector('[data-social-form]');
+function openSocialEditor(user) {
+  socialForm.elements.instagramUrl.value = user.instagramUrl || '';
+  socialForm.elements.youtubeUrl.value = user.youtubeUrl || '';
+  socialForm.elements.customLabel.value = user.customLabel || '';
+  socialForm.elements.customUrl.value = user.customUrl || '';
+  document.querySelector('[data-social-message]').textContent = '';
+  socialEditor.hidden = false;
+}
+function closeSocialEditor() { socialEditor.hidden = true; }
+document.querySelector('[data-social-close]')?.addEventListener('click', closeSocialEditor);
+socialEditor?.addEventListener('click', (event) => { if (event.target === socialEditor) closeSocialEditor(); });
+socialForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const submit = socialForm.querySelector('[type="submit"]');
+  const message = document.querySelector('[data-social-message]');
+  submit.disabled = true; message.textContent = 'Salvando...';
+  try {
+    await requestApi('/api/portfolio/socials', { method: 'PATCH', body: JSON.stringify(Object.fromEntries(new FormData(socialForm))) });
+    closeSocialEditor(); notify('Redes sociais atualizadas.'); openCreatorProfile(activeCreatorId);
   } catch (error) { message.textContent = error.message; }
   finally { submit.disabled = false; }
 });

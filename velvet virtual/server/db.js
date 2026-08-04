@@ -95,6 +95,10 @@ if (!postColumns.includes('views')) db.exec('ALTER TABLE posts ADD COLUMN views 
 if (!postColumns.includes('is_featured')) db.exec('ALTER TABLE posts ADD COLUMN is_featured INTEGER NOT NULL DEFAULT 0');
 const userColumns = db.prepare('PRAGMA table_info(users)').all().map((column) => column.name);
 if (!userColumns.includes('google_id')) db.exec('ALTER TABLE users ADD COLUMN google_id TEXT');
+if (!userColumns.includes('instagram_url')) db.exec('ALTER TABLE users ADD COLUMN instagram_url TEXT');
+if (!userColumns.includes('youtube_url')) db.exec('ALTER TABLE users ADD COLUMN youtube_url TEXT');
+if (!userColumns.includes('custom_url')) db.exec('ALTER TABLE users ADD COLUMN custom_url TEXT');
+if (!userColumns.includes('custom_label')) db.exec('ALTER TABLE users ADD COLUMN custom_label TEXT');
 const bannerColumns = db.prepare('PRAGMA table_info(banners)').all().map((column) => column.name);
 if (!bannerColumns.includes('duration')) db.exec('ALTER TABLE banners ADD COLUMN duration INTEGER NOT NULL DEFAULT 6');
 

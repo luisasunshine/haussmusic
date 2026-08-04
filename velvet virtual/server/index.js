@@ -28,7 +28,7 @@ const portfolioUpload = multer({ storage: profileStorage, limits: { fileSize: 50
 const now = () => new Date().toISOString();
 const slugify = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const publicUser = (user) => ({ id: user.id, email: user.email, displayName: user.display_name, avatarUrl: user.avatar_url, role: user.role });
-const publicCreator = (user) => ({ id: user.id, displayName: user.display_name, avatarUrl: user.avatar_url, role: user.role });
+const publicCreator = (user) => ({ id: user.id, displayName: user.display_name, avatarUrl: user.avatar_url, role: user.role, instagramUrl: user.instagram_url || '', youtubeUrl: user.youtube_url || '', customUrl: user.custom_url || '', customLabel: user.custom_label || '' });
 const toCamel = (row) => row && Object.fromEntries(Object.entries(row).map(([key, value]) => [key.replace(/_([a-z])/g, (_, char) => char.toUpperCase()), value]));
 const readJson = (value) => { try { return JSON.parse(value); } catch { return value; } };
 const normalizeCategoryIds = (value) => [...new Set((Array.isArray(value) ? value : String(value || '').split(',')).map((item) => String(item).trim()).filter(Boolean))];
@@ -257,10 +257,27 @@ app.get('/api/public/creators', (req, res) => {
 
 app.get('/api/public/creators/:id', (req, res) => {
   const role = String(req.query.role || '').toLowerCase();
-  const user = db.prepare('SELECT id,email,display_name,avatar_url,role FROM users WHERE id = ?').get(req.params.id);
+  const user = db.prepare('SELECT id,display_name,avatar_url,role,instagram_url,youtube_url,custom_url,custom_label FROM users WHERE id = ?').get(req.params.id);
   if (!user || !PORTFOLIO_ROLES.includes(role) || !hasUserRole(user, role)) return res.status(404).json({ error: 'Perfil não encontrado.' });
   const posts = db.prepare('SELECT * FROM portfolio_posts WHERE user_id = ? AND role = ? ORDER BY created_at DESC').all(user.id, role).map(toCamel);
   res.json({ user: publicCreator(user), posts });
+});
+
+app.patch('/api/portfolio/socials', requireAuth, (req, res) => {
+  if (!PORTFOLIO_ROLES.some((role) => hasUserRole(req.user, role))) return res.status(403).json({ error: 'Seu cargo não possui um portfólio.' });
+  const normalizeUrl = (value) => {
+    const url = String(value || '').trim();
+    if (!url) return '';
+    try { const parsed = new URL(url); return ['http:', 'https:'].includes(parsed.protocol) ? parsed.toString() : null; } catch { return null; }
+  };
+  const instagramUrl = normalizeUrl(req.body.instagramUrl);
+  const youtubeUrl = normalizeUrl(req.body.youtubeUrl);
+  const customUrl = normalizeUrl(req.body.customUrl);
+  const customLabel = String(req.body.customLabel || '').trim().slice(0, 30);
+  if ([instagramUrl, youtubeUrl, customUrl].includes(null)) return res.status(400).json({ error: 'Use links completos começando com https://.' });
+  db.prepare('UPDATE users SET instagram_url = ?, youtube_url = ?, custom_url = ?, custom_label = ?, updated_at = ? WHERE id = ?').run(instagramUrl, youtubeUrl, customUrl, customLabel, now(), req.user.id);
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  res.json({ user: publicCreator(user) });
 });
 
 app.post('/api/portfolio/uploads', requireAuth, (req, res, next) => {
