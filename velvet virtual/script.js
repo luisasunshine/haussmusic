@@ -443,6 +443,61 @@ loadFooterSettings();
 loadHomeFeatured();
 loadHomeVimos();
 
+async function loadMagazine() {
+  const book = document.querySelector('[data-magazine-book]');
+  const empty = document.querySelector('[data-magazine-empty]');
+  const counter = document.querySelector('[data-magazine-counter]');
+  const previous = document.querySelector('[data-magazine-prev]');
+  const next = document.querySelector('[data-magazine-next]');
+  if (!book) return;
+  try {
+    const response = await fetch(`${API_URL}/api/public/home`);
+    if (!response.ok) throw new Error();
+    const pages = (await response.json()).magazinePages || [];
+    if (!pages.length) { empty.hidden = false; book.hidden = true; previous.disabled = true; next.disabled = true; return; }
+    empty.hidden = true; book.hidden = false; book.replaceChildren();
+    const pageElements = pages.map((page, index) => {
+      const sheet = document.createElement('article');
+      sheet.className = 'vv-magazine-page'; sheet.style.zIndex = pages.length - index;
+      sheet.innerHTML = `<div class="vv-magazine-face vv-magazine-front"><img src="${escapeHtml(page.imageUrl)}" alt="${escapeHtml(page.title || `Página ${index + 1}`)}" draggable="false"><span class="vv-magazine-page-number">${index + 1}</span></div><div class="vv-magazine-face vv-magazine-back"></div>`;
+      book.append(sheet); return sheet;
+    });
+    let current = 0;
+    const paint = () => {
+      pageElements.forEach((page, index) => { page.classList.toggle('is-turned', index < current); page.style.removeProperty('--turn'); page.style.zIndex = index < current ? index + 1 : pages.length - index; });
+      counter.textContent = `${Math.min(current + 1, pages.length)} / ${pages.length}`;
+      previous.disabled = current === 0; next.disabled = current === pages.length;
+    };
+    const go = (direction) => { current = Math.max(0, Math.min(pages.length, current + direction)); paint(); };
+    previous.onclick = () => go(-1); next.onclick = () => go(1);
+    let drag = null;
+    book.addEventListener('pointerdown', (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      const rect = book.getBoundingClientRect();
+      const direction = event.clientX < rect.left + rect.width * .42 && current > 0 ? -1 : (current < pages.length ? 1 : -1);
+      if ((direction === 1 && current >= pages.length) || (direction === -1 && current <= 0)) return;
+      drag = { startX: event.clientX, width: rect.width, direction, page: pageElements[direction === 1 ? current : current - 1], progress: direction === 1 ? 0 : 1 };
+      book.classList.add('is-dragging'); book.setPointerCapture(event.pointerId); event.preventDefault();
+    });
+    book.addEventListener('pointermove', (event) => {
+      if (!drag) return;
+      const delta = event.clientX - drag.startX;
+      drag.progress = drag.direction === 1 ? Math.max(0, Math.min(1, -delta / drag.width)) : 1 - Math.max(0, Math.min(1, delta / drag.width));
+      drag.page.style.setProperty('--turn', drag.progress);
+    });
+    const finishDrag = () => {
+      if (!drag) return;
+      if (drag.direction === 1 && drag.progress > .28) current += 1;
+      if (drag.direction === -1 && drag.progress < .72) current -= 1;
+      drag.page.style.removeProperty('--turn'); drag = null; book.classList.remove('is-dragging'); paint();
+    };
+    book.addEventListener('pointerup', finishDrag); book.addEventListener('pointercancel', finishDrag);
+    book.addEventListener('keydown', (event) => { if (event.key === 'ArrowRight') go(1); if (event.key === 'ArrowLeft') go(-1); });
+    book.tabIndex = 0; paint();
+  } catch { empty.hidden = false; empty.textContent = 'Não foi possível carregar a revista agora.'; }
+}
+loadMagazine();
+
 async function loadHeroCarousel() {
   try {
     const response = await fetch(`${API_URL}/api/public/home`);
@@ -607,6 +662,7 @@ function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, 
 function openEditor(resource, item = null) {
   const schemas = {
     banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
+    'magazine-pages': [['title', 'Título da página', 'text'], ['image_url', 'Arte da página', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Página publicada', 'checkbox']],
     'vimos-voce': [['title', 'Título', 'text'], ['description', 'Descrição', 'textarea'], ['image_url', 'Foto', 'url'], ['instagram_url', 'Link do Instagram', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Publicação ativa', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
     users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargos (pode marcar mais de um)', 'checkboxes', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
@@ -646,7 +702,8 @@ function openEditor(resource, item = null) {
     if (type !== 'checkbox') wrap.append(input);
     if (isMedia) {
       wrap.classList.add('vv-editor-media');
-      wrap.append(createDropzone(value, (url) => { input.value = url; }));
+      const cropOptions = resource === 'magazine-pages' ? { aspect: 3 / 4, aspectOptions: [{ label: 'PÁGINA 3:4', value: 3 / 4 }, { label: 'PÁGINA A4', value: 1 / Math.SQRT2 }] } : undefined;
+      wrap.append(createDropzone(value, (url) => { input.value = url; }, cropOptions));
     }
     area.append(wrap);
   });
@@ -834,9 +891,10 @@ async function renderAdmin(resource) {
       section.querySelector('form').addEventListener('submit', async (event) => { event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget)); await requestApi('/api/admin/settings', { method: 'PUT', body: JSON.stringify(values) }); alert('Configurações salvas.'); }); return;
     }
     const items = await requestApi(`/api/admin/${resource}`);
-    const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'vimos-voce' ? 'Fotos e momentos da comunidade Velvet.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p>${resource === 'users' ? '' : `<button class="vv-admin-add" data-live-create="${resource}">+ ${resource === 'vimos-voce' ? 'ADICIONAR FOTO' : 'CRIAR'}</button>`}</div>`;
+    const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'magazine-pages' ? 'Monte a edição com páginas verticais na ordem desejada.' : resource === 'vimos-voce' ? 'Fotos e momentos da comunidade Velvet.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p>${resource === 'users' ? '' : `<button class="vv-admin-add" data-live-create="${resource}">+ ${resource === 'vimos-voce' ? 'ADICIONAR FOTO' : resource === 'magazine-pages' ? 'NOVA PÁGINA' : 'CRIAR'}</button>`}</div>`;
     if (!items.length) { section.innerHTML = toolbar + adminEmpty(resource === 'banners' ? '▧' : resource === 'vimos-voce' ? '◉' : resource === 'categories' ? '◇' : '♙', 'Nada por aqui ainda.', 'Crie o primeiro item usando o botão acima.'); return; }
     if (resource === 'banners') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'ATIVO' : 'INATIVO'}</span> · ORDEM ${item.position || 0}</p></div><button data-live-edit="banners" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
+    if (resource === 'magazine-pages') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.sort((a, b) => Number(a.position) - Number(b.position)).map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover;background-position:center` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'PUBLICADA' : 'OCULTA'}</span> · PÁGINA ${item.position || 0}</p></div><button data-live-edit="magazine-pages" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'vimos-voce') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.description || 'Sem descrição')} · ORDEM ${item.position || 0}</p></div><button data-live-edit="vimos-voce" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'categories') section.innerHTML = toolbar + `<div class="vv-category-admin">${items.map((item) => `<div><b>${escapeHtml(item.name)}</b><span>${escapeHtml(item.description || item.slug)}</span><button data-live-edit="categories" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
     if (resource === 'users') section.innerHTML = toolbar + `<div class="vv-admin-table"><div class="vv-admin-row is-head"><span>USUÁRIO</span><span>E-MAIL</span><span>CARGOS</span><span></span></div>${items.map((item) => `<div class="vv-admin-row"><b>${escapeHtml(item.displayName)}</b><span>${escapeHtml(item.email)}</span><i>${escapeHtml(formatCargos(item.role))}</i><button data-live-edit="users" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;

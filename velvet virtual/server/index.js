@@ -134,8 +134,9 @@ app.get('/api/public/home', (_req, res) => {
     WHERE posts.status = 'published' ORDER BY posts.published_at DESC, posts.created_at DESC`).all());
   const categories = db.prepare('SELECT id,name,slug,description FROM categories ORDER BY name').all().map(toCamel);
   const vimosVoce = db.prepare('SELECT * FROM vimos_voce WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
+  const magazinePages = db.prepare('SELECT * FROM magazine_pages WHERE is_active = 1 ORDER BY position, created_at').all().map(toCamel);
   const settings = Object.fromEntries(db.prepare('SELECT key,value FROM settings').all().map((item) => [item.key, readJson(item.value)]));
-  res.json({ banners, posts, categories, vimosVoce, settings });
+  res.json({ banners, posts, categories, vimosVoce, magazinePages, settings });
 });
 
 app.post('/api/public/posts/:id/view', (req, res) => {
@@ -249,6 +250,8 @@ function crud(resource, table, fields) {
       if (table === 'banners' && name === 'duration') return 6;
       if (table === 'vimos_voce' && name === 'is_active') return 1;
       if (table === 'vimos_voce' && name === 'position') return 0;
+      if (table === 'magazine_pages' && name === 'is_active') return 1;
+      if (table === 'magazine_pages' && name === 'position') return 0;
       return null;
     });
     try { db.prepare(`INSERT INTO ${table} (${names.join(',')}) VALUES (${names.map(() => '?').join(',')})`).run(...values); if (table === 'posts') syncPostCategories(id, categoryIds); } catch (error) { return res.status(400).json({ error: error.message }); }
@@ -281,6 +284,7 @@ crud('categories', 'categories', ['name', 'slug', 'description']);
 crud('posts', 'posts', ['title', 'slug', 'excerpt', 'content', 'cover_url', 'category_id', 'category_ids', 'status', 'published_at', 'views', 'is_featured']);
 crud('banners', 'banners', ['title', 'subtitle', 'image_url', 'cta_label', 'cta_url', 'position', 'duration', 'is_active']);
 crud('vimos-voce', 'vimos_voce', ['title', 'description', 'image_url', 'instagram_url', 'position', 'is_active']);
+crud('magazine-pages', 'magazine_pages', ['title', 'image_url', 'position', 'is_active']);
 
 app.get('/api/admin/users', requireAdmin, (_req, res) => res.json(db.prepare('SELECT id,email,display_name,avatar_url,role,created_at,updated_at FROM users ORDER BY created_at DESC').all().map(toCamel)));
 const ALLOWED_ROLES = ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators'];
