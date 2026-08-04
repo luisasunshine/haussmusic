@@ -531,13 +531,20 @@ async function loadMagazine() {
     book.addEventListener('pointerdown', (event) => {
       if (animating || current >= pages.length || (event.button !== undefined && event.button !== 0)) return;
       const rect = book.getBoundingClientRect();
-      drag = { startX: event.clientX, width: rect.width, page: pageElements[current], delta: 0, pointerId: event.pointerId, locked: current === pages.length - 1 };
-      book.classList.add('is-dragging'); book.setPointerCapture(event.pointerId); event.preventDefault();
+      drag = { startX: event.clientX, startY: event.clientY, width: rect.width, page: pageElements[current], delta: 0, pointerId: event.pointerId, axis: null, locked: current === pages.length - 1 };
     });
     book.addEventListener('pointermove', (event) => {
       if (!drag) return;
+      const deltaX = event.clientX - drag.startX;
+      const deltaY = event.clientY - drag.startY;
+      if (!drag.axis && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > 7) {
+        if (Math.abs(deltaY) > Math.abs(deltaX)) { drag = null; return; }
+        drag.axis = 'horizontal'; book.classList.add('is-dragging'); book.setPointerCapture(event.pointerId);
+      }
       if (drag.locked) return;
-      drag.delta = event.clientX - drag.startX;
+      if (drag.axis !== 'horizontal') return;
+      event.preventDefault();
+      drag.delta = deltaX;
       const progress = Math.min(1, Math.abs(drag.delta) / (drag.width * .72));
       drag.page.style.setProperty('--swipe-x', `${drag.delta}px`);
       drag.page.style.setProperty('--swipe-rotate', `${(drag.delta / drag.width) * 13}deg`);
@@ -545,15 +552,15 @@ async function loadMagazine() {
     });
     const finishDrag = (event) => {
       if (!drag) return;
-      const { page, delta, width, locked } = drag;
+      const { page, delta, width, locked, axis } = drag;
       drag = null; book.classList.remove('is-dragging');
       if (locked) {
         const rect = book.getBoundingClientRect();
-        if (event.clientX < rect.left + rect.width / 2) restore();
+        if (!axis && event.clientX < rect.left + rect.width / 2) restore();
         return;
       }
       if (Math.abs(delta) > width * .2) { dismiss(delta < 0 ? -1 : 1, true); return; }
-      if (Math.abs(delta) < 8) {
+      if (!axis || Math.abs(delta) < 8) {
         const rect = book.getBoundingClientRect();
         if (event.clientX < rect.left + rect.width / 2) restore();
         else dismiss(1, true);
