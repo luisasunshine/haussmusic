@@ -141,6 +141,7 @@ app.post('/api/profile/avatar', requireAuth, profileUpload.single('avatar'), (re
 });
 
 app.get('/api/public/home', (_req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const banners = db.prepare('SELECT * FROM banners WHERE is_active = 1 ORDER BY position, created_at DESC').all().map(toCamel);
   const posts = attachPostCategories(db.prepare(`SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug, users.display_name AS author_name,
     (SELECT COUNT(*) FROM post_likes WHERE post_likes.post_id = posts.id) AS likes

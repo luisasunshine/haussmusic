@@ -499,12 +499,12 @@ async function loadMagazine() {
 loadMagazine();
 
 async function loadHeroCarousel() {
+  const hero = document.querySelector('.vv-hero');
   try {
-    const response = await fetch(`${API_URL}/api/public/home`);
-    if (!response.ok) return;
+    const response = await fetch(`${API_URL}/api/public/home`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Falha ao carregar banners');
     const banners = (await response.json()).banners || [];
-    if (!banners.length) return;
-    const hero = document.querySelector('.vv-hero');
+    if (!banners.length) { hero.hidden = true; return; }
     const title = hero.querySelector('h1');
     const deck = hero.querySelector('.vv-deck');
     const cta = hero.querySelector('.vv-button');
@@ -526,6 +526,7 @@ async function loadHeroCarousel() {
         deck.textContent = banner.subtitle || '';
         cta.firstChild.textContent = `${banner.ctaLabel || 'LER MATÉRIA'} `;
         cta.href = banner.ctaUrl || '#materias';
+        hero.hidden = false;
         dots.querySelectorAll('button').forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === active));
         hero.classList.remove('is-changing');
       }, 130);
@@ -537,7 +538,7 @@ async function loadHeroCarousel() {
     next.addEventListener('click', () => show(active + 1));
     if (banners.length === 1) controls.hidden = true;
     show(0);
-  } catch { /* A capa estática continua disponível. */ }
+  } catch { hero.hidden = true; }
 }
 loadHeroCarousel();
 
