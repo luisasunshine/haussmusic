@@ -98,13 +98,15 @@ app.post('/api/newsletter/subscribe', async (req, res) => {
     subscriber = db.prepare('SELECT * FROM newsletter_subscribers WHERE id = ?').get(id);
   }
   const welcomeKey = `welcome:${subscriber.id}`;
-  if (!db.prepare('SELECT 1 FROM newsletter_deliveries WHERE subscriber_id = ? AND event_key = ?').get(subscriber.id, welcomeKey)) {
+  let emailSent = Boolean(db.prepare('SELECT 1 FROM newsletter_deliveries WHERE subscriber_id = ? AND event_key = ?').get(subscriber.id, welcomeKey));
+  if (!emailSent) {
     try {
       await sendNewsletterEmail(email, 'Você entrou para a Velvet Virtual ✦', newsletterHtml({ eyebrow: 'DIRETO DA REDAÇÃO', title: 'Sua próxima obsessão começa aqui.', text: 'Agora você recebe em primeira mão novas edições da revista, novidades e os momentos de Te vi por aí.', buttonLabel: 'ABRIR VELVET', buttonUrl: siteUrl, unsubscribeToken: subscriber.unsubscribe_token }));
       db.prepare('INSERT INTO newsletter_deliveries (subscriber_id,event_key,sent_at) VALUES (?,?,?)').run(subscriber.id, welcomeKey, now());
+      emailSent = true;
     } catch (error) { console.error(`[newsletter] boas-vindas ${email}: ${error.message}`); }
   }
-  res.status(201).json({ ok: true });
+  res.status(201).json({ ok: true, emailSent, emailConfigured: Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM) });
 });
 app.get('/api/newsletter/unsubscribe', (req, res) => {
   db.prepare('UPDATE newsletter_subscribers SET is_active = 0, updated_at = ? WHERE unsubscribe_token = ?').run(now(), String(req.query.token || ''));
