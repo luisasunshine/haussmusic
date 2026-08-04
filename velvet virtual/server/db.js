@@ -97,13 +97,9 @@ if (!bannerColumns.includes('duration')) db.exec('ALTER TABLE banners ADD COLUMN
 db.exec(`INSERT OR IGNORE INTO post_categories (post_id, category_id, position)
   SELECT id, category_id, 0 FROM posts WHERE category_id IS NOT NULL AND category_id <> ''`);
 
-// A capa inicial também é um banner real, para aparecer e poder ser editada no Admin.
-const bannerCount = db.prepare('SELECT COUNT(*) AS total FROM banners').get().total;
-if (!bannerCount) {
-  const date = new Date().toISOString();
-  db.prepare('INSERT INTO banners (id,title,subtitle,image_url,cta_label,cta_url,position,duration,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
-    .run('velvet-initial-cover', 'O som que vem antes do amanhã.', 'Entre o palco, a internet e a pista, uma nova geração está transformando a forma de sentir cultura.', 'assets/velvet-virtual-cover.png', 'LER MATÉRIA', '#materias', 0, 6, 1, date, date);
-}
+// Remove a antiga capa automática. Banners agora existem somente quando
+// criados no Admin e não são recriados quando a lista fica vazia.
+db.prepare('DELETE FROM banners WHERE id = ?').run('velvet-initial-cover');
 
 const standardCategories = [
   'Música', 'Cinema', 'Televisão', 'Séries', 'Streaming', 'Celebridades', 'Cultura Pop', 'Entretenimento', 'Terror', 'Suspense', 'Mistério', 'True Crime', 'Sobrenatural', 'Ficção Científica', 'Fantasia', 'Ação', 'Comédia', 'Romance', 'Drama', 'Documentários', 'Animação', 'Games', 'Tecnologia', 'Moda', 'Beleza', 'Comportamento', 'Lifestyle', 'Arte', 'Literatura', 'Teatro', 'Dança', 'Fotografia', 'Internet', 'Redes Sociais', 'Influenciadores', 'Virais', 'Fandoms', 'Nostalgia', 'Curiosidades', 'Notícias', 'Entrevistas', 'Críticas', 'Resenhas', 'Lançamentos', 'Estreias', 'Bastidores', 'Premiações', 'Festivais', 'Eventos', 'Shows', 'Agenda Cultural', 'Bilheteria', 'Rankings', 'Paradas Musicais', 'Álbuns', 'Singles', 'Videoclipes', 'Artistas', 'Podcasts', 'Cultura Geek', 'Quadrinhos', 'Anime', 'K-Pop', 'Música Pop', 'Rock', 'Rap e Hip-Hop', 'Funk', 'Eletrônica', 'Sertanejo', 'MPB', 'Música Latina', 'Música Internacional', 'Música Nacional', 'Filmes de Terror', 'Histórias Reais', 'Lendas Urbanas', 'Casos Misteriosos', 'Fenômenos Paranormais', 'Crimes Famosos', 'Teorias', 'Universo dos Famosos', 'Indústria Musical', 'Indústria do Cinema', 'Opinião', 'Listas', 'Especial', 'Retrospectiva'
