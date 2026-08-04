@@ -253,8 +253,15 @@ export default function Layout({ children, currentPageName }) {
     setDuration(0);
     setProgress(0);
 
-    current.play().catch(() => {});
-    setIsPlaying(true);
+    // Autoplay after arriving from another origin can be rejected by the
+    // browser. Reflect the real media state instead of showing a false
+    // "playing" state that forces the listener to pause and play again.
+    const playAttempt = current.play();
+    if (playAttempt) {
+      playAttempt.then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+    } else {
+      setIsPlaying(!current.paused);
+    }
     setShowRightSidebar(true);
   };
 
