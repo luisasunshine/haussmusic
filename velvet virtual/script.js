@@ -470,11 +470,11 @@ async function loadMagazine() {
         page.style.zIndex = pages.length - index;
       });
       counter.textContent = `${Math.min(current + 1, pages.length)} / ${pages.length}`;
-      previous.disabled = current === 0; next.disabled = current === pages.length;
+      previous.disabled = current === 0; next.disabled = current >= pages.length - 1;
     };
     let animating = false;
     const dismiss = (direction = 1, fromDrag = false) => {
-      if (animating || current >= pages.length) return;
+      if (animating || current >= pages.length - 1) return;
       animating = true;
       const card = pageElements[current];
       if (!fromDrag) card.getBoundingClientRect();
@@ -490,11 +490,12 @@ async function loadMagazine() {
     book.addEventListener('pointerdown', (event) => {
       if (animating || current >= pages.length || (event.button !== undefined && event.button !== 0)) return;
       const rect = book.getBoundingClientRect();
-      drag = { startX: event.clientX, width: rect.width, page: pageElements[current], delta: 0, pointerId: event.pointerId };
+      drag = { startX: event.clientX, width: rect.width, page: pageElements[current], delta: 0, pointerId: event.pointerId, locked: current === pages.length - 1 };
       book.classList.add('is-dragging'); book.setPointerCapture(event.pointerId); event.preventDefault();
     });
     book.addEventListener('pointermove', (event) => {
       if (!drag) return;
+      if (drag.locked) return;
       drag.delta = event.clientX - drag.startX;
       const progress = Math.min(1, Math.abs(drag.delta) / (drag.width * .72));
       drag.page.style.setProperty('--swipe-x', `${drag.delta}px`);
@@ -503,8 +504,13 @@ async function loadMagazine() {
     });
     const finishDrag = (event) => {
       if (!drag) return;
-      const { page, delta, width } = drag;
+      const { page, delta, width, locked } = drag;
       drag = null; book.classList.remove('is-dragging');
+      if (locked) {
+        const rect = book.getBoundingClientRect();
+        if (event.clientX < rect.left + rect.width / 2) restore();
+        return;
+      }
       if (Math.abs(delta) > width * .2) { dismiss(delta < 0 ? -1 : 1, true); return; }
       if (Math.abs(delta) < 8) {
         const rect = book.getBoundingClientRect();
