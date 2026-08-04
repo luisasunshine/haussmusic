@@ -1268,11 +1268,21 @@ adminButtons.forEach((button) => button.addEventListener('click', () => {
   }, 0);
 }));
 
-document.querySelector('.vv-subscribe-form').addEventListener('submit', (event) => {
+document.querySelector('.vv-subscribe-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const message = document.querySelector('.vv-form-message');
-  message.textContent = 'Você entrou para a lista. Bem-vinda à Velvet Virtual.';
-  event.currentTarget.reset();
+  const form = event.currentTarget;
+  const button = form.querySelector('button');
+  const email = form.querySelector('input[type="email"]').value.trim();
+  button.disabled = true; message.textContent = 'Entrando para a lista...';
+  try {
+    const response = await fetch(`${API_URL}/api/newsletter/subscribe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Não foi possível concluir sua inscrição.');
+    message.textContent = 'Pronto. Confira seu e-mail — a Velvet já chegou.';
+    form.reset();
+  } catch (error) { message.textContent = error.message; }
+  finally { button.disabled = false; }
 });
 
 // Perfil: navegar é livre; ações pessoais só existem para contas autenticadas.

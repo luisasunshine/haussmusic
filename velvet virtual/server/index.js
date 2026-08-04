@@ -34,6 +34,29 @@ const readJson = (value) => { try { return JSON.parse(value); } catch { return v
 const normalizeCategoryIds = (value) => [...new Set((Array.isArray(value) ? value : String(value || '').split(',')).map((item) => String(item).trim()).filter(Boolean))];
 const PORTFOLIO_ROLES = ['modelo', 'influencer', 'creators'];
 const hasUserRole = (user, role) => String(user?.role || '').split(',').map((value) => value.trim()).includes(role);
+const siteUrl = (process.env.SITE_URL || 'https://velvetvirtual.vercel.app').replace(/\/$/, '');
+const apiUrl = (process.env.PUBLIC_URL || 'https://velvetvirtual.up.railway.app').replace(/\/$/, '');
+const emailFrom = process.env.EMAIL_FROM || 'Velvet Virtual <newsletter@velvetvirtual.com>';
+const emailEscape = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+function newsletterHtml({ eyebrow, title, text, imageUrl, buttonLabel, buttonUrl, unsubscribeToken }) {
+  const image = imageUrl ? `<img src="${emailEscape(imageUrl)}" alt="" style="display:block;width:100%;max-height:430px;object-fit:cover;border:0">` : '';
+  return `<!doctype html><html><body style="margin:0;background:#08080a;color:#fff;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#08080a"><tr><td align="center" style="padding:32px 14px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#121216;border:1px solid #303036"><tr><td style="padding:26px 32px;border-bottom:1px solid #303036"><b style="font-size:24px;letter-spacing:-1px">VELVET</b> <span style="color:#999;font-size:10px;letter-spacing:3px">VIRTUAL</span></td></tr>${image}<tr><td style="padding:42px 32px 30px"><p style="margin:0 0 15px;color:#b9bac1;font:700 10px monospace;letter-spacing:2px">${emailEscape(eyebrow)}</p><h1 style="margin:0 0 20px;color:#fff;font-size:46px;line-height:.98;letter-spacing:-3px">${emailEscape(title)}</h1><p style="margin:0 0 28px;color:#b9b9c0;font-size:15px;line-height:1.7">${emailEscape(text)}</p><a href="${emailEscape(buttonUrl)}" style="display:inline-block;padding:15px 22px;background:#e1e2e6;color:#09090b;text-decoration:none;font:700 11px monospace;letter-spacing:1px">${emailEscape(buttonLabel)} &nbsp;→</a></td></tr><tr><td style="padding:22px 32px;border-top:1px solid #303036;color:#717179;font-size:10px;line-height:1.6">Você recebeu este e-mail porque assinou a Newsletter Velvet Virtual.<br><a href="${apiUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}" style="color:#aaaab2">Cancelar inscrição</a></td></tr></table></td></tr></table></body></html>`;
+}
+async function sendNewsletterEmail(to, subject, html) {
+  if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY não configurada.');
+  const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: emailFrom, to: [to], subject, html }) });
+  if (!response.ok) throw new Error(`Resend recusou o envio (${response.status}).`);
+}
+async function notifyNewsletter(event) {
+  const subscribers = db.prepare('SELECT * FROM newsletter_subscribers WHERE is_active = 1').all();
+  for (const subscriber of subscribers) {
+    if (db.prepare('SELECT 1 FROM newsletter_deliveries WHERE subscriber_id = ? AND event_key = ?').get(subscriber.id, event.key)) continue;
+    try {
+      await sendNewsletterEmail(subscriber.email, event.subject, newsletterHtml({ ...event, unsubscribeToken: subscriber.unsubscribe_token }));
+      db.prepare('INSERT INTO newsletter_deliveries (subscriber_id,event_key,sent_at) VALUES (?,?,?)').run(subscriber.id, event.key, now());
+    } catch (error) { console.error(`[newsletter] ${subscriber.email}: ${error.message}`); }
+  }
+}
 function attachPostCategories(rows) {
   if (!rows.length) return [];
   const grouped = new Map();
@@ -61,6 +84,32 @@ function syncPostCategories(postId, categoryIds) {
 }
 
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'velvet-virtual' }));
+app.post('/api/newsletter/subscribe', async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return res.status(400).json({ error: 'Informe um e-mail válido.' });
+  const date = now();
+  let subscriber = db.prepare('SELECT * FROM newsletter_subscribers WHERE email = ?').get(email);
+  if (subscriber) {
+    db.prepare('UPDATE newsletter_subscribers SET is_active = 1, updated_at = ? WHERE id = ?').run(date, subscriber.id);
+    subscriber = db.prepare('SELECT * FROM newsletter_subscribers WHERE id = ?').get(subscriber.id);
+  } else {
+    const id = uuid();
+    db.prepare('INSERT INTO newsletter_subscribers (id,email,unsubscribe_token,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?)').run(id, email, uuid(), 1, date, date);
+    subscriber = db.prepare('SELECT * FROM newsletter_subscribers WHERE id = ?').get(id);
+  }
+  const welcomeKey = `welcome:${subscriber.id}`;
+  if (!db.prepare('SELECT 1 FROM newsletter_deliveries WHERE subscriber_id = ? AND event_key = ?').get(subscriber.id, welcomeKey)) {
+    try {
+      await sendNewsletterEmail(email, 'Você entrou para a Velvet Virtual ✦', newsletterHtml({ eyebrow: 'DIRETO DA REDAÇÃO', title: 'Sua próxima obsessão começa aqui.', text: 'Agora você recebe em primeira mão novas edições da revista, novidades e os momentos de Te vi por aí.', buttonLabel: 'ABRIR VELVET', buttonUrl: siteUrl, unsubscribeToken: subscriber.unsubscribe_token }));
+      db.prepare('INSERT INTO newsletter_deliveries (subscriber_id,event_key,sent_at) VALUES (?,?,?)').run(subscriber.id, welcomeKey, now());
+    } catch (error) { console.error(`[newsletter] boas-vindas ${email}: ${error.message}`); }
+  }
+  res.status(201).json({ ok: true });
+});
+app.get('/api/newsletter/unsubscribe', (req, res) => {
+  db.prepare('UPDATE newsletter_subscribers SET is_active = 0, updated_at = ? WHERE unsubscribe_token = ?').run(now(), String(req.query.token || ''));
+  res.type('html').send('<!doctype html><meta charset="utf-8"><title>Velvet Virtual</title><body style="margin:0;display:grid;place-items:center;min-height:100vh;background:#08080a;color:#fff;font-family:Arial"><main style="text-align:center"><h1>VELVET VIRTUAL</h1><p style="color:#aaa">Sua inscrição foi cancelada.</p><a href="https://velvetvirtual.vercel.app" style="color:#fff">Voltar ao site</a></main>');
+});
 
 // The magazine reads podcasts from Velvet Music through the server, avoiding
 // browser CORS limits while keeping the two databases and APIs independent.
@@ -308,6 +357,12 @@ app.delete('/api/portfolio/posts/:id', requireAuth, (req, res) => {
   res.status(204).end();
 });
 
+function newsletterEventFor(table, item, date = now()) {
+  if (table === 'posts' && item.status === 'published') return { key: `post:${item.id}`, subject: `Novidade Velvet: ${item.title}`, eyebrow: 'NOVIDADE VELVET', title: item.title, text: item.excerpt || 'Uma nova matéria acaba de chegar à Velvet Virtual.', imageUrl: item.cover_url, buttonLabel: 'LER AGORA', buttonUrl: `${siteUrl}/#novas` };
+  if (table === 'vimos_voce' && Number(item.is_active)) return { key: `te-vi:${item.id}`, subject: `Te vi por aí: ${item.title}`, eyebrow: 'TE VI POR AÍ', title: item.title, text: item.description || 'Um novo momento da comunidade acaba de entrar no ar.', imageUrl: item.image_url, buttonLabel: 'VER AGORA', buttonUrl: `${siteUrl}/#vimos-voce` };
+  if (table === 'magazine_pages' && Number(item.is_active)) return { key: `magazine:${date.slice(0, 10)}`, subject: 'Nova edição da Revista Velvet no ar', eyebrow: 'REVISTA VELVET', title: 'Uma nova edição para sentir agora.', text: 'A nova experiência editorial da Velvet Virtual já está disponível. Entre, deslize e descubra página por página.', imageUrl: item.image_url, buttonLabel: 'ABRIR REVISTA', buttonUrl: `${siteUrl}/#revista` };
+  return null;
+}
 function crud(resource, table, fields) {
   app.get(`/api/admin/${resource}`, requireAdmin, (_req, res) => {
     const rows = db.prepare(`SELECT * FROM ${table} ORDER BY ${table === 'categories' ? 'name COLLATE NOCASE' : 'updated_at DESC'}`).all();
@@ -337,9 +392,12 @@ function crud(resource, table, fields) {
     });
     try { db.prepare(`INSERT INTO ${table} (${names.join(',')}) VALUES (${names.map(() => '?').join(',')})`).run(...values); if (table === 'posts') syncPostCategories(id, categoryIds); } catch (error) { return res.status(400).json({ error: error.message }); }
     const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id);
+    const newsletterEvent = newsletterEventFor(table, item, date);
+    if (newsletterEvent) void notifyNewsletter(newsletterEvent);
     res.status(201).json(table === 'posts' ? attachPostCategories([item])[0] : toCamel(item));
   });
   app.patch(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => {
+    const previousItem = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id);
     const allowed = fields.filter((field) => Object.hasOwn(req.body, field));
     if (!allowed.length) return res.status(400).json({ error: 'Nenhum campo válido para atualizar.' });
     const data = { ...req.body }; if (table === 'categories' && data.slug) data.slug = slugify(data.slug); if (table === 'posts' && data.slug) data.slug = slugify(data.slug);
@@ -352,6 +410,11 @@ function crud(resource, table, fields) {
     db.prepare(`UPDATE ${table} SET ${assignments} WHERE id = ?`).run(...[...databaseFields.map((field) => data[field]), now(), req.params.id]);
     if (categoryWasUpdated) syncPostCategories(req.params.id, categoryIds);
     const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id);
+    const becamePublic = (table === 'posts' && previousItem?.status !== 'published' && item?.status === 'published')
+      || (table === 'vimos_voce' && !Number(previousItem?.is_active) && Number(item?.is_active))
+      || (table === 'magazine_pages' && !Number(previousItem?.is_active) && Number(item?.is_active));
+    const newsletterEvent = becamePublic ? newsletterEventFor(table, item) : null;
+    if (newsletterEvent) void notifyNewsletter(newsletterEvent);
     res.json(table === 'posts' ? attachPostCategories([item])[0] : toCamel(item));
   });
   app.delete(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => {

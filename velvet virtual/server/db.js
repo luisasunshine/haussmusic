@@ -60,6 +60,15 @@ db.exec(`
     created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
+  CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, unsubscribe_token TEXT UNIQUE NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS newsletter_deliveries (
+    subscriber_id TEXT NOT NULL, event_key TEXT NOT NULL, sent_at TEXT NOT NULL,
+    PRIMARY KEY (subscriber_id, event_key),
+    FOREIGN KEY(subscriber_id) REFERENCES newsletter_subscribers(id) ON DELETE CASCADE
+  );
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
   );
