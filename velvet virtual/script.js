@@ -774,10 +774,14 @@ async function requestApi(path, options = {}) {
 
 const portfolioEditor = document.querySelector('[data-portfolio-editor]');
 const portfolioForm = document.querySelector('[data-portfolio-form]');
-function openPortfolioEditor() { portfolioForm.reset(); portfolioEditor.hidden = false; document.querySelector('[data-portfolio-message]').textContent = ''; }
+function openPortfolioEditor() { portfolioForm.reset(); portfolioEditor.hidden = false; document.querySelector('[data-portfolio-message]').textContent = ''; document.querySelector('[data-portfolio-file-name]').textContent = 'JPG, PNG ou WEBP'; }
 function closePortfolioEditor() { portfolioEditor.hidden = true; }
 document.querySelector('[data-portfolio-close]')?.addEventListener('click', closePortfolioEditor);
 portfolioEditor?.addEventListener('click', (event) => { if (event.target === portfolioEditor) closePortfolioEditor(); });
+portfolioForm?.elements.image?.addEventListener('change', (event) => {
+  const file = event.currentTarget.files[0];
+  document.querySelector('[data-portfolio-file-name]').textContent = file ? file.name : 'JPG, PNG ou WEBP';
+});
 portfolioForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = portfolioForm.querySelector('[type="submit"]');
