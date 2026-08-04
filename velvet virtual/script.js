@@ -554,8 +554,7 @@ async function loadVelvetPodcasts() {
       const link = document.createElement('a');
       link.className = 'vv-podcast-row';
       const releaseId = podcast.release_id || podcast.releaseId;
-      link.href = releaseId ? `https://velvetentertainment.vercel.app/Release?id=${encodeURIComponent(releaseId)}` : 'https://velvetentertainment.vercel.app/';
-      link.target = '_blank'; link.rel = 'noreferrer';
+      link.href = releaseId ? `https://velvetentertainment.vercel.app/Release?id=${encodeURIComponent(releaseId)}&song=${encodeURIComponent(podcast.id)}&autoplay=1` : 'https://velvetentertainment.vercel.app/';
       const order = document.createElement('strong'); order.textContent = String(index + 1).padStart(2, '0');
       const cover = document.createElement('div'); cover.className = 'vv-podcast-cover'; if (podcast.cover_url) cover.style.backgroundImage = `url("${podcast.cover_url}")`;
       const details = document.createElement('div'); const title = document.createElement('b'); title.textContent = podcast.title; const author = document.createElement('span'); author.textContent = podcast.artist || 'Velvet Podcast'; details.append(title, author);

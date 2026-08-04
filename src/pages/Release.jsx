@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,6 +15,9 @@ export default function Release() {
   // Get release ID from URL
   const urlParams = new URLSearchParams(window.location.search);
   const releaseId = urlParams.get('id');
+  const selectedSongId = urlParams.get('song');
+  const shouldAutoplay = urlParams.get('autoplay') === '1';
+  const autoplayHandled = useRef(false);
 
   const [user, setUser] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -49,6 +52,15 @@ export default function Release() {
     },
     enabled: !!release?.title
   });
+
+  useEffect(() => {
+    if (!shouldAutoplay || !selectedSongId || autoplayHandled.current || releaseSongs.length === 0) return;
+    const index = releaseSongs.findIndex((song) => song.id === selectedSongId);
+    if (index < 0) return;
+    autoplayHandled.current = true;
+    setPlayingTrackIndex(index);
+    window.dispatchEvent(new CustomEvent('playSong', { detail: releaseSongs[index] }));
+  }, [releaseSongs, selectedSongId, shouldAutoplay]);
 
   const { data: favorites = [] } = useQuery({
     queryKey: ['user-favorites', user?.email],
