@@ -428,6 +428,22 @@ document.querySelectorAll('[data-section-nav]').forEach((link) => link.addEventL
   const target = document.querySelector(`#${link.dataset.sectionNav}`); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   window.history.replaceState(null, '', `#${link.dataset.sectionNav}`);
 }));
+magazinePage?.querySelector('.vv-overlay-nav')?.addEventListener('click', (event) => {
+  const link = event.target.closest('a');
+  if (!link) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (link.hasAttribute('data-home-link')) { goHome(event); return; }
+  if (link.hasAttribute('data-magazine-open')) return;
+  if (link.hasAttribute('data-week-open')) { openNews(null, false, 'novas'); return; }
+  if (link.hasAttribute('data-vimos-open')) { openVimos(); return; }
+  const sectionId = link.dataset.sectionNav;
+  if (sectionId) {
+    magazinePage.hidden = true; document.body.classList.remove('is-locked');
+    document.querySelector(`#${sectionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.history.replaceState(null, '', `#${sectionId}`);
+  }
+}, true);
 if (window.location.hash === '#vimos-voce') openVimos();
 if (window.location.hash === '#revista') openMagazine();
 
