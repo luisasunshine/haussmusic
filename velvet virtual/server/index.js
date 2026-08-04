@@ -23,6 +23,7 @@ app.use(attachUser);
 app.use('/uploads', express.static(uploadsDir));
 const profileStorage = multer.diskStorage({ destination: uploadsDir, filename: (_req, file, done) => done(null, `${Date.now()}-${uuid()}${path.extname(file.originalname).toLowerCase()}`) });
 const profileUpload = multer({ storage: profileStorage, limits: { fileSize: 12 * 1024 * 1024 }, fileFilter: (_req, file, done) => done(null, /^image\//.test(file.mimetype)) });
+const portfolioUpload = multer({ storage: profileStorage, limits: { fileSize: 50 * 1024 * 1024 }, fileFilter: (_req, file, done) => done(null, /^(image|video)\//.test(file.mimetype)) });
 
 const now = () => new Date().toISOString();
 const slugify = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -265,8 +266,8 @@ app.get('/api/public/creators/:id', (req, res) => {
 app.post('/api/portfolio/uploads', requireAuth, (req, res, next) => {
   if (!PORTFOLIO_ROLES.some((role) => hasUserRole(req.user, role))) return res.status(403).json({ error: 'Seu cargo não permite publicar portfólios.' });
   next();
-}, profileUpload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Selecione uma imagem.' });
+}, portfolioUpload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Selecione uma foto, GIF ou vídeo.' });
   const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
   res.status(201).json({ url: `${base}/uploads/${req.file.filename}` });
 });

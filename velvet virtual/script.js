@@ -474,6 +474,9 @@ const creatorInitials = (name = '') => name.split(/\s+/).filter(Boolean).slice(0
 function creatorAvatar(user, className = 'vv-creator-avatar') {
   return `<div class="${className}"${user.avatarUrl ? ` style="background-image:url('${escapeHtml(user.avatarUrl)}')"` : ''}>${user.avatarUrl ? '' : creatorInitials(user.displayName)}</div>`;
 }
+const portfolioMedia = (post) => /\.(mp4|webm|mov)(?:$|[?#])/i.test(post.imageUrl || '')
+  ? `<video src="${escapeHtml(post.imageUrl)}" controls playsinline preload="metadata" aria-label="${escapeHtml(post.title)}"></video>`
+  : `<img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}">`;
 function renderCreatorDirectory() {
   const search = document.querySelector('[data-creators-search]');
   const term = String(search?.value || '').trim().toLocaleLowerCase('pt-BR');
@@ -539,7 +542,7 @@ async function openCreatorProfile(id) {
     const roles = new Set(accountRoles.map((role) => String(role).trim().toLowerCase()).filter(Boolean));
     const ownsProfile = String(session.user?.id || '') === String(user.id || '');
     const canPublish = ownsProfile && roles.has(activeCreatorRole);
-    creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← TODOS OS PERFIS</button><header>${creatorAvatar(user, 'vv-creator-profile-avatar')}<div><p class="vv-eyebrow">${escapeHtml(creatorRoleMeta[activeCreatorRole].title.toUpperCase())}</p><h2>${escapeHtml(user.displayName)}</h2><span>${posts.length} PUBLICAÇÕES</span></div>${canPublish ? '<button type="button" class="vv-admin-add" data-portfolio-new>+ NOVA PUBLICAÇÃO</button>' : ''}</header><div class="vv-portfolio-grid">${posts.length ? posts.map((post) => `<article><img src="${escapeHtml(post.imageUrl)}" alt="${escapeHtml(post.title)}"><div><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.content || '')}</p>${canPublish ? `<button type="button" data-portfolio-delete="${post.id}">EXCLUIR</button>` : ''}</div></article>`).join('') : '<div class="vv-creators-empty"><h3>Este portfólio está começando.</h3><p>As próximas publicações aparecerão aqui.</p></div>'}</div>`;
+    creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← TODOS OS PERFIS</button><header>${creatorAvatar(user, 'vv-creator-profile-avatar')}<div><p class="vv-eyebrow">${escapeHtml(creatorRoleMeta[activeCreatorRole].title.toUpperCase())}</p><h2>${escapeHtml(user.displayName)}</h2><span>${posts.length} PUBLICAÇÕES</span></div>${canPublish ? '<button type="button" class="vv-admin-add" data-portfolio-new>+ NOVA PUBLICAÇÃO</button>' : ''}</header><div class="vv-portfolio-grid">${posts.length ? posts.map((post) => `<article>${portfolioMedia(post)}<div><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.content || '')}</p>${canPublish ? `<button type="button" data-portfolio-delete="${post.id}">EXCLUIR</button>` : ''}</div></article>`).join('') : '<div class="vv-creators-empty"><h3>Este portfólio está começando.</h3><p>As próximas publicações aparecerão aqui.</p></div>'}</div>`;
     creatorProfile.querySelector('[data-creator-back]').addEventListener('click', () => loadCreatorDirectory(activeCreatorRole));
     creatorProfile.querySelector('[data-portfolio-new]')?.addEventListener('click', openPortfolioEditor);
     creatorProfile.querySelectorAll('[data-portfolio-delete]').forEach((button) => button.addEventListener('click', async () => { if (!confirm('Excluir esta publicação?')) return; try { await requestApi(`/api/portfolio/posts/${button.dataset.portfolioDelete}`, { method: 'DELETE' }); openCreatorProfile(id); } catch (error) { notify(error.message, 'error'); } }));
@@ -774,22 +777,35 @@ async function requestApi(path, options = {}) {
 
 const portfolioEditor = document.querySelector('[data-portfolio-editor]');
 const portfolioForm = document.querySelector('[data-portfolio-form]');
-function openPortfolioEditor() { portfolioForm.reset(); portfolioEditor.hidden = false; document.querySelector('[data-portfolio-message]').textContent = ''; document.querySelector('[data-portfolio-file-name]').textContent = 'JPG, PNG ou WEBP'; }
+function openPortfolioEditor() { portfolioForm.reset(); portfolioEditor.hidden = false; document.querySelector('[data-portfolio-message]').textContent = ''; document.querySelector('[data-portfolio-file-name]').textContent = 'Imagens ou vídeo de até 30 segundos'; }
 function closePortfolioEditor() { portfolioEditor.hidden = true; }
 document.querySelector('[data-portfolio-close]')?.addEventListener('click', closePortfolioEditor);
 portfolioEditor?.addEventListener('click', (event) => { if (event.target === portfolioEditor) closePortfolioEditor(); });
 portfolioForm?.elements.image?.addEventListener('change', (event) => {
   const file = event.currentTarget.files[0];
-  document.querySelector('[data-portfolio-file-name]').textContent = file ? file.name : 'JPG, PNG ou WEBP';
+  document.querySelector('[data-portfolio-file-name]').textContent = file ? file.name : 'Imagens ou vídeo de até 30 segundos';
 });
+function getVideoDuration(file) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => { const duration = video.duration; URL.revokeObjectURL(url); resolve(duration); };
+    video.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível verificar esse vídeo.')); };
+    video.src = url;
+  });
+}
 portfolioForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const submit = portfolioForm.querySelector('[type="submit"]');
   const message = document.querySelector('[data-portfolio-message]');
   const file = portfolioForm.elements.image.files[0];
   if (!file) return;
-  submit.disabled = true; message.textContent = 'Enviando imagem...';
+  submit.disabled = true; message.textContent = 'Preparando mídia...';
   try {
+    if (!/^(image|video)\//.test(file.type)) throw new Error('Escolha uma imagem, GIF ou vídeo válido.');
+    if (file.type.startsWith('video/') && await getVideoDuration(file) > 30.05) throw new Error('O vídeo deve ter no máximo 30 segundos.');
+    message.textContent = 'Enviando mídia...';
     const imageData = new FormData(); imageData.append('image', file);
     const uploadResponse = await fetch(`${API_URL}/api/portfolio/uploads`, { method: 'POST', headers: { Authorization: `Bearer ${session.token}` }, body: imageData });
     const upload = await uploadResponse.json().catch(() => ({}));
