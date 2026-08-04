@@ -27,6 +27,9 @@ let newsWeekOnly = false;
 const API_URL = window.VELVET_VIRTUAL_API_URL || 'https://velvetvirtual.up.railway.app';
 const toast = document.querySelector('[data-toast]');
 let toastTimer;
+function syncActiveNav(selector) {
+  document.querySelectorAll('[data-nav-link]').forEach((link) => link.classList.toggle('is-active', link.matches(selector)));
+}
 function goHome(event) {
   event?.preventDefault();
   searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true;
@@ -35,7 +38,7 @@ function goHome(event) {
   document.body.classList.remove('is-locked');
   window.history.replaceState(null, '', '#top');
   document.querySelector('#top')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  document.querySelectorAll('.vv-header [data-nav-link]').forEach((link) => link.classList.toggle('is-active', link.hasAttribute('data-home-link')));
+  syncActiveNav('[data-home-link]');
 }
 document.querySelectorAll('[data-home-link]').forEach((link) => link.addEventListener('click', goHome));
 document.querySelectorAll('[data-nav-link]').forEach((link) => link.addEventListener('click', () => {
@@ -396,7 +399,7 @@ async function loadNews() {
   }
 }
 
-function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; newsPage.querySelectorAll('[data-nav-link]').forEach((link) => link.classList.toggle('is-active', link.hasAttribute('data-week-open'))); document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
+function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; syncActiveNav('[data-week-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
 function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.classList.remove('is-week-page'); newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
 document.querySelectorAll('[data-revista-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(); }));
@@ -415,10 +418,10 @@ async function loadVimosVoce() {
     vimosEmpty.hidden = items.length > 0;
   } catch { vimosEmpty.hidden = false; }
 }
-function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; vimosPage.querySelectorAll('[data-nav-link]').forEach((link) => link.classList.toggle('is-active', link.hasAttribute('data-vimos-open'))); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
+function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; syncActiveNav('[data-vimos-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
 function closeVimos() { vimosPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-vimos-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openVimos(); }));
-function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; magazinePage.querySelectorAll('[data-nav-link]').forEach((link) => link.classList.toggle('is-active', link.hasAttribute('data-magazine-open'))); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
+function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; syncActiveNav('[data-magazine-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
 document.querySelectorAll('[data-magazine-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openMagazine(); }));
 document.querySelectorAll('[data-vimos-close]').forEach((button) => button.addEventListener('click', closeVimos));
 document.querySelectorAll('[data-section-nav]').forEach((link) => link.addEventListener('click', (event) => {
@@ -426,6 +429,7 @@ document.querySelectorAll('[data-section-nav]').forEach((link) => link.addEventL
   newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
   document.body.classList.remove('is-locked');
   const target = document.querySelector(`#${link.dataset.sectionNav}`); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  syncActiveNav(`[href="#${link.dataset.sectionNav}"]`);
   window.history.replaceState(null, '', `#${link.dataset.sectionNav}`);
 }));
 magazinePage?.querySelector('.vv-overlay-nav')?.addEventListener('click', (event) => {
@@ -441,6 +445,7 @@ magazinePage?.querySelector('.vv-overlay-nav')?.addEventListener('click', (event
   if (sectionId) {
     magazinePage.hidden = true; document.body.classList.remove('is-locked');
     document.querySelector(`#${sectionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    syncActiveNav(`[href="#${sectionId}"]`);
     window.history.replaceState(null, '', `#${sectionId}`);
   }
 }, true);
