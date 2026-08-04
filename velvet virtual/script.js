@@ -1,3 +1,7 @@
+// Remove vestígios da newsletter mesmo quando o navegador restaura um HTML antigo do cache.
+document.querySelector('.vv-newsletter')?.remove();
+document.querySelectorAll('a[href="#newsletter"]').forEach((link) => link.remove());
+
 const CARGO_LABELS = { admin: 'Admin', staff: 'Staff', leitor: 'Leitor', podcast: 'Podcast', modelo: 'Modelo', influencer: 'Influencer', creators: 'Creators' };
 const formatCargos = (role) => String(role || '').split(',').map((value) => value.trim()).filter(Boolean).map((value) => CARGO_LABELS[value] || value).join(' · ') || 'Leitor';
 
