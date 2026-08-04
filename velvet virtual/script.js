@@ -553,7 +553,8 @@ async function loadVelvetPodcasts() {
     podcasts.forEach((podcast, index) => {
       const link = document.createElement('a');
       link.className = 'vv-podcast-row';
-      link.href = `https://velvetentertainment.vercel.app/Release?id=${encodeURIComponent(podcast.id)}`;
+      const releaseId = podcast.release_id || podcast.releaseId;
+      link.href = releaseId ? `https://velvetentertainment.vercel.app/Release?id=${encodeURIComponent(releaseId)}` : 'https://velvetentertainment.vercel.app/';
       link.target = '_blank'; link.rel = 'noreferrer';
       const order = document.createElement('strong'); order.textContent = String(index + 1).padStart(2, '0');
       const cover = document.createElement('div'); cover.className = 'vv-podcast-cover'; if (podcast.cover_url) cover.style.backgroundImage = `url("${podcast.cover_url}")`;

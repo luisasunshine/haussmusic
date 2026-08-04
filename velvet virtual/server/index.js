@@ -63,10 +63,24 @@ app.get('/health', (_req, res) => res.json({ ok: true, service: 'velvet-virtual'
 app.get('/api/velvet-music/podcasts', async (_req, res, next) => {
   try {
     const musicApi = (process.env.VELVET_MUSIC_API_URL || 'https://velvetmusic-production.up.railway.app').replace(/\/$/, '');
-    const response = await fetch(`${musicApi}/api/entities/Song?is_podcast=1&sort=-plays&limit=10`);
-    if (!response.ok) throw new Error('Não foi possível buscar podcasts na Velvet Music.');
-    const podcasts = await response.json();
-    res.json(Array.isArray(podcasts) ? podcasts.sort((a, b) => Number(b.plays || 0) - Number(a.plays || 0)) : []);
+    const [episodesResponse, showsResponse] = await Promise.all([
+      fetch(`${musicApi}/api/entities/Song?is_podcast=1&sort=-plays&limit=10`),
+      fetch(`${musicApi}/api/entities/Post?is_podcast=1`),
+    ]);
+    if (!episodesResponse.ok || !showsResponse.ok) throw new Error('Não foi possível buscar podcasts na Velvet Music.');
+    const episodes = await episodesResponse.json();
+    const shows = await showsResponse.json();
+    const normalizedShows = (Array.isArray(shows) ? shows : []).filter((show) => show.is_podcast).map((show) => ({
+      ...show,
+      matchTitle: String(show.title || '').trim().toLocaleLowerCase('pt-BR'),
+    }));
+    const podcasts = (Array.isArray(episodes) ? episodes : []).map((episode) => {
+      const album = String(episode.album || '').trim().toLocaleLowerCase('pt-BR');
+      const show = normalizedShows.find((candidate) => candidate.matchTitle === album && (!episode.created_by || !candidate.created_by || candidate.created_by === episode.created_by))
+        || normalizedShows.find((candidate) => candidate.matchTitle === album);
+      return { ...episode, release_id: show?.id || null };
+    });
+    res.json(podcasts.sort((a, b) => Number(b.plays || 0) - Number(a.plays || 0)));
   } catch (error) { next(error); }
 });
 
