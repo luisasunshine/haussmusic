@@ -459,7 +459,7 @@ async function loadMagazine() {
     const pageElements = pages.map((page, index) => {
       const card = document.createElement('article');
       card.className = 'vv-magazine-page';
-      card.innerHTML = `<div class="vv-magazine-face vv-magazine-front"><img src="${escapeHtml(page.imageUrl)}" alt="${escapeHtml(page.title || `Página ${index + 1}`)}" draggable="false"><span class="vv-magazine-page-number">${index + 1}</span></div>`;
+      card.innerHTML = `<div class="vv-magazine-face vv-magazine-front"><img src="${escapeHtml(page.imageUrl)}" alt="${escapeHtml(page.title || `Página ${index + 1}`)}" draggable="false"></div>`;
       book.append(card); return card;
     });
     let current = 0;
@@ -506,7 +506,12 @@ async function loadMagazine() {
       const { page, delta, width } = drag;
       drag = null; book.classList.remove('is-dragging');
       if (Math.abs(delta) > width * .2) { dismiss(delta < 0 ? -1 : 1, true); return; }
-      if (Math.abs(delta) < 8) { const rect = book.getBoundingClientRect(); dismiss(event.clientX < rect.left + rect.width / 2 ? -1 : 1, true); return; }
+      if (Math.abs(delta) < 8) {
+        const rect = book.getBoundingClientRect();
+        if (event.clientX < rect.left + rect.width / 2) restore();
+        else dismiss(1, true);
+        return;
+      }
       page.classList.add('is-snapping');
       page.style.setProperty('--swipe-x', '0px'); page.style.setProperty('--swipe-rotate', '0deg'); page.style.setProperty('--swipe-progress', '0');
       window.setTimeout(() => { page.classList.remove('is-snapping'); page.style.removeProperty('--swipe-x'); page.style.removeProperty('--swipe-rotate'); page.style.removeProperty('--swipe-progress'); }, 420);
