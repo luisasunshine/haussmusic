@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import SongCard from '@/components/ui/SongCard';
 import { useSongLikes } from '@/lib/songLikes';
 
@@ -17,7 +18,7 @@ export default function Playlist() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSong, setCurrentSong] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', description: '', cover_url: '' });
+  const [editForm, setEditForm] = useState({ name: '', description: '', cover_url: '', is_public: true });
   const [uploading, setUploading] = useState(false);
   const [showAddSongsDialog, setShowAddSongsDialog] = useState(false);
   const [songSearch, setSongSearch] = useState('');
@@ -80,12 +81,13 @@ export default function Playlist() {
     mutationFn: (data) => base44.entities.Playlist.update(playlistId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['playlist', playlistId] });
+      queryClient.invalidateQueries({ queryKey: ['publicPlaylists'] });
       setShowEditDialog(false);
     },
   });
 
   const handleEditClick = () => {
-    setEditForm({ name: playlist.name, description: playlist.description || '', cover_url: playlist.cover_url || '' });
+    setEditForm({ name: playlist.name, description: playlist.description || '', cover_url: playlist.cover_url || '', is_public: playlist.is_public !== false });
     setShowEditDialog(true);
   };
 
@@ -353,6 +355,13 @@ export default function Playlist() {
                 )}
                 <input type="file" accept="image/*" className="hidden" onChange={handleUploadCover} disabled={uploading} />
               </label>
+            </div>
+            <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-zinc-800 border border-zinc-700">
+              <div>
+                <p className="text-sm text-white font-medium">Playlist pública</p>
+                <p className="text-xs text-zinc-400 mt-0.5">{editForm.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
+              </div>
+              <Switch checked={editForm.is_public} onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, is_public: checked }))} />
             </div>
             <Button
               onClick={() => updatePlaylistMutation.mutate(editForm)}

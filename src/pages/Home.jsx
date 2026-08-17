@@ -9,6 +9,7 @@ import { createPageUrl } from '@/utils';
 import ArtistNameBanner from '@/components/home/ArtistNameBanner';
 import HomeHeroCarousel from '@/components/home/HomeHeroCarousel';
 import MoodPlaylists from '@/components/home/MoodPlaylists';
+import PublicPlaylists from '@/components/home/PublicPlaylists';
 import VelvetIntro from '@/components/home/VelvetIntro';
 import BackgroundMedia from '@/components/media/BackgroundMedia';
 import { DiscordIcon } from '@/components/social/SocialBrandIcons';
@@ -458,6 +459,9 @@ export default function Home() {
                       </div>
                     </section>
                   )}
+
+                  {/* Community playlists marked public, newest first */}
+                  <PublicPlaylists songs={musicSongs} />
 
                   {/* Auto-curated mood collections built from the catalogue */}
                   <MoodPlaylists songs={musicSongs} onPlaySong={dispatchPlaySong} userEmail={user?.email} />

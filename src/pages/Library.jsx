@@ -9,6 +9,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import SongCard from '@/components/ui/SongCard';
@@ -28,7 +29,7 @@ export default function Library() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSong, setCurrentSong] = useState(null);
   const [user, setUser] = useState(null);
-  const [newPlaylist, setNewPlaylist] = useState({ name: '', description: '' });
+  const [newPlaylist, setNewPlaylist] = useState({ name: '', description: '', is_public: true });
 
   useEffect(() => {
     const h1 = (e) => { setCurrentSong(e.detail); setIsPlaying(true); };
@@ -70,8 +71,9 @@ export default function Library() {
     mutationFn: (data) => base44.entities.Playlist.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['publicPlaylists'] });
       setShowAddPlaylist(false);
-      setNewPlaylist({ name: '', description: '' });
+      setNewPlaylist({ name: '', description: '', is_public: true });
     },
   });
 
@@ -254,6 +256,13 @@ export default function Library() {
                     <div>
                       <label className="text-sm text-[#B3B3B3] mb-1 block">Descrição</label>
                       <Textarea value={newPlaylist.description} onChange={(e) => setNewPlaylist(p => ({ ...p, description: e.target.value }))} placeholder="Descrição da playlist" className="bg-[#282828] border-[#383838] text-white" />
+                    </div>
+                    <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-[#282828] border border-[#383838]">
+                      <div>
+                        <p className="text-sm text-white font-medium">Playlist pública</p>
+                        <p className="text-xs text-[#B3B3B3] mt-0.5">{newPlaylist.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
+                      </div>
+                      <Switch checked={newPlaylist.is_public} onCheckedChange={(checked) => setNewPlaylist(p => ({ ...p, is_public: checked }))} />
                     </div>
                     <Button onClick={() => createPlaylistMutation.mutate({ ...newPlaylist, song_ids: [], cover_url: '' })} disabled={!newPlaylist.name || createPlaylistMutation.isPending} className="w-full btn-metal">
                       {createPlaylistMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
