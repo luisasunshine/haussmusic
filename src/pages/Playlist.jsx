@@ -358,7 +358,7 @@ export default function Playlist() {
             </div>
             <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-zinc-800 border border-zinc-700">
               <div>
-                <p className="text-sm text-white font-medium">Playlist pública</p>
+                <p className="text-sm text-white font-medium">{editForm.is_public ? 'Playlist pública' : 'Playlist privada'}</p>
                 <p className="text-xs text-zinc-400 mt-0.5">{editForm.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
               </div>
               <Switch checked={editForm.is_public} onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, is_public: checked }))} />

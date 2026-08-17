@@ -259,7 +259,7 @@ export default function Library() {
                     </div>
                     <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-[#282828] border border-[#383838]">
                       <div>
-                        <p className="text-sm text-white font-medium">Playlist pública</p>
+                        <p className="text-sm text-white font-medium">{newPlaylist.is_public ? 'Playlist pública' : 'Playlist privada'}</p>
                         <p className="text-xs text-[#B3B3B3] mt-0.5">{newPlaylist.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
                       </div>
                       <Switch checked={newPlaylist.is_public} onCheckedChange={(checked) => setNewPlaylist(p => ({ ...p, is_public: checked }))} />
