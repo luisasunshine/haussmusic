@@ -13,11 +13,9 @@ export default function FloatingLogo() {
         }}
       >
         <motion.div
-          className="relative w-16 h-16"
+          className="relative w-28 h-14"
           whileHover={{ scale: 1.05 }}
         >
-
-          {/* Simple clean logo */}
           <img
             src="/logo.png"
             alt="VELVET MUSIC"

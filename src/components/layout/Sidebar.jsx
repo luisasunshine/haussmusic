@@ -34,10 +34,10 @@ export default function Sidebar({ currentPage }) {
   return (
     <aside className="hidden lg:flex flex-col w-[72px] bg-[#000000] border-r border-[#282828] h-screen shrink-0">
       {/* Logo */}
-      <div className="flex items-center justify-center h-[72px] border-b border-[#282828]">
+      <div className="flex items-center justify-center h-[72px] border-b border-[#282828] px-1">
         <Link to={createPageUrl('Home')}>
           {logoUrl ? (
-            <img src={logoUrl} alt="VELVET MUSIC" className="w-10 h-10 object-contain" />
+            <img src={logoUrl} alt="VELVET MUSIC" className="w-full max-w-[56px] h-auto object-contain" />
           ) : (
             <div className="w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center">
               <span className="text-black font-black text-xs">HM</span>

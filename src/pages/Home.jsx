@@ -9,6 +9,7 @@ import { createPageUrl } from '@/utils';
 import ArtistNameBanner from '@/components/home/ArtistNameBanner';
 import HomeHeroCarousel from '@/components/home/HomeHeroCarousel';
 import MoodPlaylists from '@/components/home/MoodPlaylists';
+import VelvetIntro from '@/components/home/VelvetIntro';
 import BackgroundMedia from '@/components/media/BackgroundMedia';
 import { DiscordIcon } from '@/components/social/SocialBrandIcons';
 import { hasUserType } from '@/lib/utils';
@@ -76,15 +77,10 @@ export default function Home() {
     return () => window.removeEventListener('activeSongChanged', handleActiveSongChanged);
   }, []);
 
-  useEffect(() => {
-    if (showIntro) {
-      const t = setTimeout(() => {
-        setShowIntro(false);
-        sessionStorage.setItem('hasSeenIntro', 'true');
-      }, 2500);
-      return () => clearTimeout(t);
-    }
-  }, [showIntro]);
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+    sessionStorage.setItem('hasSeenIntro', 'true');
+  };
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -345,38 +341,19 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-[100] bg-[#121212] flex items-center justify-center"
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[100] overflow-hidden"
+            style={{ background: 'radial-gradient(circle at 50% 45%, #1c1c28 0%, #0a0a0f 60%, #050506 100%)' }}
           >
-            <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 1.1, opacity: 0 }}
-              className="text-center"
-            >
-              <motion.div
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 1.5, repeat: 1 }}
-                className="w-24 h-24 mx-auto mb-6 rounded-full bg-[#c0c0c8] flex items-center justify-center overflow-hidden"
-                style={{ boxShadow: '0 0 60px rgba(200,200,210,0.4)' }}
-              >
-                {logoUrl ? (
-                  <img src={logoUrl} alt="VELVET MUSIC" className="w-full h-full object-contain p-2" />
-                ) : (
-                  <Music2 className="w-12 h-12 text-black" />
-                )}
-              </motion.div>
-              <h1 className="text-5xl font-bold text-white mb-2">VELVET MUSIC</h1>
-              <p className="text-[#B3B3B3]">Bem-vindo à sua música</p>
-            </motion.div>
+            <VelvetIntro logoUrl={logoUrl} onComplete={handleIntroComplete} />
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: showIntro ? 2 : 0, duration: 0.4 }}
+        animate={{ opacity: showIntro ? 0 : 1 }}
+        transition={{ duration: 0.5 }}
         className="flex-1 overflow-y-auto"
       >
         <div className="px-4 lg:px-6 py-4 lg:py-6 max-w-[1600px] mx-auto">
