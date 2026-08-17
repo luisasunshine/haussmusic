@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Play, Pause, Heart, Music2, TrendingUp, Star, Calendar, User, Timer, Newspaper, Mic } from 'lucide-react';
+import { Play, Pause, Heart, Music2, TrendingUp, Star, Calendar, User, Timer, Mic } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -385,7 +385,7 @@ export default function Home() {
                 title="Revista"
                 className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#c0c0c8]/20 border border-white/10 hover:border-[#c0c0c8]/40 flex items-center justify-center text-[#B3B3B3] hover:text-[#c0c0c8] transition-colors"
               >
-                <Newspaper className="w-4 h-4" />
+                <img src="/logo2.png" alt="Revista" className="w-4 h-4 object-contain" />
               </button>
             </div>
           </div>
