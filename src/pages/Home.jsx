@@ -385,7 +385,7 @@ export default function Home() {
                 title="Revista"
                 className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#c0c0c8]/20 border border-white/10 hover:border-[#c0c0c8]/40 flex items-center justify-center text-[#B3B3B3] hover:text-[#c0c0c8] transition-colors"
               >
-                <img src="/logo2.png" alt="Revista" className="w-4 h-4 object-contain" />
+                <img src="/logo2.png" alt="Revista" className="w-5 h-5 object-contain" />
               </button>
             </div>
           </div>
