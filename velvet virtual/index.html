@@ -15,6 +15,14 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
+    <div class="vv-intro" data-vv-intro aria-hidden="true">
+      <canvas class="vv-intro-canvas" data-vv-intro-canvas></canvas>
+      <img class="vv-intro-logo" data-vv-intro-logo src="assets/logo.png" alt="" />
+      <span class="vv-intro-flash"></span>
+      <span class="vv-intro-streak vv-intro-streak-one"></span>
+      <span class="vv-intro-streak vv-intro-streak-two"></span>
+      <span class="vv-intro-shine"></span>
+    </div>
     <div class="vv-noise" aria-hidden="true"></div>
     <header class="vv-header">
       <div class="vv-brand-area">
@@ -368,6 +376,7 @@
     .vv-crop-actions button{flex:1;padding:11px 13px;border:1px solid #383838;border-radius:8px;background:transparent;color:#fff;font:700 9px 'DM Mono',monospace;letter-spacing:.07em}
     .vv-crop-actions .vv-admin-add{border-color:transparent;flex:1.4}
   </style>
+  <script src="intro.js?v=1"></script>
   <script src="script.js?v=43e9c2f"></script>
   </body>
 </html>
