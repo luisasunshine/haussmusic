@@ -106,6 +106,11 @@ export default function Playlist() {
 
   const songs = allSongs.filter(s => playlist?.song_ids?.includes(s.id)) || [];
   const totalDuration = songs.reduce((acc, s) => acc + (s.duration || 0), 0);
+  const isOwner = Boolean(
+    user?.email &&
+    playlist?.created_by &&
+    user.email.toLowerCase() === playlist.created_by.toLowerCase()
+  );
 
   const searchableSongs = songSearch.trim()
     ? allSongs.filter(s =>
@@ -276,37 +281,41 @@ export default function Playlist() {
           {isPlaying && currentSong?.id === songs[0]?.id ? 'Pausar' : 'Reproduzir Tudo'}
         </motion.button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowAddSongsDialog(true)}
-          className="text-zinc-300 hover:bg-zinc-400/10"
-          title="Adicionar músicas"
-        >
-          <Plus className="w-5 h-5" />
-        </Button>
+        {isOwner && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAddSongsDialog(true)}
+              className="text-zinc-300 hover:bg-zinc-400/10"
+              title="Adicionar músicas"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleEditClick}
-          className="text-zinc-300 hover:bg-zinc-400/10"
-        >
-          <Edit2 className="w-5 h-5" />
-        </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleEditClick}
+              className="text-zinc-300 hover:bg-zinc-400/10"
+            >
+              <Edit2 className="w-5 h-5" />
+            </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => {
-            if (confirm('Tem certeza que deseja excluir esta playlist?')) {
-              deletePlaylistMutation.mutate();
-            }
-          }}
-          className="text-red-500 hover:bg-red-500/10"
-        >
-          <Trash2 className="w-5 h-5" />
-        </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (confirm('Tem certeza que deseja excluir esta playlist?')) {
+                  deletePlaylistMutation.mutate();
+                }
+              }}
+              className="text-red-500 hover:bg-red-500/10"
+            >
+              <Trash2 className="w-5 h-5" />
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Edit Dialog */}
@@ -439,12 +448,14 @@ export default function Playlist() {
                   isLiked={isLiked(song)}
                   hidePlaylistButton={true}
                 />
-                <button
-                  onClick={() => removeFromPlaylistMutation.mutate(song.id)}
-                  className="absolute right-12 top-1/2 -translate-y-1/2 p-2 rounded-full text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {isOwner && (
+                  <button
+                    onClick={() => removeFromPlaylistMutation.mutate(song.id)}
+                    className="absolute right-12 top-1/2 -translate-y-1/2 p-2 rounded-full text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -452,11 +463,17 @@ export default function Playlist() {
           <div className="text-center py-16">
             <Music2 className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-white mb-2">Playlist vazia</h3>
-            <p className="text-zinc-500 mb-5">Adicione músicas para começar</p>
-            <Button onClick={() => setShowAddSongsDialog(true)} className="bg-zinc-300 hover:bg-zinc-200 text-black">
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar músicas
-            </Button>
+            {isOwner ? (
+              <>
+                <p className="text-zinc-500 mb-5">Adicione músicas para começar</p>
+                <Button onClick={() => setShowAddSongsDialog(true)} className="bg-zinc-300 hover:bg-zinc-200 text-black">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar músicas
+                </Button>
+              </>
+            ) : (
+              <p className="text-zinc-500">Nenhuma música adicionada</p>
+            )}
           </div>
         )}
       </div>
