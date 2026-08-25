@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=20260825" />
+    <link rel="stylesheet" href="styles.css?v=20260825b" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
@@ -299,6 +299,22 @@
       </div>
     </section>
     <section class="vv-auth" data-auth-panel hidden aria-label="Conta Velvet"><form data-auth-form><button type="button" data-auth-close class="vv-editor-close" aria-label="Fechar">×</button><p class="vv-eyebrow">CONTA VELVET</p><h2 data-auth-title>Entrar</h2><div data-google-login class="vv-google-login"></div><div class="vv-auth-divider"><span>OU COM E-MAIL</span></div><label data-auth-name hidden>Nome<input name="displayName" autocomplete="name" /></label><label>E-mail<input name="email" type="email" autocomplete="email" required /></label><label>Senha<input name="password" type="password" minlength="8" required /></label><p data-auth-message class="vv-auth-message"></p><button type="submit" class="vv-admin-add" data-auth-submit>ENTRAR</button><button type="button" data-auth-switch class="vv-auth-switch">CRIAR UMA CONTA</button></form></section>
+    <section class="vv-dialog" data-site-dialog hidden role="dialog" aria-modal="true" aria-labelledby="vv-dialog-title">
+      <div class="vv-dialog-card" data-dialog-card>
+        <button type="button" class="vv-dialog-close" data-dialog-cancel aria-label="Fechar">×</button>
+        <div class="vv-dialog-symbol" data-dialog-symbol>✦</div>
+        <p class="vv-eyebrow" data-dialog-kicker>CONFIRMAÇÃO</p>
+        <h2 id="vv-dialog-title" data-dialog-title>Confirmar ação</h2>
+        <p class="vv-dialog-message" data-dialog-message></p>
+        <form data-dialog-form>
+          <div class="vv-dialog-fields" data-dialog-fields></div>
+          <div class="vv-dialog-actions">
+            <button type="button" class="vv-dialog-cancel" data-dialog-cancel>CANCELAR</button>
+            <button type="submit" class="vv-dialog-confirm" data-dialog-confirm>CONFIRMAR</button>
+          </div>
+        </form>
+      </div>
+    </section>
     <div class="vv-toast" data-toast hidden role="status" aria-live="polite"><span data-toast-icon>✓</span><p data-toast-message></p><button type="button" data-toast-close aria-label="Fechar notificação">×</button></div>
   <style>
     .vv-profile-logout{margin:0 32px 32px;padding:11px 14px;border:1px solid #777;background:transparent;color:#fff;font:700 9px 'DM Mono',monospace;letter-spacing:.08em}
@@ -379,6 +395,6 @@
     .vv-crop-actions .vv-admin-add{border-color:transparent;flex:1.4}
   </style>
   <script src="intro.js?v=1"></script>
-  <script src="script.js?v=20260825"></script>
+  <script src="script.js?v=20260825b"></script>
   </body>
 </html>

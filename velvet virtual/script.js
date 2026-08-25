@@ -64,6 +64,77 @@ function notify(message, type = 'success') {
 const alert = (message) => notify(message, /Bem-vinda|salvas/i.test(String(message)) ? 'success' : 'error');
 document.querySelector('[data-toast-close]').addEventListener('click', () => { toast.hidden = true; clearTimeout(toastTimer); });
 
+const siteDialog = document.querySelector('[data-site-dialog]');
+const dialogForm = siteDialog.querySelector('[data-dialog-form]');
+const dialogFields = siteDialog.querySelector('[data-dialog-fields]');
+const dialogConfirm = siteDialog.querySelector('[data-dialog-confirm]');
+let dialogResolve = null;
+let dialogReturnFocus = null;
+let dialogBodyWasLocked = false;
+
+function closeSiteDialog(result = null) {
+  if (siteDialog.hidden) return;
+  siteDialog.hidden = true;
+  if (!dialogBodyWasLocked) document.body.classList.remove('is-locked');
+  const resolve = dialogResolve;
+  dialogResolve = null;
+  if (dialogReturnFocus?.isConnected) dialogReturnFocus.focus();
+  dialogReturnFocus = null;
+  resolve?.(result);
+}
+
+function openSiteDialog({ kicker = 'CONFIRMAÇÃO', title = 'Confirmar ação', message = '', confirmLabel = 'CONFIRMAR', variant = 'default', symbol = '✦', fields = [] } = {}) {
+  if (dialogResolve) closeSiteDialog(null);
+  dialogReturnFocus = document.activeElement;
+  dialogBodyWasLocked = document.body.classList.contains('is-locked');
+  siteDialog.dataset.variant = variant;
+  siteDialog.querySelector('[data-dialog-kicker]').textContent = kicker;
+  siteDialog.querySelector('[data-dialog-title]').textContent = title;
+  siteDialog.querySelector('[data-dialog-message]').textContent = message;
+  siteDialog.querySelector('[data-dialog-symbol]').textContent = symbol;
+  dialogConfirm.textContent = confirmLabel;
+  dialogFields.replaceChildren();
+
+  fields.forEach((field) => {
+    const label = document.createElement('label');
+    const caption = document.createElement('span');
+    const input = document.createElement('input');
+    caption.textContent = field.label;
+    input.name = field.name;
+    input.type = field.type || 'text';
+    input.value = field.value || '';
+    input.placeholder = field.placeholder || '';
+    input.required = Boolean(field.required);
+    input.autocomplete = field.autocomplete || 'off';
+    label.append(caption, input);
+    dialogFields.append(label);
+  });
+
+  siteDialog.hidden = false;
+  document.body.classList.add('is-locked');
+  requestAnimationFrame(() => (dialogFields.querySelector('input') || dialogConfirm).focus());
+  return new Promise((resolve) => { dialogResolve = resolve; });
+}
+
+dialogForm.noValidate = true;
+dialogForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const emptyRequiredField = [...dialogForm.querySelectorAll('input[required]')].find((input) => !input.value.trim());
+  if (emptyRequiredField) {
+    emptyRequiredField.focus();
+    notify('Preencha todos os campos para continuar.', 'error');
+    return;
+  }
+  closeSiteDialog(Object.fromEntries(new FormData(dialogForm)));
+});
+siteDialog.querySelectorAll('[data-dialog-cancel]').forEach((button) => button.addEventListener('click', () => closeSiteDialog(null)));
+siteDialog.addEventListener('click', (event) => { if (event.target === siteDialog) closeSiteDialog(null); });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !siteDialog.hidden) closeSiteDialog(null); });
+
+const confirmAction = async (message, { title = 'Confirmar exclusão?', confirmLabel = 'EXCLUIR', variant = 'danger', symbol = '!' } = {}) => Boolean(await openSiteDialog({
+  kicker: 'CONFIRMAÇÃO', title, message, confirmLabel, variant, symbol,
+}));
+
 let searchCatalog = null;
 let searchTimer;
 const normalizeSearch = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -558,7 +629,7 @@ async function openCreatorProfile(id) {
     creatorProfile.querySelector('[data-creator-back]').addEventListener('click', () => loadCreatorDirectory(activeCreatorRole));
     creatorProfile.querySelector('[data-portfolio-new]')?.addEventListener('click', openPortfolioEditor);
     creatorProfile.querySelector('[data-social-edit]')?.addEventListener('click', () => openSocialEditor(user));
-    creatorProfile.querySelectorAll('[data-portfolio-delete]').forEach((button) => button.addEventListener('click', async () => { if (!confirm('Excluir esta publicação?')) return; try { await requestApi(`/api/portfolio/posts/${button.dataset.portfolioDelete}`, { method: 'DELETE' }); openCreatorProfile(id); } catch (error) { notify(error.message, 'error'); } }));
+    creatorProfile.querySelectorAll('[data-portfolio-delete]').forEach((button) => button.addEventListener('click', async () => { if (!await confirmAction('Esta publicação será removida permanentemente do seu portfólio.', { title: 'Excluir publicação?' })) return; try { await requestApi(`/api/portfolio/posts/${button.dataset.portfolioDelete}`, { method: 'DELETE' }); openCreatorProfile(id); } catch (error) { notify(error.message, 'error'); } }));
   } catch (error) { creatorProfile.innerHTML = `<button type="button" class="vv-creator-back" data-creator-back>← VOLTAR</button><div class="vv-creators-empty"><h2>${escapeHtml(error.message)}</h2></div>`; creatorProfile.querySelector('button').onclick = () => loadCreatorDirectory(activeCreatorRole); }
 }
 document.querySelectorAll('[data-creators-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openCreators(button.dataset.creatorsOpen); }));
@@ -1014,7 +1085,7 @@ async function renderPostsAdmin(section) {
       openPostEditor(post, section);
     }));
     container.querySelectorAll('[data-post-remove]').forEach((button) => button.addEventListener('click', async () => {
-      if (!confirm('Excluir esta matéria permanentemente?')) return;
+      if (!await confirmAction('A matéria e todas as interações vinculadas serão removidas permanentemente.', { title: 'Excluir matéria?' })) return;
       try { await requestApi(`/api/admin/posts/${button.dataset.postRemove}`, { method: 'DELETE' }); searchCatalog = null; notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
     }));
   }
@@ -1089,11 +1160,22 @@ async function openPostEditor(post, section) {
     const cursor = start + value.length;
     contentField.setSelectionRange(cursor, cursor);
   };
-  postEditorForm.querySelector('[data-content-link]').addEventListener('click', () => {
-    const label = window.prompt('Texto do link:');
-    if (!label) return;
-    const url = window.prompt('Cole a URL completa (https://):');
-    if (!url || !/^https?:\/\//i.test(url)) { notify('Informe um link começando com https://', 'error'); return; }
+  postEditorForm.querySelector('[data-content-link]').addEventListener('click', async () => {
+    const link = await openSiteDialog({
+      kicker: 'EDITOR DE MATÉRIA',
+      title: 'Inserir link',
+      message: 'Defina o texto que será exibido e cole o endereço completo.',
+      confirmLabel: 'INSERIR LINK',
+      symbol: '↗',
+      fields: [
+        { name: 'label', label: 'TEXTO DO LINK', placeholder: 'Ex.: Leia a entrevista', required: true },
+        { name: 'url', label: 'ENDEREÇO', type: 'url', placeholder: 'https://...', required: true, autocomplete: 'url' },
+      ],
+    });
+    if (!link) return;
+    const label = String(link.label || '').trim();
+    const url = String(link.url || '').trim();
+    if (!/^https?:\/\//i.test(url)) { notify('Informe um link começando com https://', 'error'); return; }
     insertContent(`${contentField.value.trim() ? '\n\n' : ''}[${label}](${url})`);
   });
   const inlineImageInput = postEditorForm.querySelector('[data-content-image-file]');
@@ -1113,7 +1195,7 @@ async function openPostEditor(post, section) {
 
   postEditorForm.querySelector('[data-post-cancel]')?.addEventListener('click', closePostEditor);
   postEditorForm.querySelector('[data-post-delete]')?.addEventListener('click', async () => {
-    if (!post || !confirm('Excluir esta matéria permanentemente?')) return;
+    if (!post || !await confirmAction('A matéria e todas as interações vinculadas serão removidas permanentemente.', { title: 'Excluir matéria?' })) return;
     try { await requestApi(`/api/admin/posts/${post.id}`, { method: 'DELETE' }); searchCatalog = null; closePostEditor(); notify('Matéria excluída.'); renderPostsAdmin(section); } catch (error) { alert(error.message); }
   });
 
@@ -1231,7 +1313,7 @@ editorForm.addEventListener('submit', async (event) => {
   if (resource === 'users' && item && !payload.password) delete payload.password;
   try { await requestApi(`/api/admin/${resource}${item ? `/${item.id}` : ''}`, { method: item ? 'PATCH' : 'POST', body: JSON.stringify(payload) }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); }
 });
-document.querySelector('[data-editor-delete]').addEventListener('click', async () => { const { resource, item } = session.editor; if (!item || !confirm('Apagar este item permanentemente?')) return; try { await requestApi(`/api/admin/${resource}/${item.id}`, { method: 'DELETE' }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
+document.querySelector('[data-editor-delete]').addEventListener('click', async () => { const { resource, item } = session.editor; if (!item || !await confirmAction('Este item será removido permanentemente.', { title: 'Apagar item?' })) return; try { await requestApi(`/api/admin/${resource}/${item.id}`, { method: 'DELETE' }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
 
 document.querySelector('[data-auth-switch]').addEventListener('click', () => { const creating = document.querySelector('[data-auth-name]').hidden; document.querySelector('[data-auth-name]').hidden = !creating; document.querySelector('[data-auth-title]').textContent = creating ? 'Criar conta' : 'Entrar'; document.querySelector('[data-auth-submit]').textContent = creating ? 'CRIAR CONTA' : 'ENTRAR'; document.querySelector('[data-auth-switch]').textContent = creating ? 'JÁ TENHO UMA CONTA' : 'CRIAR UMA CONTA'; });
 document.querySelector('[data-auth-form]').addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget; const creating = !document.querySelector('[data-auth-name]').hidden; const message = document.querySelector('[data-auth-message]'); try { const response = await requestApi(`/api/auth/${creating ? 'register' : 'login'}`, { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(form))) }); persistSession(response.token, response.user); closeAuth(); alert(`Bem-vinda, ${response.user.displayName}.`); } catch (error) { message.textContent = error.message; } });
