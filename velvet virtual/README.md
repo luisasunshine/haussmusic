@@ -1,4 +1,4 @@
-# Velvet Virtual
+# Velvet
 
 Revista digital independente da Velvet — um projeto separado do Velvet Music.
 
@@ -11,4 +11,4 @@ Abra `index.html` diretamente ou inicie um servidor estático nesta pasta. A pá
 - `index.html` — página da revista
 - `styles.css` — identidade visual e responsividade
 - `script.js` — busca, menu e formulário demonstrativo
-- `assets/velvet-virtual-cover.png` — capa editorial exclusiva
+- `assets/velvet-cover.png` — capa editorial exclusiva

@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const { OAuth2Client } = require('google-auth-library');
-const { db } = require('./db');
+const { db, deletePost } = require('./db');
 const { signToken, isAdmin, attachUser, requireAuth, requireAdmin } = require('./auth');
 
 const app = express();
@@ -60,7 +60,7 @@ function syncPostCategories(postId, categoryIds) {
   categoryIds.forEach((categoryId, position) => insert.run(postId, categoryId, position));
 }
 
-app.get('/health', (_req, res) => res.json({ ok: true, service: 'velvet-virtual' }));
+app.get('/health', (_req, res) => res.json({ ok: true, service: 'velvet' }));
 
 // The magazine reads podcasts from Velvet Music through the server, avoiding
 // browser CORS limits while keeping the two databases and APIs independent.
@@ -355,7 +355,10 @@ function crud(resource, table, fields) {
     res.json(table === 'posts' ? attachPostCategories([item])[0] : toCamel(item));
   });
   app.delete(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => {
-    if (table === 'posts') db.prepare('DELETE FROM post_categories WHERE post_id = ?').run(req.params.id);
+    if (table === 'posts') {
+      deletePost(req.params.id);
+      return res.status(204).end();
+    }
     if (table === 'categories') db.prepare('DELETE FROM post_categories WHERE category_id = ?').run(req.params.id);
     db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
     res.status(204).end();
@@ -408,4 +411,4 @@ const upload = multer({ storage, limits: { fileSize: 12 * 1024 * 1024 } });
 app.post('/api/admin/uploads', requireAdmin, upload.single('file'), (req, res) => { if (!req.file) return res.status(400).json({ error: 'Arquivo obrigatório.' }); const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`; res.status(201).json({ url: `${base}/uploads/${req.file.filename}` }); });
 
 app.use((error, _req, res, _next) => res.status(error.status || 500).json({ error: error.message || 'Erro interno.' }));
-app.listen(port, () => console.log(`VELVET VIRTUAL API on :${port}`));
+app.listen(port, () => console.log(`VELVET API on :${port}`));

@@ -66,27 +66,27 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS post_likes (
     post_id TEXT NOT NULL, user_id TEXT NOT NULL, created_at TEXT NOT NULL,
     PRIMARY KEY (post_id, user_id),
-    FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
   CREATE TABLE IF NOT EXISTS post_saves (
     post_id TEXT NOT NULL, user_id TEXT NOT NULL, created_at TEXT NOT NULL,
     PRIMARY KEY (post_id, user_id),
-    FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
   CREATE TABLE IF NOT EXISTS comments (
     id TEXT PRIMARY KEY, post_id TEXT NOT NULL, user_id TEXT NOT NULL,
     content TEXT NOT NULL, created_at TEXT NOT NULL,
-    FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
   CREATE TABLE IF NOT EXISTS post_reads (
     post_id TEXT NOT NULL, user_id TEXT NOT NULL, created_at TEXT NOT NULL,
     PRIMARY KEY (post_id, user_id),
-    FOREIGN KEY(post_id) REFERENCES posts(id), FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
   CREATE TABLE IF NOT EXISTS post_guest_views (
     post_id TEXT NOT NULL, visitor_id TEXT NOT NULL, created_at TEXT NOT NULL,
     PRIMARY KEY (post_id, visitor_id),
-    FOREIGN KEY(post_id) REFERENCES posts(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
   );
 `);
 
@@ -122,4 +122,20 @@ standardCategories.forEach((name) => {
   insertCategory.run(`velvet-${slug}`, name, slug, '', categoryDate, categoryDate);
 });
 
-module.exports = { db };
+// Databases created by earlier releases do not have ON DELETE CASCADE on
+// every post relationship. Keeping this explicit cleanup makes deletion
+// safe for those existing installations as well as for new databases.
+const POST_RELATION_TABLES = ['post_categories', 'post_likes', 'post_saves', 'comments', 'post_reads', 'post_guest_views'];
+function deletePost(postId) {
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    POST_RELATION_TABLES.forEach((table) => db.prepare(`DELETE FROM ${table} WHERE post_id = ?`).run(postId));
+    db.prepare('DELETE FROM posts WHERE id = ?').run(postId);
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
+
+module.exports = { db, deletePost };

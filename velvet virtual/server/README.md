@@ -1,6 +1,6 @@
-# Velvet Virtual API
+# Velvet API
 
-Backend próprio da Velvet Virtual, separado do Velvet Music. Usa SQLite persistente e uploads locais.
+Backend próprio da Velvet, separado do Velvet Music. Usa SQLite persistente e uploads locais.
 
 ## Desenvolvimento
 

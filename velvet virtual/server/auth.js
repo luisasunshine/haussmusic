@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const { db } = require('./db');
 
 const secret = process.env.JWT_SECRET;
-if (!secret) throw new Error('JWT_SECRET is required. Configure velvet virtual/server/.env');
+if (!secret) throw new Error('JWT_SECRET is required. Configure server/.env');
 
 const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean);
 const signToken = (id) => jwt.sign({ sub: id }, secret, { expiresIn: '30d' });

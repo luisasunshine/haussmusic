@@ -31,7 +31,7 @@ const vimosGrid = document.querySelector('[data-vimos-grid]');
 const vimosEmpty = document.querySelector('[data-vimos-empty]');
 let activeNewsCategory = null;
 let newsWeekOnly = false;
-const API_URL = window.VELVET_VIRTUAL_API_URL || 'https://velvetvirtual.up.railway.app';
+const API_URL = window.VELVET_API_URL || 'https://velvetvirtual.up.railway.app';
 const toast = document.querySelector('[data-toast]');
 let toastTimer;
 function syncActiveNav(selector) {
@@ -162,7 +162,7 @@ function articleCard(post, large = false) {
   const category = document.createElement('p'); category.className = 'vv-label'; category.textContent = post.categoryName || 'VELVET';
   image.append(category);
   const title = document.createElement('h3'); title.textContent = post.title;
-  const excerpt = document.createElement('p'); excerpt.className = 'vv-news-card-excerpt'; excerpt.textContent = post.excerpt || 'Leia a matéria completa na Velvet Virtual.';
+  const excerpt = document.createElement('p'); excerpt.className = 'vv-news-card-excerpt'; excerpt.textContent = post.excerpt || 'Leia a matéria completa na Velvet.';
   const meta = document.createElement('span'); meta.className = 'vv-news-card-views'; meta.textContent = viewsLabel(post);
   article.append(image, title, excerpt, meta);
   article.addEventListener('click', () => openPost(post));
@@ -404,7 +404,7 @@ async function loadNews() {
     newsCount.textContent = `${posts.length} PUBLICAÇ${posts.length === 1 ? 'ÃO' : 'ÕES'}`;
     newsPage.querySelector('.vv-news-heading .vv-eyebrow').textContent = newsWeekOnly ? 'NOVIDADES DA SEMANA' : activeNewsCategory ? `CATEGORIA · ${activeNewsCategory.toUpperCase()}` : 'TODAS AS NOTÍCIAS';
     newsPage.querySelector('[data-news-title]').innerHTML = newsWeekOnly ? 'O que chegou<br /><i>agora.</i>' : 'O que está<br /><i>acontecendo.</i>';
-    newsPage.querySelector('[data-news-description]').textContent = newsWeekOnly ? 'Lançamentos publicados nos últimos sete dias para você ouvir, assistir e descobrir primeiro.' : 'As novidades da Velvet Virtual, atualizadas diretamente pela redação.';
+    newsPage.querySelector('[data-news-description]').textContent = newsWeekOnly ? 'Lançamentos publicados nos últimos sete dias para você ouvir, assistir e descobrir primeiro.' : 'As novidades da Velvet, atualizadas diretamente pela redação.';
     newsPage.querySelector('.vv-news-list-header h2').textContent = newsWeekOnly ? 'Novidades nesta semana' : activeNewsCategory ? `Em ${activeNewsCategory}` : 'Mais recentes';
     newsEmpty.hidden = posts.length > 0;
   } catch {
@@ -713,7 +713,7 @@ async function loadHeroCarousel() {
       hero.classList.add('is-changing');
       window.setTimeout(() => {
         if (banner.imageUrl) hero.style.backgroundImage = `linear-gradient(90deg,rgba(1,1,3,.97) 0%,rgba(1,1,4,.88) 35%,rgba(1,1,4,.18) 70%,rgba(1,1,4,.25)),linear-gradient(0deg,rgba(1,1,4,.7),transparent 47%),url("${banner.imageUrl}")`;
-        title.textContent = banner.title || 'Velvet Virtual';
+        title.textContent = banner.title || 'Velvet';
         deck.textContent = banner.subtitle || '';
         cta.firstChild.textContent = `${banner.ctaLabel || 'LER MATÉRIA'} `;
         cta.href = banner.ctaUrl || '#materias';
@@ -1153,7 +1153,7 @@ async function renderAdmin(resource) {
     }
     if (resource === 'settings') {
       const settings = await requestApi('/api/admin/settings');
-      section.innerHTML = `<form class="vv-settings" data-live-settings><label>Nome da revista<input name="siteName" value="${escapeHtml(settings.siteName || 'Velvet Virtual')}" required></label><label>Link do Discord<input name="discordUrl" type="url" value="${escapeHtml(settings.discordUrl || '')}"></label><label>Link do Velvet Music<input name="velvetMusicUrl" type="url" value="${escapeHtml(settings.velvetMusicUrl || 'https://velvetentertainment.vercel.app')}"></label><label>Link do Instagram<input name="instagramUrl" type="url" placeholder="https://instagram.com/seuperfil" value="${escapeHtml(settings.instagramUrl || '')}"></label><label>Link do YouTube<input name="youtubeUrl" type="url" placeholder="https://youtube.com/@seucanal" value="${escapeHtml(settings.youtubeUrl || '')}"></label><label>E-mail de contato<input name="contactEmail" type="email" placeholder="contato@velvet.com" value="${escapeHtml(settings.contactEmail || '')}"></label><button class="vv-admin-add" type="submit">SALVAR CONFIGURAÇÕES</button></form>`;
+      section.innerHTML = `<form class="vv-settings" data-live-settings><label>Nome da revista<input name="siteName" value="${escapeHtml(settings.siteName || 'Velvet')}" required></label><label>Link do Discord<input name="discordUrl" type="url" value="${escapeHtml(settings.discordUrl || '')}"></label><label>Link do Velvet Music<input name="velvetMusicUrl" type="url" value="${escapeHtml(settings.velvetMusicUrl || 'https://velvetentertainment.vercel.app')}"></label><label>Link do Instagram<input name="instagramUrl" type="url" placeholder="https://instagram.com/seuperfil" value="${escapeHtml(settings.instagramUrl || '')}"></label><label>Link do YouTube<input name="youtubeUrl" type="url" placeholder="https://youtube.com/@seucanal" value="${escapeHtml(settings.youtubeUrl || '')}"></label><label>E-mail de contato<input name="contactEmail" type="email" placeholder="contato@velvet.com" value="${escapeHtml(settings.contactEmail || '')}"></label><button class="vv-admin-add" type="submit">SALVAR CONFIGURAÇÕES</button></form>`;
       section.querySelector('form').addEventListener('submit', async (event) => { event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget)); await requestApi('/api/admin/settings', { method: 'PUT', body: JSON.stringify(values) }); alert('Configurações salvas.'); }); return;
     }
     const items = await requestApi(`/api/admin/${resource}`);
