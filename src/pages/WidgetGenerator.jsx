@@ -188,7 +188,7 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
                 </button>
               </div>
               <pre className="bg-velvet-abyss rounded-xl p-4 overflow-x-auto">
-                <code className="text-sm text-cyan-300">{apiCode}</code>
+                <code className="text-sm text-velvet-silver">{apiCode}</code>
               </pre>
             </div>
 
@@ -211,7 +211,7 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
                 </button>
               </div>
               <pre className="bg-velvet-abyss rounded-xl p-4 overflow-x-auto">
-                <code className="text-sm text-cyan-300">{embedCode}</code>
+                <code className="text-sm text-velvet-silver">{embedCode}</code>
               </pre>
             </div>
           </motion.div>
@@ -267,14 +267,14 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
           {/* Código API */}
           <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl p-6 border border-cyan-500/30">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Code className="w-5 h-5 text-cyan-400" />
+              <Code className="w-5 h-5 text-velvet-silver" />
               API do VELVET MUSIC (Tipo Spotify)
             </h3>
             <div className="space-y-4 text-velvet-silver">
               <div className="bg-cyan-500/20 rounded-lg p-4 border border-cyan-500/30">
-                <p className="font-bold text-cyan-200 mb-2">🔑 Passo 1: Configure a API Key</p>
+                <p className="font-bold text-velvet-silver mb-2">🔑 Passo 1: Configure a API Key</p>
                 <p className="text-sm">No seu app Base44, vá em <strong>Dashboard → Segredos</strong> e adicione:</p>
-                <div className="mt-2 p-3 bg-velvet-abyss rounded-lg font-mono text-xs text-cyan-300">
+                <div className="mt-2 p-3 bg-velvet-abyss rounded-lg font-mono text-xs text-velvet-silver">
                   Nome: HAUSS_API_KEY<br/>
                   Valor: hauss_2026_music_api
                 </div>
@@ -286,7 +286,7 @@ fetch('${appUrl}/api/functions/haussAPI?action=${config.type}&limit=${config.lim
               </div>
 
               <div className="bg-cyan-500/10 rounded-lg p-3 border border-cyan-500/20">
-                <p className="text-xs text-cyan-200">
+                <p className="text-xs text-velvet-silver">
                   <strong>Endpoints disponíveis:</strong><br/>
                   • <code>?action=list</code> - Lista músicas<br/>
                   • <code>?action=get&id=xxx</code> - Busca música específica<br/>

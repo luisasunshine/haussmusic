@@ -165,7 +165,7 @@ export default function ExpandedPlayer({
                 onClick={onFavoriteToggle}
                 className="p-2 hover:bg-white/10 rounded-full transition-colors"
               >
-                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-pink-500 text-pink-500' : 'text-velvet-dim'}`} />
+                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-velvet-silver text-velvet-silver' : 'text-velvet-dim'}`} />
               </motion.button>
             </div>
 
@@ -176,7 +176,7 @@ export default function ExpandedPlayer({
                 whileTap={{ scale: 0.9 }}
                 onClick={toggleRepeat}
                 className={`p-2 rounded-full transition-colors ${
-                  repeatMode !== 'off' ? 'text-cyan-400' : 'text-velvet-faint hover:text-white'
+                  repeatMode !== 'off' ? 'text-velvet-silver' : 'text-velvet-faint hover:text-white'
                 }`}
               >
                 {repeatMode === 'one' ? (

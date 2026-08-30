@@ -134,7 +134,7 @@ export default function PlayerControls({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={onFavoriteToggle}
-          className={`p-2 rounded-full transition-colors ${isFavorite ? 'text-pink-500' : 'text-velvet-faint hover:text-velvet-silver'}`}
+          className={`p-2 rounded-full transition-colors ${isFavorite ? 'text-velvet-silver' : 'text-velvet-faint hover:text-velvet-silver'}`}
         >
           <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
         </motion.button>

@@ -6,11 +6,12 @@ import { Play, Pause, Heart, Music2, TrendingUp, Star, Calendar, User, Timer, Mi
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import ArtistNameBanner from '@/components/home/ArtistNameBanner';
 import HomeHeroCarousel from '@/components/home/HomeHeroCarousel';
+import HeroSlide from '@/components/home/HeroSlide';
+import SectionHeader from '@/components/home/SectionHeader';
+import EmptyState from '@/components/ui/EmptyState';
 import MoodPlaylists from '@/components/home/MoodPlaylists';
 import PublicPlaylists from '@/components/home/PublicPlaylists';
-import BackgroundMedia from '@/components/media/BackgroundMedia';
 
 // A abertura em three.js é pesada e só roda na primeira visita da sessão.
 // Mantê-la fora do pacote principal tira ~674 KB do carregamento de todo
@@ -223,130 +224,86 @@ export default function Home() {
   // Hero rotates between the "Mais Ouvidas" song card and every active
   // admin banner, one slide at a time — same spot, same size, so an admin
   // adding a banner just means the rotation gets one slide longer.
+  // Hero: a faixa "Mais Ouvidas" mais um slide por banner ativo do admin,
+  // todos no mesmo layout split (HeroSlide) — texto à esquerda, arte
+  // emoldurada à direita, fundo desfocado da própria imagem.
   const heroSlides = [
     ...(featuredSong ? [{
       key: `song-${featuredSong.id}`,
       render: () => (
-        <div
-          className={`relative w-full h-full ${featuredSongScheduled ? 'cursor-default' : 'cursor-pointer'}`}
-          onClick={() => dispatchPlaySong(featuredSong)}
-        >
-          <div className="absolute inset-0">
-            {featuredBackdrop ? (
-              <>
-                <img
-                  src={featuredBackdrop}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  style={{ filter: 'saturate(1.3) brightness(0.55)' }}
-                />
-                <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 60% 40%, rgba(200,200,210,0.18) 0%, transparent 70%)' }} />
-              </>
+        <HeroSlide
+          media={featuredBackdrop || featuredSong.cover_url}
+          fallbackName={featuredSong.artist}
+          eyebrow="Mais ouvidas"
+          title={featuredSong.title}
+          subtitle={`${featuredSong.artist}${featuredSong.featuring ? ` feat. ${featuredSong.featuring}` : ''}`}
+          meta={
+            <span className="flex items-center gap-2">
+              <span>{formatPlays(featuredSong.plays)} plays</span>
+              {featuredSong.album && (<><span className="opacity-40">·</span><span>{featuredSong.album}</span></>)}
+            </span>
+          }
+          onActivate={featuredSongScheduled ? undefined : () => dispatchPlaySong(featuredSong)}
+          actions={
+            featuredSongScheduled ? (
+              <span className="v-badge-dim px-4 py-2 text-xs">Em breve</span>
             ) : (
-              <ArtistNameBanner name={featuredSong.artist} />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
-          </div>
-
-          <div className="relative h-full flex items-end p-5 lg:p-8 v-scene">
-            <div className="flex items-end gap-5 w-full v-3d">
-              {featuredSong.cover_url && (
-                /* A capa flutua à frente do banner, com sombra própria e um
-                   giro leve no hover — é o objeto mais próximo da cena. */
-                <motion.div
-                  whileHover={{ rotateY: -12, rotateX: 7, scale: 1.06 }}
-                  transition={{ type: 'spring', stiffness: 240, damping: 20 }}
-                  className="hidden sm:block w-24 h-24 lg:w-32 lg:h-32 rounded-2xl overflow-hidden flex-shrink-0 v-audio-glow"
-                  style={{
-                    transformStyle: 'preserve-3d',
-                    transform: 'translateZ(50px)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: '0 30px 60px -24px rgba(0,0,0,1)',
-                  }}
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => { e.stopPropagation(); dispatchPlaySong(featuredSong); }}
+                  aria-label={currentPlayingSong?.id === featuredSong.id ? 'Pausar' : 'Tocar destaque'}
+                  className="btn-green h-12 px-6 flex items-center gap-2.5 shadow-halo"
                 >
-                  <img src={featuredSong.cover_url} alt={featuredSong.title} className="w-full h-full object-cover" />
-                </motion.div>
-              )}
-              <div className="flex-1 min-w-0" style={{ transform: 'translateZ(24px)' }}>
-                <p className="text-velvet-silver text-[11px] font-bold uppercase tracking-[0.28em] mb-2">Mais Ouvidas</p>
-                <h1 className="text-3xl lg:text-5xl font-black v-chrome-text v-chrome-text-live v-display mb-1 truncate">{featuredSong.title}</h1>
-                <p className="text-white/75 text-sm lg:text-base mb-4 truncate">{featuredSong.artist}{featuredSong.featuring ? ` feat. ${featuredSong.featuring}` : ''}</p>
+                  {currentPlayingSong?.id === featuredSong.id
+                    ? <><Pause className="w-5 h-5 fill-current" /> Pausar</>
+                    : <><Play className="w-5 h-5 fill-current" /> Tocar</>}
+                </motion.button>
 
-                <div className="flex items-center gap-3">
-                  {featuredSongScheduled ? (
-                    <span className="v-badge-dim px-4 py-2 text-xs">Em Breve</span>
-                  ) : (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={(e) => { e.stopPropagation(); dispatchPlaySong(featuredSong); }}
-                      className="w-12 h-12 btn-green flex items-center justify-center shadow-halo"
-                    >
-                      {currentPlayingSong?.id === featuredSong.id ? (
-                        <Pause className="w-6 h-6 text-black fill-black" />
-                      ) : (
-                        <Play className="w-6 h-6 text-black fill-black ml-0.5" />
-                      )}
-                    </motion.button>
-                  )}
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={(e) => toggleFavorite(featuredSong, e)}
-                    className={`p-2 rounded-full ${isLiked(featuredSong) ? 'text-[#d8d8e2]' : 'text-white/60 hover:text-white'}`}
-                  >
-                    <Heart className={`w-5 h-5 ${isLiked(featuredSong) ? 'fill-current' : ''}`} />
-                  </motion.button>
-                  <span className="text-white/50 text-sm">{formatPlays(featuredSong.plays)} plays</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={(e) => toggleFavorite(featuredSong, e)}
+                  aria-label={isLiked(featuredSong) ? 'Remover dos curtidos' : 'Curtir'}
+                  aria-pressed={isLiked(featuredSong)}
+                  className={`btn-ghost-metal w-12 h-12 flex items-center justify-center ${
+                    isLiked(featuredSong) ? 'text-velvet-silver' : ''
+                  }`}
+                >
+                  <Heart className={`w-5 h-5 ${isLiked(featuredSong) ? 'fill-current' : ''}`} />
+                </motion.button>
+              </>
+            )
+          }
+        />
       ),
     }] : []),
     ...activeBanners.map((banner) => ({
       key: `banner-${banner.id}`,
       durationSeconds: banner.duration_seconds || 7,
       render: () => (
-        <div className="relative w-full h-full bg-black">
-          <div className="absolute inset-0 bg-black overflow-hidden">
-            {banner.image_url ? (
-              <BackgroundMedia
-                src={banner.image_url}
-                alt={banner.title}
-                className="w-full h-full object-contain"
-                style={{ filter: 'saturate(1.15) brightness(0.85)' }}
-              />
-            ) : (
-              <ArtistNameBanner name={banner.title} />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/20" />
-          </div>
-
-          <div className="relative h-full flex items-end p-5 lg:p-8">
-            <div className="flex-1 min-w-0">
-              <p className="text-velvet-silver text-[11px] font-bold uppercase tracking-[0.28em] mb-2">{banner.category || 'Destaque'}</p>
-              <h1 className="text-3xl lg:text-5xl font-black v-chrome-text v-display mb-1">{banner.title}</h1>
-              {banner.artist_name && (
-                <p className="text-white/70 text-sm lg:text-base mb-1">{banner.artist_name}</p>
-              )}
-              {banner.description && (
-                <p className="text-white/60 text-sm max-w-xl mt-2">{banner.description}</p>
-              )}
-              {banner.link_url && (
-                <a
-                  href={banner.link_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-block mt-4 px-5 py-2.5 btn-green px-5 py-2.5 text-sm"
-                >
-                  {banner.button_text || 'Saiba Mais'}
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+        <HeroSlide
+          media={banner.image_url}
+          isVideo={/\.(mp4|webm|mov)(\?|$)/i.test(banner.image_url || '')}
+          fallbackName={banner.title}
+          eyebrow={banner.category || 'Destaque'}
+          title={banner.title}
+          subtitle={banner.artist_name || banner.description}
+          meta={banner.artist_name && banner.description ? banner.description : null}
+          actions={
+            banner.link_url ? (
+              <a
+                href={banner.link_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="btn-green h-11 px-6 inline-flex items-center"
+              >
+                {banner.button_text || 'Saiba mais'}
+              </a>
+            ) : null
+          }
+        />
       ),
     })),
   ];
@@ -435,14 +392,12 @@ export default function Home() {
                   {/* Trending Now */}
                   {trending.length > 0 && (
                     <Reveal as="section" className="mb-8">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Em Alta</h2>
-                          <p className="text-sm text-[#9a9aa6]">O que está bombando agora</p>
-                        </div>
-                        <TrendingUp className="w-5 h-5 text-[#d8d8e2]" />
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
+                      <SectionHeader
+                          title="Em Alta"
+                          subtitle="O que está bombando agora"
+                          icon={TrendingUp}
+                        />
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                         {trending.map((song, i) => {
                           const scheduled = isSongScheduled(song);
                           return (
@@ -499,13 +454,11 @@ export default function Home() {
                   {/* Podcasts */}
                   {podcastShows.length > 0 && (
                     <Reveal as="section" className="mb-8">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Podcasts</h2>
-                          <p className="text-sm text-[#9a9aa6]">Conversas e histórias em áudio</p>
-                        </div>
-                        <Mic className="w-5 h-5 text-[#d8d8e2]" />
-                      </div>
+                      <SectionHeader
+                          title="Podcasts"
+                          subtitle="Conversas e histórias em áudio"
+                          icon={Mic}
+                        />
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                         {podcastShows.map((show, i) => {
                           const firstEp = podcastEpisodes.find(e => e.album === show.title);
@@ -549,13 +502,11 @@ export default function Home() {
                   {/* Recent Releases */}
                   {recentSongs.length > 0 && (
                     <Reveal as="section" className="mb-8">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Lançamentos Recentes</h2>
-                          <p className="text-sm text-[#9a9aa6]">As músicas mais recentes</p>
-                        </div>
-                        <Calendar className="w-5 h-5 text-[#9a9aa6]" />
-                      </div>
+                      <SectionHeader
+                          title="Lançamentos Recentes"
+                          subtitle="As músicas mais recentes"
+                          icon={Calendar}
+                        />
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         {recentSongs.map((song, i) => {
                           const scheduled = isSongScheduled(song);
@@ -604,14 +555,12 @@ export default function Home() {
                   {/* Top Rated */}
                   {topRated.length > 0 && (
                     <Reveal as="section" className="mb-8">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Melhor Avaliadas</h2>
-                          <p className="text-sm text-[#9a9aa6]">As favoritas da comunidade</p>
-                        </div>
-                        <Star className="w-5 h-5 text-[#d8d8e2]" />
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
+                      <SectionHeader
+                          title="Melhor Avaliadas"
+                          subtitle="As favoritas da comunidade"
+                          icon={Star}
+                        />
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                         {topRated.map((song, i) => {
                           const scheduled = isSongScheduled(song);
                           return (
@@ -666,12 +615,12 @@ export default function Home() {
               {/* SONGS view: full song grid */}
               {activePill === 'songs' && (
                 <Reveal as="section" className="mb-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Todas as Músicas</h2>
-                      <p className="text-sm text-[#9a9aa6]">{musicSongs.length} músicas</p>
-                    </div>
-                  </div>
+                  <SectionHeader
+                    title="Todas as músicas"
+                    subtitle="O catálogo completo do selo"
+                    icon={Music2}
+                    count={musicSongs.length}
+                  />
                   {musicSongs.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                       {musicSongs.map((song, i) => {
@@ -731,7 +680,11 @@ export default function Home() {
                       )})}
                     </div>
                   ) : (
-                    <p className="text-[#9a9aa6] text-center py-10">Nenhuma música encontrada</p>
+                    <EmptyState
+                      icon={Music2}
+                      title="Nenhuma música por aqui ainda"
+                      description="Assim que o primeiro lançamento for publicado, ele aparece nesta lista."
+                    />
                   )}
                 </Reveal>
               )}
@@ -739,7 +692,12 @@ export default function Home() {
               {/* ALBUMS view: show album/EP releases */}
               {activePill === 'albums' && (
                 <Reveal as="section" className="mb-8">
-                  <h2 className="text-xl lg:text-2xl font-bold mb-4 v-chrome-text">Álbuns e EPs</h2>
+                  <SectionHeader
+                    title="Álbuns e EPs"
+                    subtitle="Lançamentos completos do selo"
+                    icon={Calendar}
+                    count={recentAlbums.length}
+                  />
                   {recentAlbums.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                       {recentAlbums.map((album, i) => (
@@ -770,7 +728,11 @@ export default function Home() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[#9a9aa6] text-center py-10">Nenhum álbum encontrado</p>
+                    <EmptyState
+                      icon={Calendar}
+                      title="Nenhum álbum ou EP publicado"
+                      description="Álbuns e EPs criados no painel do artista aparecem aqui."
+                    />
                   )}
                 </Reveal>
               )}
@@ -778,13 +740,11 @@ export default function Home() {
               {/* PODCASTS view: podcast shows */}
               {activePill === 'podcasts' && (
                 <Reveal as="section" className="mb-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Podcasts</h2>
-                      <p className="text-sm text-[#9a9aa6]">Conversas e histórias em áudio</p>
-                    </div>
-                    <Mic className="w-5 h-5 text-[#d8d8e2]" />
-                  </div>
+                  <SectionHeader
+                          title="Podcasts"
+                          subtitle="Conversas e histórias em áudio"
+                          icon={Mic}
+                        />
                   {podcastShows.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                       {podcastShows.map((show, i) => {
@@ -824,17 +784,16 @@ export default function Home() {
                       })}
                     </div>
                   ) : (
-                    <p className="text-[#9a9aa6] text-center py-10">Nenhum podcast publicado ainda</p>
+                    <EmptyState icon={Music2} title="Nenhum podcast publicado ainda" compact />
                   )}
 
                   {podcastEpisodes.length > 0 && (
                     <Reveal as="section" className="mt-10">
-                      <div className="flex items-end justify-between gap-4 mb-4">
-                        <div>
-                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Ouça por categoria</h2>
-                          <p className="text-sm text-[#9a9aa6]">Encontre episódios pelo assunto que mais te interessa</p>
-                        </div>
-                      </div>
+                      <SectionHeader
+                        title="Ouça por categoria"
+                        subtitle="Encontre episódios pelo assunto que mais te interessa"
+                        icon={Mic}
+                      />
 
                       {podcastCategories.length > 0 && (
                         <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-none">
@@ -897,7 +856,13 @@ export default function Home() {
               {/* ARTISTS view: show artist list */}
               {activePill === 'artists' && (
                 <Reveal as="section" className="mb-8">
-                  <h2 className="text-xl lg:text-2xl font-bold mb-4 v-chrome-text">Artistas</h2>
+                  <SectionHeader
+                    title="Artistas"
+                    subtitle="Quem faz o som da Velvet"
+                    icon={User}
+                    count={songArtists.length}
+                    action={{ to: createPageUrl('Artists'), label: 'Ver todos' }}
+                  />
                   {songArtists.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                       {songArtists.map((artist, i) => (
@@ -933,7 +898,7 @@ export default function Home() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[#9a9aa6] text-center py-10">Nenhum artista encontrado</p>
+                    <EmptyState icon={Music2} title="Nenhum artista encontrado" compact />
                   )}
                 </Reveal>
               )}

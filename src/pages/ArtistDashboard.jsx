@@ -6,6 +6,8 @@ import { Music, Heart, Eye, Calendar, Edit2, Trash2, Play, Users, Plus, Clock, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import StatTile from '@/components/ui/StatTile';
+import EmptyState from '@/components/ui/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import ReleaseCreatorPanel from '@/components/releases/ReleaseCreatorPanel';
 import { TikTokIcon, SpotifyIcon } from '@/components/social/SocialBrandIcons';
@@ -120,18 +122,25 @@ export default function ArtistDashboard() {
   }
 
   const stats = [
-    { icon: Music, value: mySongs.length, label: 'Músicas', color: 'from-velvet-silver to-velvet-ash', bg: 'bg-velvet-silver/10', text: 'text-velvet-silver' },
-    { icon: Eye, value: totalPlays, label: 'Reproduções', color: 'from-velvet-steel to-velvet-ash', bg: 'bg-velvet-steel/10', text: 'text-velvet-silver' },
-    { icon: Heart, value: totalLikes, label: 'Curtidas', color: 'from-slate-300 to-slate-500', bg: 'bg-slate-400/10', text: 'text-slate-300' },
-    { icon: Disc, value: myReleases.length, label: 'Lançamentos', color: 'from-velvet-text to-velvet-steel', bg: 'bg-velvet-silver/10', text: 'text-velvet-text' },
-    { icon: Users, value: myFollowers.length, label: 'Seguidores', color: 'from-velvet-silver to-velvet-ash', bg: 'bg-velvet-silver/10', text: 'text-velvet-text' },
+    { icon: Music, value: mySongs.length, label: 'Músicas' },
+    { icon: Eye, value: totalPlays, label: 'Reproduções' },
+    { icon: Heart, value: totalLikes, label: 'Curtidas' },
+    { icon: Disc, value: myReleases.length, label: 'Lançamentos' },
+    { icon: Users, value: myFollowers.length, label: 'Seguidores' },
   ];
 
   return (
     <div className="min-h-screen pb-32">
       {/* Hero Header */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#d8d8e2]/20 via-[#0a0a0c] to-[#f4f4f7]/10" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(900px 420px at 12% -10%, rgba(216,216,226,0.16), transparent 65%),' +
+              'linear-gradient(160deg, #14141a 0%, #0a0a0c 55%, #050506 100%)',
+          }}
+        />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
         <div className="relative px-6 lg:px-8 pt-8 pb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -195,14 +204,14 @@ export default function ArtistDashboard() {
               <Button
                 variant="outline"
                 onClick={() => setShowSocialLinks(true)}
-                className="rounded-full px-5 py-6 h-auto text-base font-bold border-white/15 bg-white/5 hover:bg-white/10 text-white"
+                className="btn-ghost-metal px-5 py-6 h-auto text-base font-semibold"
               >
                 <Share2 className="w-5 h-5 mr-2" />
                 Redes Sociais
               </Button>
               <Button
                 onClick={() => setShowReleaseCreator(true)}
-                className="btn-metal rounded-full px-6 py-6 h-auto text-base font-bold shadow-lg shadow-[#d8d8e2]/30"
+                className="btn-green px-7 py-6 h-auto text-base font-bold shadow-halo"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Novo Lançamento
@@ -218,28 +227,13 @@ export default function ArtistDashboard() {
             className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-8"
           >
             {stats.map((stat, i) => (
-              <motion.div
+              <StatTile
                 key={stat.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 + i * 0.05 }}
-                className={`${stat.bg} rounded-xl border border-white/5 p-4 flex items-center gap-3 hover:border-white/10 transition-colors`}
-              >
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center flex-shrink-0`}>
-                  <stat.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="min-w-0">
-                  <motion.p
-                    key={stat.value}
-                    initial={{ scale: 1.1 }}
-                    animate={{ scale: 1 }}
-                    className="text-xl font-bold text-white"
-                  >
-                    {stat.value.toLocaleString()}
-                  </motion.p>
-                  <p className={`text-xs ${stat.text}`}>{stat.label}</p>
-                </div>
-              </motion.div>
+                icon={stat.icon}
+                value={stat.value}
+                label={stat.label}
+                delay={0.35 + i * 0.05}
+              />
             ))}
           </motion.div>
         </div>
@@ -248,12 +242,18 @@ export default function ArtistDashboard() {
       {/* Content Tabs */}
       <div className="px-6 lg:px-8 pt-6">
         <Tabs defaultValue="releases" className="w-full">
-          <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
-            <TabsTrigger value="releases" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
+          <TabsList
+            className="p-1 rounded-2xl h-auto gap-1"
+            style={{
+              background: 'rgba(255,255,255,0.045)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
+            <TabsTrigger value="releases" className="rounded-xl px-5 py-2.5 text-sm font-semibold text-velvet-dim transition-all hover:text-velvet-text data-[state=active]:text-velvet-void data-[state=active]:bg-chrome-sweep data-[state=active]:shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_10px_rgba(0,0,0,0.45)]" >
               <Disc className="w-4 h-4 mr-2" />
               Lançamentos
             </TabsTrigger>
-            <TabsTrigger value="songs" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
+            <TabsTrigger value="songs" className="rounded-xl px-5 py-2.5 text-sm font-semibold text-velvet-dim transition-all hover:text-velvet-text data-[state=active]:text-velvet-void data-[state=active]:bg-chrome-sweep data-[state=active]:shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_10px_rgba(0,0,0,0.45)]" >
               <Music className="w-4 h-4 mr-2" />
               Músicas
             </TabsTrigger>
@@ -350,21 +350,13 @@ export default function ArtistDashboard() {
                   ))}
                 </motion.div>
               ) : (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-20 bg-[#101014] rounded-2xl border border-white/5"
-                >
-                  <div className="w-20 h-20 rounded-full bg-[#d8d8e2]/10 flex items-center justify-center mx-auto mb-4">
-                    <Disc className="w-10 h-10 text-[#d8d8e2]" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Nenhum lançamento ainda</h3>
-                  <p className="text-velvet-dim mb-6 max-w-md mx-auto">Comece a construir seu catálogo musical criando seu primeiro single, EP ou álbum.</p>
-                  <Button onClick={() => setShowReleaseCreator(true)} className="btn-metal rounded-full">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Criar Primeiro Lançamento
-                  </Button>
+                <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <EmptyState
+                    icon={Disc}
+                    title="Nenhum lançamento ainda"
+                    description="Comece a construir seu catálogo criando seu primeiro single, EP ou álbum."
+                    action={{ label: 'Criar primeiro lançamento', onClick: () => setShowReleaseCreator(true) }}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -422,17 +414,13 @@ export default function ArtistDashboard() {
                   ))}
                 </motion.div>
               ) : (
-                <motion.div
-                  key="empty-songs"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-20 bg-[#101014] rounded-2xl border border-white/5"
-                >
-                  <div className="w-20 h-20 rounded-full bg-[#d8d8e2]/10 flex items-center justify-center mx-auto mb-4">
-                    <Music className="w-10 h-10 text-[#d8d8e2]" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Nenhuma música ainda</h3>
-                  <p className="text-velvet-dim">Suas músicas aparecerão aqui após criar lançamentos.</p>
+                <motion.div key="empty-songs" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <EmptyState
+                    icon={Music}
+                    title="Nenhuma música ainda"
+                    description="As faixas aparecem aqui assim que você publicar um lançamento."
+                    action={{ label: 'Criar lançamento', onClick: () => setShowReleaseCreator(true) }}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

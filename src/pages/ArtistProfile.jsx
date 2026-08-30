@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import StatTile from '@/components/ui/StatTile';
+import SectionHeader from '@/components/home/SectionHeader';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Music2, Heart, Play, Loader2, Users, UserPlus, UserCheck, Share2, Check, Instagram, Youtube } from 'lucide-react';
+import { User, Music2, Heart, Play, Loader2, Users, UserPlus, UserCheck, Share2, Check, Instagram, Youtube, Disc3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
@@ -270,40 +272,20 @@ export default function ArtistProfile() {
 
       {/* Stats */}
       <div className="px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/10 text-center">
-            <Users className="w-7 h-7 text-velvet-silver mb-2 mx-auto" />
-            <motion.div
-              key={artistFollows.length}
-              initial={{ scale: 1.2 }}
-              animate={{ scale: 1 }}
-              className="text-2xl font-bold text-white"
-            >
-              {artistFollows.length}
-            </motion.div>
-            <div className="text-xs text-velvet-faint mt-0.5">Seguidores</div>
-          </div>
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/10 text-center">
-            <Play className="w-7 h-7 text-velvet-silver mb-2 mx-auto" />
-            <div className="text-2xl font-bold text-white">{totalPlays.toLocaleString()}</div>
-            <div className="text-xs text-velvet-faint mt-0.5">Plays</div>
-          </div>
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/10 text-center">
-            <Heart className="w-7 h-7 text-pink-400 mb-2 mx-auto" />
-            <div className="text-2xl font-bold text-white">{totalLikes}</div>
-            <div className="text-xs text-velvet-faint mt-0.5">Curtidas</div>
-          </div>
-          <div className="bg-white/5 rounded-2xl p-5 border border-white/10 text-center">
-            <Music2 className="w-7 h-7 text-cyan-400 mb-2 mx-auto" />
-            <div className="text-2xl font-bold text-white">{songs.length}</div>
-            <div className="text-xs text-velvet-faint mt-0.5">Músicas</div>
-          </div>
+        {/* As quatro métricas do perfil, no mesmo bloco usado nos painéis —
+            antes o coração era rosa e a nota musical ciano, os dois únicos
+            respingos de cor saturada no site inteiro. */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+          <StatTile icon={Users} value={artistFollows.length} label="Seguidores" delay={0} />
+          <StatTile icon={Play} value={totalPlays} label="Reproduções" delay={0.05} />
+          <StatTile icon={Heart} value={totalLikes} label="Curtidas" delay={0.1} />
+          <StatTile icon={Music2} value={songs.length} label="Músicas" delay={0.15} />
         </div>
 
         {/* Popular Songs */}
         {songs.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Músicas Populares</h2>
+            <SectionHeader title="Músicas populares" subtitle="As mais tocadas deste artista" icon={Play} count={songs.length} />
             <div className="space-y-2">
               {songs.slice(0, 5).map((song, index) => (
                 <motion.div
@@ -351,7 +333,7 @@ export default function ArtistProfile() {
         {/* Releases */}
         {availablePosts.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-4">Lançamentos</h2>
+            <SectionHeader title="Lançamentos" subtitle="Singles, EPs e álbuns" icon={Disc3} count={availablePosts.length} />
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {availablePosts.map((post, i) => (
                 <Link key={post.id} to={createPageUrl('Release') + '?id=' + post.id}>

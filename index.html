@@ -1,5 +1,12 @@
 <!doctype html>
-<html lang="pt-BR">
+<!--
+      A classe "dark" nunca era aplicada em lugar nenhum do projeto. Como o
+      tailwind está em darkMode: ["class"], TODO componente shadcn (diálogos,
+      selects, popovers, abas, menus) resolvia bg-muted / bg-popover /
+      bg-background pela paleta CLARA do :root — daí os blocos cinza-claros
+      que apareciam soltos no meio de uma interface preta.
+    -->
+<html lang="pt-BR" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

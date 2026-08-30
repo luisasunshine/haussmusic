@@ -708,7 +708,7 @@ function PostCard({ post, index, onLike, isLiked }) {
               e.preventDefault();
               onLike();
             }}
-            className={`flex items-center gap-1 transition-colors ${isLiked ? 'text-pink-500' : 'text-velvet-faint hover:text-pink-500'}`}
+            className={`flex items-center gap-1 transition-colors ${isLiked ? 'text-velvet-silver' : 'text-velvet-faint hover:text-velvet-silver'}`}
           >
             <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
             <span className="text-sm font-semibold">{post.likes || 0}</span>

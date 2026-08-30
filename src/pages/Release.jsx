@@ -247,7 +247,7 @@ export default function Release() {
                 transition={{ delay: 0.1 }}
               >
                 <div className="flex items-center gap-2 mb-1 lg:mb-2">
-                  <span className="text-xs lg:text-sm text-cyan-400 uppercase">{release.type}</span>
+                  <span className="text-xs lg:text-sm text-velvet-silver uppercase">{release.type}</span>
                   {isScheduled && (
                     <span className="text-[10px] lg:text-xs font-bold uppercase bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Em Breve</span>
                   )}
@@ -317,7 +317,7 @@ export default function Release() {
           whileTap={{ scale: 0.95 }}
           onClick={() => likeMutation.mutate()}
           className={`p-2.5 lg:p-3 rounded-full ${
-            isFavorite ? 'bg-pink-500/20 text-pink-500' : 'bg-white/10 text-white hover:bg-white/20'
+            isFavorite ? 'bg-pink-500/20 text-velvet-silver' : 'bg-white/10 text-white hover:bg-white/20'
           } transition-colors`}
         >
           <Heart className={`w-5 lg:w-6 h-5 lg:h-6 ${isFavorite ? 'fill-current' : ''}`} />
@@ -356,9 +356,9 @@ export default function Release() {
                   {index + 1}
                 </span>
                 {playingTrackIndex === index ? (
-                  <Pause className="w-3.5 lg:w-4 h-3.5 lg:h-4 text-cyan-400 mx-auto" />
+                  <Pause className="w-3.5 lg:w-4 h-3.5 lg:h-4 text-velvet-silver mx-auto" />
                 ) : (
-                  <Play className={`w-3.5 lg:w-4 h-3.5 lg:h-4 text-cyan-400 mx-auto hidden group-hover:block`} />
+                  <Play className={`w-3.5 lg:w-4 h-3.5 lg:h-4 text-velvet-silver mx-auto hidden group-hover:block`} />
                 )}
               </div>
 

@@ -18,8 +18,8 @@ import { hasUserType } from '@/lib/utils';
  * contínuo em vez de um pisca-pisca.
  */
 
-const RAIL = 76;
-const OPEN = 232;
+const RAIL = 88;
+const OPEN = 244;
 
 function NavItem({ item, active, expanded }) {
   return (
@@ -32,9 +32,11 @@ function NavItem({ item, active, expanded }) {
       <motion.div
         whileHover={{ x: expanded ? 3 : 0, scale: expanded ? 1 : 1.06 }}
         whileTap={{ scale: 0.96 }}
-        className={`group/nav relative flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200 ${
-          active ? 'text-velvet-text' : 'text-velvet-dim hover:text-velvet-text'
-        }`}
+        className={`group/nav relative rounded-2xl transition-colors duration-200 ${
+          expanded
+            ? 'flex items-center gap-3 px-4 py-3'
+            : 'flex flex-col items-center justify-center gap-1.5 px-0.5 py-2.5'
+        } ${active ? 'text-velvet-text' : 'text-velvet-dim hover:text-velvet-text'}`}
       >
         {/* Barra ativa: uma só no documento inteiro, deslizando. */}
         {active && (
@@ -65,19 +67,23 @@ function NavItem({ item, active, expanded }) {
           style={active ? { filter: 'drop-shadow(0 0 8px rgba(216,216,226,0.75))' } : undefined}
         />
 
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.span
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -6 }}
-              transition={{ duration: 0.16 }}
-              className="relative z-10 text-sm font-medium whitespace-nowrap"
-            >
-              {item.label}
-            </motion.span>
-          )}
-        </AnimatePresence>
+        <span
+          className="relative z-10 text-sm font-medium whitespace-nowrap transition-[opacity,transform] duration-200"
+          style={{
+            opacity: expanded ? 1 : 0,
+            transform: expanded ? 'none' : 'translateX(-6px)',
+            pointerEvents: expanded ? undefined : 'none',
+          }}
+        >
+          {item.label}
+        </span>
+
+        {/* Legenda do trilho fechado: curta o bastante para caber em 76px. */}
+        {!expanded && (
+          <span className="relative z-10 text-[9.5px] font-semibold leading-none tracking-tight text-center w-full px-0.5 truncate">
+            {item.short || item.label}
+          </span>
+        )}
       </motion.div>
     </Link>
   );
@@ -100,23 +106,23 @@ export default function Sidebar({ currentPage }) {
   const primary = [
     { icon: Home, label: 'Início', page: 'Home' },
     { icon: Search, label: 'Buscar', page: 'Search' },
-    { icon: Library, label: 'Biblioteca', page: 'Library' },
+    { icon: Library, label: 'Biblioteca', short: 'Acervo', page: 'Library' },
   ];
 
   const discover = [
-    { icon: Star, label: 'VELVET HITS', page: 'Rankings' },
+    { icon: Star, label: 'VELVET HITS', short: 'Hits', page: 'Rankings' },
     { icon: Music2, label: 'Artistas', page: 'Artists' },
   ];
 
   const studio = [
     ...(hasUserType(user, 'artista') || hasUserType(user, 'staff') || user?.role === 'admin'
-      ? [{ icon: Award, label: 'Artista', page: 'ArtistDashboard' }] : []),
+      ? [{ icon: Award, label: 'Painel do artista', short: 'Painel', page: 'ArtistDashboard' }] : []),
     ...(hasUserType(user, 'gravadora') || user?.role === 'admin'
-      ? [{ icon: Music2, label: 'Gravadora', page: 'LabelDashboard' }] : []),
+      ? [{ icon: Music2, label: 'Gravadora', short: 'Selo', page: 'LabelDashboard' }] : []),
     ...(hasUserType(user, 'podcast') || user?.role === 'admin'
       ? [{ icon: Mic, label: 'Podcast', page: 'PodcastDashboard' }] : []),
     ...(user?.role === 'admin'
-      ? [{ icon: Shield, label: 'Admin', page: 'AdminDashboard' }] : []),
+      ? [{ icon: Shield, label: 'Administração', short: 'Admin', page: 'AdminDashboard' }] : []),
   ];
 
   return (
@@ -146,7 +152,7 @@ export default function Sidebar({ currentPage }) {
       />
 
       {/* Logo */}
-      <div className="flex items-center h-[76px] px-4 shrink-0 border-b border-white/[0.06]">
+      <div className="flex items-center h-[76px] px-5 shrink-0 border-b border-white/[0.06]">
         <Link
           to={createPageUrl('Home')}
           className="flex items-center gap-3 min-w-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-velvet-silver/60"
@@ -177,7 +183,7 @@ export default function Sidebar({ currentPage }) {
         </Link>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1 px-3 pt-4 overflow-y-auto scrollbar-hide">
+      <nav className="flex-1 flex flex-col gap-1 px-2 pt-4 overflow-y-auto scrollbar-hide">
         {primary.map((item) => (
           <NavItem key={item.page} item={item} active={isActive(item.page)} expanded={expanded} />
         ))}

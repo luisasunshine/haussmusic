@@ -186,7 +186,7 @@ const data = await response.json();`,
           className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
         >
           <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-            <Database className="w-8 h-8 text-cyan-400 mb-3" />
+            <Database className="w-8 h-8 text-velvet-silver mb-3" />
             <h3 className="font-bold text-white mb-2">Acesso Público</h3>
             <p className="text-sm text-velvet-dim">Sem necessidade de autenticação ou API keys</p>
           </div>
@@ -196,7 +196,7 @@ const data = await response.json();`,
             <p className="text-sm text-velvet-dim">Pesquise por músicas e artistas facilmente</p>
           </div>
           <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-            <ExternalLink className="w-8 h-8 text-pink-400 mb-3" />
+            <ExternalLink className="w-8 h-8 text-velvet-silver mb-3" />
             <h3 className="font-bold text-white mb-2">CORS Habilitado</h3>
             <p className="text-sm text-velvet-dim">Use direto no frontend, de qualquer domínio</p>
           </div>
@@ -234,7 +234,7 @@ const data = await response.json();`,
                   </button>
                 </div>
                 <pre className="bg-velvet-abyss rounded-xl p-4 overflow-x-auto">
-                  <code className="text-sm text-cyan-300">{example.code}</code>
+                  <code className="text-sm text-velvet-silver">{example.code}</code>
                 </pre>
               </div>
 

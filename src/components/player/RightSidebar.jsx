@@ -75,7 +75,7 @@ export default function RightSidebar({ song, onClose, currentTime = 0, duration 
     >
       {/* Media + title hero — the video/cover fades to black at the bottom
           so the title/artist read clearly instead of fighting the footage */}
-      <div className="relative w-full aspect-[3/4] flex-shrink-0 overflow-hidden" style={{ background: 'var(--v-void)' }}>
+      <div className="relative w-full aspect-square flex-shrink-0 overflow-hidden" style={{ background: 'var(--v-void)' }}>
         {vinylMode ? (
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Fundo desfocado da própria capa: dá cor ao painel sem
@@ -179,25 +179,26 @@ export default function RightSidebar({ song, onClose, currentTime = 0, duration 
       {/* Data — plays, rating, duration, genre, credits. Bottom padding
           keeps the last item (credits) clear of the mini player bar, which
           is fixed over the bottom of the whole screen including this panel. */}
-      {/* Espectro ao vivo — a mesma leitura de áudio que move o vinil. */}
+      {/* Espectro ao vivo — a mesma leitura de áudio que move o vinil.
+          Some sozinho quando não há som tocando. */}
       <div className="px-5 pt-4 shrink-0">
-        <AudioVisualizer isPlaying={isPlaying} bars={44} height={48} />
+        <AudioVisualizer isPlaying={isPlaying} bars={44} height={44} />
       </div>
 
-      <div className="flex-1 p-6 pt-4 pb-28 overflow-y-auto min-h-0">
+      <div className="flex-1 px-5 pt-4 pb-40 overflow-y-auto min-h-0">
         <div className="space-y-5">
           <div className="grid grid-cols-3 gap-2">
-            <div className="text-center p-3 rounded-2xl v-specular" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-lg font-bold text-white">{(song.plays || 0).toLocaleString()}</p>
-              <p className="text-[10px] text-[#9a9aa6] uppercase tracking-wider">Plays</p>
+            <div className="text-center px-2 py-3 rounded-2xl v-specular overflow-hidden" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-lg font-bold text-velvet-text tabular-nums leading-tight">{(song.plays || 0).toLocaleString('pt-BR')}</p>
+              <p className="text-[9px] text-velvet-faint uppercase tracking-[0.12em] mt-0.5">Plays</p>
             </div>
-            <div className="text-center p-3 rounded-2xl v-specular" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-lg font-bold text-white">{song.rating > 0 ? song.rating.toFixed(1) : '—'}</p>
-              <p className="text-[10px] text-[#9a9aa6] uppercase tracking-wider">Rating</p>
+            <div className="text-center px-2 py-3 rounded-2xl v-specular overflow-hidden" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-lg font-bold text-velvet-text tabular-nums leading-tight">{song.rating > 0 ? song.rating.toFixed(1) : '—'}</p>
+              <p className="text-[9px] text-velvet-faint uppercase tracking-[0.12em] mt-0.5">Nota</p>
             </div>
-            <div className="text-center p-3 rounded-2xl v-specular" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-lg font-bold text-white">{song.duration ? `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}` : '—'}</p>
-              <p className="text-[10px] text-[#9a9aa6] uppercase tracking-wider">Duração</p>
+            <div className="text-center px-2 py-3 rounded-2xl v-specular overflow-hidden" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-lg font-bold text-velvet-text tabular-nums leading-tight">{song.duration ? `${Math.floor(song.duration / 60)}:${String(Math.floor(song.duration % 60)).padStart(2, '0')}` : '—'}</p>
+              <p className="text-[9px] text-velvet-faint uppercase tracking-[0.12em] mt-0.5">Duração</p>
             </div>
           </div>
 

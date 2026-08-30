@@ -117,7 +117,7 @@ export default function MiniPlayer({
   const cover = currentSong.cover_url;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 lg:px-3 lg:pb-3 lg:pl-[88px] pointer-events-none">
+    <div className="fixed bottom-0 left-0 right-0 z-50 lg:px-3 lg:pb-3 lg:pl-[100px] pointer-events-none">
       <motion.div
         initial={{ y: 32, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

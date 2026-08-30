@@ -316,6 +316,16 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
     setSaving(false);
   };
 
+  // O que ainda impede a publicação. Vira a lista de etiquetas do rodapé,
+  // então a pessoa lê o motivo em vez de encarar um botão apagado.
+  const faltando = [];
+  if (!formData.title?.trim()) faltando.push('título');
+  if (!formData.artist?.trim()) faltando.push('artista');
+  if (!formData.cover_url) faltando.push('capa');
+  if (!formData.tracks.length) faltando.push(podcastMode ? 'ao menos um episódio' : 'ao menos uma faixa');
+  else if (formData.tracks.some((t) => !t.audio_url)) faltando.push('áudio em todas as faixas');
+  else if (formData.tracks.some((t) => !t.title?.trim())) faltando.push('título em todas as faixas');
+
   const totalDuration = () => {
     const t = formData.tracks.reduce((a,b) => a + (b.duration||0), 0);
     return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
@@ -350,7 +360,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
             exit={{ opacity: 0, y: 30, scale: 0.97 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
-            className="relative w-full max-w-3xl my-8 bg-[#0e0e12] rounded-3xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            className="relative w-full max-w-3xl my-8 rounded-3xl v-glass-strong v-chrome-edge overflow-hidden flex flex-col max-h-[90vh]"
           >
             {/* Upload overlay */}
             <AnimatePresence>
@@ -378,7 +388,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
             </button>
 
             {/* Content */}
-            <div className="p-6 md:p-8 space-y-8 max-h-[80vh] overflow-y-auto">
+            <div className="flex-1 min-h-0 p-6 md:p-8 space-y-8 overflow-y-auto">
               {/* ===== HEADER ===== */}
               <div className="text-center pt-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#d8d8e2]/10 text-[#f4f4f7] text-xs font-semibold mb-3">
@@ -818,13 +828,32 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                 )}
               </section>
 
-              {/* ===== ACTIONS ===== */}
-              <div className="flex items-center gap-3 pt-2 border-t border-white/[0.06]">
+            </div>
+
+            {/* ===== RODAPÉ FIXO =====
+                Antes os botões ficavam no fim de um formulário que rola por
+                80% da tela: para publicar era preciso rolar tudo de novo, e
+                quando o botão estava desativado nada dizia por quê. Agora a
+                barra é fixa e mostra o que ainda falta. */}
+            <div
+              className="shrink-0 px-6 md:px-8 py-4 border-t border-white/[0.08]"
+              style={{ background: 'linear-gradient(180deg, rgba(14,14,18,0.85), rgba(14,14,18,1))' }}
+            >
+              {faltando.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  <span className="text-[11px] text-velvet-faint">Para publicar, falta:</span>
+                  {faltando.map((item) => (
+                    <span key={item} className="v-badge-dim">{item}</span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSave('draft')}
                   disabled={saving || !formData.title || !formData.artist}
-                  className="flex-1 py-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white text-sm font-medium hover:bg-white/[0.08] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="btn-ghost-metal flex-1 py-3 !rounded-2xl text-sm disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Salvar rascunho
@@ -833,8 +862,9 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSave('published')}
-                  disabled={saving || !formData.title || !formData.artist || formData.tracks.length === 0}
-                  className="flex-[2] py-3 rounded-2xl bg-[#d8d8e2] hover:bg-[#9B6CF7] text-white text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#d8d8e2]/25"
+                  disabled={saving || faltando.length > 0}
+                  title={faltando.length > 0 ? `Falta: ${faltando.join(', ')}` : undefined}
+                  className="btn-green flex-[2] py-3 !rounded-2xl text-sm disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   {podcastMode ? (releaseToEdit ? 'Atualizar podcast' : 'Publicar podcast') : (releaseToEdit ? 'Atualizar lançamento' : 'Publicar lançamento')}

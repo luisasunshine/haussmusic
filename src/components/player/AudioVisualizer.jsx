@@ -57,9 +57,21 @@ export default function AudioVisualizer({
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.02 });
     io.observe(wrap);
 
+    // Quanto do desenho está "aceso". Em silêncio ele cai para 0 e o
+    // visualizador desaparece: sem isso, as barras no mínimo (2px cada)
+    // formavam uma fileira de tracinhos parada na tela, que lia como uma
+    // linha tracejada quebrada em vez de um espectro em repouso.
+    let presence = 0;
+
     const draw = (state) => {
       if (!visible || w === 0) return;
+
+      const target = state.playing === false && state.level < 0.004 ? 0 : 1;
+      presence += (target - presence) * (target > presence ? 0.12 : 0.05);
+
       ctx.clearRect(0, 0, w, h);
+      if (presence < 0.01) return;
+      ctx.globalAlpha = presence;
 
       const gap = Math.max(1.5, w / bars * 0.28);
       const barW = Math.max(1.5, (w - gap * (bars - 1)) / bars);
@@ -93,7 +105,7 @@ export default function AudioVisualizer({
         const prev = smoothed.current[i] || 0;
         smoothed.current[i] = v > prev ? prev + (v - prev) * 0.55 : prev + (v - prev) * 0.14;
 
-        const bh = Math.max(2, smoothed.current[i] * maxH);
+        const bh = Math.max(1.5, smoothed.current[i] * maxH) * presence;
         const x = i * (barW + gap);
 
         const grad = ctx.createLinearGradient(0, baseline - bh, 0, baseline);
@@ -119,6 +131,7 @@ export default function AudioVisualizer({
       ctx.fillStyle = `rgba(216,216,226,${state.level * 0.06})`;
       ctx.fillRect(0, 0, w, h);
       ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
     };
 
     const unsub = subscribeLevels(draw);
