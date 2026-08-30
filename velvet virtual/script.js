@@ -760,6 +760,35 @@ async function loadMagazine() {
 }
 loadMagazine();
 
+// Coloca a mídia do banner numa camada própria atrás do texto do hero.
+// Reaproveita o mesmo <img>/<video> entre trocas de slide quando o tipo não
+// muda, para o navegador não recriar o elemento a cada 6 segundos.
+function pintarMidia(hero, url) {
+  let camada = hero.querySelector('.vv-hero-media');
+  if (!camada) {
+    camada = document.createElement('div');
+    camada.className = 'vv-hero-media';
+    camada.setAttribute('aria-hidden', 'true');
+    hero.prepend(camada);
+  }
+  if (!url) { camada.replaceChildren(); return; }
+
+  const querVideo = isVideoUrl(url);
+  const atual = camada.firstElementChild;
+  const tipoCerto = atual && (querVideo ? atual.tagName === 'VIDEO' : atual.tagName === 'IMG');
+
+  if (tipoCerto) {
+    if (atual.getAttribute('src') !== url) atual.setAttribute('src', url);
+    return;
+  }
+
+  const el = document.createElement(querVideo ? 'video' : 'img');
+  el.src = url;
+  if (querVideo) { el.loop = true; el.muted = true; el.autoplay = true; el.playsInline = true; }
+  else { el.alt = ''; }
+  camada.replaceChildren(el);
+}
+
 async function loadHeroCarousel() {
   const hero = document.querySelector('.vv-hero');
   try {
@@ -783,7 +812,11 @@ async function loadHeroCarousel() {
       const banner = banners[active];
       hero.classList.add('is-changing');
       window.setTimeout(() => {
-        if (banner.imageUrl) hero.style.backgroundImage = `linear-gradient(90deg,rgba(1,1,3,.97) 0%,rgba(1,1,4,.88) 35%,rgba(1,1,4,.18) 70%,rgba(1,1,4,.25)),linear-gradient(0deg,rgba(1,1,4,.7),transparent 47%),url("${banner.imageUrl}")`;
+        // Vídeo não existe em background-image, e um GIF ali fica preso ao
+        // repaint do CSS. Por isso a mídia do banner é um elemento de
+        // verdade — <video> para mp4/webm, <img> para imagem e GIF —, do
+        // mesmo jeito que o Velvet Music faz.
+        pintarMidia(hero, banner.imageUrl);
         title.textContent = banner.title || 'Velvet';
         deck.textContent = banner.subtitle || '';
         cta.firstChild.textContent = `${banner.ctaLabel || 'LER MATÉRIA'} `;
@@ -952,32 +985,93 @@ const DROPZONE_ASPECT_OPTIONS = [
   { label: 'PAISAGEM', value: 16 / 9 },
   { label: 'RETRATO', value: 4 / 5 },
 ];
-function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, aspectOptions: DROPZONE_ASPECT_OPTIONS }) {
+// Reconhece o que NÃO pode passar pelo recorte: um GIF vira JPEG estático
+// se for cortado (perde a animação) e vídeo não passa por canvas nenhum.
+function isMidiaAnimada(fileObj) {
+  return fileObj.type === 'image/gif' || fileObj.type.startsWith('video/');
+}
+function isVideoUrl(url) {
+  if (!url) return false;
+  if (url.startsWith('data:video/')) return true;
+  return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+}
+
+function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, aspectOptions: DROPZONE_ASPECT_OPTIONS }, opcoes = {}) {
+  const aceitaMidia = !!opcoes.aceitaMidia;
+  const palavra = aceitaMidia ? 'MÍDIA' : 'IMAGEM';
+
   const dropzone = document.createElement('div');
   dropzone.className = `vv-dropzone${initialValue ? ' has-image' : ''}`;
-  if (initialValue) dropzone.style.backgroundImage = `url("${initialValue}")`;
-  const label = document.createElement('span'); label.textContent = initialValue ? 'TROCAR IMAGEM' : 'CLIQUE OU ARRASTE UMA IMAGEM';
-  const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'vv-dropzone-remove'; remove.hidden = !initialValue; remove.setAttribute('aria-label', 'Remover imagem'); remove.textContent = '✕';
-  const file = document.createElement('input'); file.type = 'file'; file.accept = 'image/*'; file.hidden = true;
+  const label = document.createElement('span');
+  label.textContent = initialValue
+    ? `TROCAR ${palavra}`
+    : `CLIQUE OU ARRASTE ${aceitaMidia ? 'IMAGEM, GIF OU VÍDEO' : 'UMA IMAGEM'}`;
+  const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'vv-dropzone-remove'; remove.hidden = !initialValue; remove.setAttribute('aria-label', `Remover ${palavra.toLowerCase()}`); remove.textContent = '✕';
+  const file = document.createElement('input'); file.type = 'file';
+  file.accept = aceitaMidia ? 'image/*,video/mp4,video/webm,video/quicktime' : 'image/*';
+  file.hidden = true;
+
+  // Vídeo não aparece em background-image; precisa de um <video> de verdade
+  // na prévia. A camada só é criada quando há vídeo para mostrar.
+  let previewVideo = null;
+  function mostrarPrevia(url) {
+    if (previewVideo) { previewVideo.remove(); previewVideo = null; }
+    if (isVideoUrl(url)) {
+      dropzone.style.backgroundImage = '';
+      previewVideo = document.createElement('video');
+      previewVideo.className = 'vv-dropzone-video';
+      previewVideo.src = url; previewVideo.loop = true; previewVideo.muted = true;
+      previewVideo.autoplay = true; previewVideo.playsInline = true;
+      dropzone.prepend(previewVideo);
+    } else {
+      dropzone.style.backgroundImage = url ? `url("${url}")` : '';
+    }
+  }
+
   dropzone.append(label, remove, file);
+  if (initialValue) mostrarPrevia(initialValue);
   let currentValue = initialValue || '';
 
   async function handleFile(fileObj) {
-    if (!fileObj.type.startsWith('image/')) { notify('Envie um arquivo de imagem.', 'error'); return; }
-    if (fileObj.size > 12 * 1024 * 1024) { notify('Imagem muito grande (máximo 12MB).', 'error'); return; }
-    const blob = await requestCrop(fileObj, cropOptions);
-    if (!blob) return;
-    const croppedFile = new File([blob], 'imagem.jpg', { type: 'image/jpeg' });
-    const localUrl = URL.createObjectURL(croppedFile);
-    dropzone.style.backgroundImage = `url("${localUrl}")`; dropzone.classList.add('has-image'); remove.hidden = false;
+    const ehVideo = fileObj.type.startsWith('video/');
+    if (aceitaMidia) {
+      if (!/^(image|video)\//.test(fileObj.type)) { notify('Envie uma imagem, GIF ou vídeo.', 'error'); return; }
+    } else if (!fileObj.type.startsWith('image/')) {
+      notify('Envie um arquivo de imagem.', 'error'); return;
+    }
+
+    const limite = ehVideo ? 40 : 12;
+    if (fileObj.size > limite * 1024 * 1024) {
+      notify(`Arquivo muito grande (máximo ${limite}MB).`, 'error'); return;
+    }
+    if (ehVideo && await getVideoDuration(fileObj) > 30.05) {
+      notify('O vídeo deve ter no máximo 30 segundos.', 'error'); return;
+    }
+
+    // GIF e vídeo pulam o recorte: passar um GIF pelo canvas o devolve como
+    // JPEG estático, e vídeo não passa por canvas nenhum.
+    let arquivoFinal = fileObj;
+    if (!isMidiaAnimada(fileObj)) {
+      const blob = await requestCrop(fileObj, cropOptions);
+      if (!blob) return;
+      arquivoFinal = new File([blob], 'imagem.jpg', { type: 'image/jpeg' });
+    }
+
+    const localUrl = URL.createObjectURL(arquivoFinal);
+    mostrarPrevia(ehVideo ? localUrl : localUrl);
+    dropzone.classList.add('has-image'); remove.hidden = false;
     try {
-      const url = await uploadFile(croppedFile, (pct) => { label.textContent = `ENVIANDO ${pct}%`; });
+      const url = await uploadFile(arquivoFinal, (pct) => { label.textContent = `ENVIANDO ${pct}%`; });
       currentValue = url; onChange(url);
-      dropzone.style.backgroundImage = `url("${url}")`; label.textContent = 'TROCAR IMAGEM';
+      mostrarPrevia(url); label.textContent = `TROCAR ${palavra}`;
     } catch (error) {
-      notify(error.message || 'Erro ao enviar imagem.', 'error');
-      if (currentValue) { dropzone.style.backgroundImage = `url("${currentValue}")`; label.textContent = 'TROCAR IMAGEM'; }
-      else { dropzone.classList.remove('has-image'); dropzone.style.backgroundImage = ''; label.textContent = 'CLIQUE OU ARRASTE UMA IMAGEM'; remove.hidden = true; }
+      notify(error.message || 'Erro ao enviar arquivo.', 'error');
+      if (currentValue) { mostrarPrevia(currentValue); label.textContent = `TROCAR ${palavra}`; }
+      else {
+        dropzone.classList.remove('has-image'); mostrarPrevia('');
+        label.textContent = `CLIQUE OU ARRASTE ${aceitaMidia ? 'IMAGEM, GIF OU VÍDEO' : 'UMA IMAGEM'}`;
+        remove.hidden = true;
+      }
     } finally { URL.revokeObjectURL(localUrl); }
   }
 
@@ -991,14 +1085,16 @@ function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, 
   });
   remove.addEventListener('click', (event) => {
     event.stopPropagation(); currentValue = ''; onChange('');
-    dropzone.classList.remove('has-image'); dropzone.style.backgroundImage = ''; label.textContent = 'CLIQUE OU ARRASTE UMA IMAGEM'; remove.hidden = true;
+    dropzone.classList.remove('has-image'); mostrarPrevia('');
+    label.textContent = `CLIQUE OU ARRASTE ${aceitaMidia ? 'IMAGEM, GIF OU VÍDEO' : 'UMA IMAGEM'}`;
+    remove.hidden = true;
   });
   return dropzone;
 }
 
 function openEditor(resource, item = null) {
   const schemas = {
-    banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
+    banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem, GIF ou vídeo do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
     'magazine-pages': [['title', 'Título da página', 'text'], ['image_url', 'Arte da página', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Página publicada', 'checkbox']],
     'vimos-voce': [['title', 'Título', 'text'], ['description', 'Descrição', 'textarea'], ['image_url', 'Foto', 'url'], ['instagram_url', 'Link do Instagram', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Publicação ativa', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
@@ -1040,7 +1136,8 @@ function openEditor(resource, item = null) {
     if (isMedia) {
       wrap.classList.add('vv-editor-media');
       const cropOptions = resource === 'magazine-pages' ? { aspect: 3 / 4, aspectOptions: [{ label: 'PÁGINA 3:4', value: 3 / 4 }, { label: 'PÁGINA A4', value: 1 / Math.SQRT2 }] } : undefined;
-      wrap.append(createDropzone(value, (url) => { input.value = url; }, cropOptions));
+      const aceitaMidia = resource === 'banners';
+      wrap.append(createDropzone(value, (url) => { input.value = url; }, cropOptions, { aceitaMidia }));
     }
     area.append(wrap);
   });
