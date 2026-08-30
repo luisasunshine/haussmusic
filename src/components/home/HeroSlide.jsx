@@ -6,18 +6,21 @@ import ArtistNameBanner from '@/components/home/ArtistNameBanner';
 /**
  * Destaque do topo da Home.
  *
- * A arte aparece inteira, ocupando o bloco, com um degradê só no pé para o
- * texto assentar sobre ela. É o mesmo layout para a faixa em destaque e
- * para os banners do admin.
+ * O bloco tem altura fixa e o texto assenta sobre a arte, com degradê no pé.
+ * O que muda entre os dois usos é como a arte preenche — e a distinção é
+ * deliberada, não descuido:
  *
- * Houve aqui uma versão "split" — texto à esquerda, a arte reduzida numa
- * moldura à direita e a própria imagem desfocada preenchendo o fundo. A
- * intenção era matar as faixas pretas das laterais quando a arte é
- * quadrada, mas o custo era alto: a peça enviada aparecia pequena, com uma
- * cópia borrada de si mesma atrás. Entre um vazio honesto e uma miniatura,
- * a arte inteira ganha.
+ *  - `fit="cover"` na faixa em destaque. O fundo ali é o banner de perfil
+ *    do artista, uma foto: cortar as bordas dela não custa nada e o bloco
+ *    fica preenchido de ponta a ponta. Vem com escurecimento, porque o
+ *    título precisa de contraste contra uma foto que pode ser clara.
+ *
+ *  - `fit="contain"` nos banners do admin. Ali a arte é uma peça fechada,
+ *    com tipografia dentro dela — cortar as bordas comeria justamente o que
+ *    foi desenhado. Aparece inteira, e o fundo que sobra é o preço.
  */
 export default function HeroSlide({
+  fit = 'contain',  // 'cover' preenche e corta as bordas | 'contain' mostra inteira
   media,            // url da imagem/vídeo
   isVideo = false,
   fallbackName,     // usado quando não há mídia
@@ -31,12 +34,33 @@ export default function HeroSlide({
 }) {
   const hasMedia = !!media;
 
+  const cobre = fit === 'cover';
+  const objeto = cobre ? 'object-cover' : 'object-contain';
+  // A foto de fundo precisa perder brilho para o título ler por cima; a
+  // arte fechada do banner, não — ela é para ser vista como foi entregue.
+  const tratamento = cobre ? { filter: 'saturate(1.15) brightness(0.62)' } : undefined;
+
   const Art = ({ className = '' }) => {
     if (!hasMedia) return <ArtistNameBanner name={fallbackName || title} className={className} />;
     if (isVideo) {
-      return <BackgroundMedia src={media} alt="" className={`w-full h-full object-contain ${className}`} />;
+      return (
+        <BackgroundMedia
+          src={media}
+          alt=""
+          className={`w-full h-full ${objeto} ${className}`}
+          style={tratamento}
+        />
+      );
     }
-    return <img src={media} alt="" className={`w-full h-full object-contain ${className}`} decoding="async" />;
+    return (
+      <img
+        src={media}
+        alt=""
+        className={`w-full h-full ${objeto} ${className}`}
+        style={tratamento}
+        decoding="async"
+      />
+    );
   };
 
   return (
@@ -54,10 +78,19 @@ export default function HeroSlide({
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background:
-            'linear-gradient(to top, rgba(5,5,6,0.95) 0%, rgba(5,5,6,0.55) 26%, rgba(5,5,6,0.08) 52%, transparent 70%)',
+          background: cobre
+            ? 'linear-gradient(to top, rgba(5,5,6,0.92) 0%, rgba(5,5,6,0.42) 40%, rgba(5,5,6,0.10) 75%, transparent 100%)'
+            : 'linear-gradient(to top, rgba(5,5,6,0.95) 0%, rgba(5,5,6,0.55) 26%, rgba(5,5,6,0.08) 52%, transparent 70%)',
         }}
       />
+
+      {/* Brilho frio do backup, só sobre a foto de fundo. */}
+      {cobre && hasMedia && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 62% 38%, rgba(216,216,226,0.18) 0%, transparent 70%)' }}
+        />
+      )}
 
       <div className="relative h-full flex items-end p-6 lg:p-9">
         <div className="min-w-0 max-w-2xl">

@@ -232,6 +232,7 @@ export default function Home() {
       key: `song-${featuredSong.id}`,
       render: () => (
         <HeroSlide
+          fit="cover"
           media={featuredBackdrop || featuredSong.cover_url}
           fallbackName={featuredSong.artist}
           eyebrow="Mais ouvidas"
