@@ -36,3 +36,6 @@ base44/.app.jsonc
 .velvet-verify/
 velvet-preview.css
 backup-velvet-code-*.zip
+
+# Backup de dados (contém informação de usuários — não versionar)
+backup-dados/
