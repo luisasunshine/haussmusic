@@ -13,17 +13,12 @@ const DEFAULT_ROTATE_MS = 7000;
  * exceto a aba sair de foco, porque não faz sentido gastar animação para
  * ninguém.
  *
- * A altura sai de uma proporção fixa (aspect-ratio), não de um número de
- * pixels — e a proporção escolhida é a da arte que realmente se envia aqui.
- *
- * O bloco tinha 320px de altura numa largura de ~1460px, ou seja 4,56:1:
- * mais panorâmico que qualquer banner de verdade. Os banners enviados são
- * 2,83:1 (1810x640). Nessa diferença toda, ou sobravam 277px de preto de
- * cada lado, ou o topo e a base da arte iam embora no corte.
- *
- * Com o bloco em 2,8:1 a arte enviada preenche de ponta a ponta com ~1% de
- * corte — invisível. E como a proporção é fixa, o bloco não muda de tamanho
- * entre um slide e outro; só acompanha a largura da janela.
+ * O bloco tem a altura fixa do projeto original (280 / 300 / 320px conforme
+ * a tela) e não muda por causa da arte. Quem se ajusta é a imagem: ela
+ * expande até preencher (object-cover) e o que sobra para fora fica de
+ * fora. Numa arte de 2,83:1 dentro de um bloco de ~4,56:1, isso significa
+ * perder topo e base — é o custo de preencher sem mexer no tamanho do
+ * bloco, e é uma escolha assumida.
  */
 export default function HomeHeroCarousel({ slides }) {
   const [index, setIndex] = useState(0);
@@ -72,13 +67,8 @@ export default function HomeHeroCarousel({ slides }) {
   return (
     <div
       ref={wrapRef}
-      className="group relative rounded-3xl overflow-hidden mb-8 v-chrome-edge"
-      style={{
-        border: '1px solid rgba(255,255,255,0.07)',
-        aspectRatio: '2.8 / 1',
-        minHeight: 240,
-        maxHeight: 560,
-      }}
+      className="group relative rounded-3xl overflow-hidden mb-8 v-chrome-edge h-[280px] sm:h-[300px] lg:h-[320px]"
+      style={{ border: '1px solid rgba(255,255,255,0.07)' }}
       onKeyDown={(e) => {
         if (!multi) return;
         if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }

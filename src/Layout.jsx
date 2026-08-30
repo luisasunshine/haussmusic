@@ -599,16 +599,20 @@ export default function Layout({ children, currentPageName }) {
         <main
           id="velvet-main"
           className="flex-1 overflow-y-auto overflow-x-hidden pb-36 lg:pb-28"
-          style={{ perspective: '1400px' }}
         >
-          {/* Troca de página com profundidade: a saída afunda e desfoca, a
-              entrada vem de trás — o corte fica contínuo em vez de piscar. */}
+          {/* Troca de página: opacidade, deslocamento e uma escala mínima.
+              Nada de `perspective` no <main> nem de `filter` aqui, por mais
+              tentador que seja o desfoque — as duas propriedades tornam o
+              elemento o bloco de contenção dos descendentes `position:
+              fixed`. Com elas, a abertura em tela cheia, os modais e o
+              player expandido deixavam de cobrir a tela e passavam a caber
+              só na área de conteúdo, com a sidebar aparecendo ao lado. */}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPageName}
-              initial={{ opacity: 0, y: 18, scale: 0.985, filter: 'blur(6px)' }}
-              animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, y: -12, scale: 0.99, filter: 'blur(4px)' }}
+              initial={{ opacity: 0, y: 18, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.99 }}
               transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
               style={{ transformOrigin: '50% 0%' }}
             >
