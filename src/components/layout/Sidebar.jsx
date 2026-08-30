@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Home, Search, Library, Music2, Star, Shield, Award, LogIn, Mic } from 'lucide-react';
@@ -18,8 +18,8 @@ import { hasUserType } from '@/lib/utils';
  * contínuo em vez de um pisca-pisca.
  */
 
-const RAIL = 88;
-const OPEN = 244;
+const RAIL = 80;
+const OPEN = 280;
 
 function NavItem({ item, active, expanded }) {
   return (
@@ -34,8 +34,8 @@ function NavItem({ item, active, expanded }) {
         whileTap={{ scale: 0.96 }}
         className={`group/nav relative rounded-2xl transition-colors duration-200 ${
           expanded
-            ? 'flex items-center gap-3 px-4 py-3'
-            : 'flex flex-col items-center justify-center gap-1.5 px-0.5 py-2.5'
+            ? 'flex items-center gap-3.5 px-4 py-3'
+            : 'flex items-center justify-center h-12'
         } ${active ? 'text-velvet-text' : 'text-velvet-dim hover:text-velvet-text'}`}
       >
         {/* Barra ativa: uma só no documento inteiro, deslizando. */}
@@ -62,26 +62,18 @@ function NavItem({ item, active, expanded }) {
         )}
 
         <item.icon
-          className="relative z-10 w-[22px] h-[22px] shrink-0 transition-transform duration-200 group-hover/nav:scale-110"
+          className={`relative z-10 shrink-0 transition-transform duration-200 group-hover/nav:scale-110 ${
+            expanded ? 'w-[22px] h-[22px]' : 'w-6 h-6'
+          }`}
           strokeWidth={active ? 2.3 : 1.7}
           style={active ? { filter: 'drop-shadow(0 0 8px rgba(216,216,226,0.75))' } : undefined}
         />
 
-        <span
-          className="relative z-10 text-sm font-medium whitespace-nowrap transition-[opacity,transform] duration-200"
-          style={{
-            opacity: expanded ? 1 : 0,
-            transform: expanded ? 'none' : 'translateX(-6px)',
-            pointerEvents: expanded ? undefined : 'none',
-          }}
-        >
-          {item.label}
-        </span>
-
-        {/* Legenda do trilho fechado: curta o bastante para caber em 76px. */}
-        {!expanded && (
-          <span className="relative z-10 text-[9.5px] font-semibold leading-none tracking-tight text-center w-full px-0.5 truncate">
-            {item.short || item.label}
+        {/* Fechado é só ícone — o nome aparece quando o trilho abre (e no
+            title do link, para quem parar o cursor em cima). */}
+        {expanded && (
+          <span className="relative z-10 text-[15px] font-medium whitespace-nowrap">
+            {item.label}
           </span>
         )}
       </motion.div>
@@ -152,10 +144,10 @@ export default function Sidebar({ currentPage }) {
       />
 
       {/* Logo */}
-      <div className="flex items-center h-[76px] px-5 shrink-0 border-b border-white/[0.06]">
+      <div className={`flex items-center h-[76px] shrink-0 border-b border-white/[0.06] ${expanded ? "px-5" : "justify-center px-0"}`}>
         <Link
           to={createPageUrl('Home')}
-          className="flex items-center gap-3 min-w-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-velvet-silver/60"
+          className="flex items-center rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-velvet-silver/60"
           aria-label="VELVET MUSIC — início"
         >
           <motion.img
@@ -168,22 +160,10 @@ export default function Sidebar({ currentPage }) {
             className="w-11 h-11 object-contain shrink-0"
             style={{ filter: 'drop-shadow(0 2px 10px rgba(216,216,226,0.35))' }}
           />
-          <AnimatePresence initial={false}>
-            {expanded && (
-              <motion.span
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -8 }}
-                className="v-chrome-text v-display text-lg font-bold tracking-wide whitespace-nowrap"
-              >
-                VELVET
-              </motion.span>
-            )}
-          </AnimatePresence>
         </Link>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1 px-2 pt-4 overflow-y-auto scrollbar-hide">
+      <nav className={`flex-1 flex flex-col overflow-y-auto scrollbar-hide pt-4 ${expanded ? "gap-1 px-3" : "gap-1.5 px-3"}`}>
         {primary.map((item) => (
           <NavItem key={item.page} item={item} active={isActive(item.page)} expanded={expanded} />
         ))}
@@ -197,18 +177,11 @@ export default function Sidebar({ currentPage }) {
         {studio.length > 0 && (
           <>
             <div className="v-rule my-3 mx-2" />
-            <AnimatePresence initial={false}>
-              {expanded && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="px-4 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-velvet-faint"
-                >
-                  Estúdio
-                </motion.p>
-              )}
-            </AnimatePresence>
+            {expanded && (
+              <p className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-velvet-faint">
+                Estúdio
+              </p>
+            )}
             {studio.map((item) => (
               <NavItem key={item.page} item={item} active={isActive(item.page)} expanded={expanded} />
             ))}

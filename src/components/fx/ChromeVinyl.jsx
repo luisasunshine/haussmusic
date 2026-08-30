@@ -62,8 +62,22 @@ export default function ChromeVinyl({
       mount.appendChild(renderer.domElement);
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-      camera.position.set(0, 0.35, 4.2);
+
+      // Enquadramento calculado, não chutado. O disco tem raio 1.5 e o aro
+      // de cromo vai até 1.555; somando a respiração (x1.05) e a inclinação
+      // que o ponteiro provoca, o círculo chega a ~1.7 de raio aparente.
+      // A câmera antiga ficava a z=4.2 com fov 38, o que dá meia-altura
+      // visível de apenas tan(19°)·4.2 ≈ 1.45 — menor que o disco. Por isso
+      // ele aparecia com o topo e a base cortados. Aqui a distância sai do
+      // raio, com folga, e o corte fica impossível.
+      const RAIO_APARENTE = 1.555 * 1.05;
+      const FOLGA = 1.18;
+      const FOV = 38;
+      const meiaAltura = RAIO_APARENTE * FOLGA;
+      const distancia = meiaAltura / Math.tan((FOV / 2) * Math.PI / 180);
+
+      const camera = new THREE.PerspectiveCamera(FOV, width / height, 0.1, 100);
+      camera.position.set(0, 0.22, distancia);
       camera.lookAt(0, 0, 0);
 
       // --- Ambiente refletido ---------------------------------------------
@@ -236,7 +250,7 @@ export default function ChromeVinyl({
 
         // O anel pulsa nos graves; o disco inteiro respira.
         ringMat.emissiveIntensity = 0.05 + low * 1.5;
-        const breathe = 1 + level * 0.05;
+        const breathe = 1 + level * 0.035;
         group.scale.setScalar(breathe);
         rim.intensity = 4 + level * 10;
 
@@ -248,9 +262,14 @@ export default function ChromeVinyl({
         const w = mount.clientWidth || size;
         const h = mount.clientHeight || size;
         camera.aspect = w / h;
+        // Num quadro mais alto que largo, quem limita é a largura: afasta a
+        // câmera na mesma proporção para o disco continuar inteiro.
+        const ajuste = camera.aspect < 1 ? 1 / camera.aspect : 1;
+        camera.position.z = distancia * ajuste;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
       };
+      onResize();
       const ro = new ResizeObserver(onResize);
       ro.observe(mount);
 

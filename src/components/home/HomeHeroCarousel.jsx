@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DEFAULT_ROTATE_MS = 7000;
 
@@ -11,17 +11,15 @@ const DEFAULT_ROTATE_MS = 7000;
  *
  *  - uma barra de progresso mostrando quanto falta para o próximo slide,
  *    em vez de a troca simplesmente acontecer sem aviso;
- *  - pausa ao passar o mouse (e um botão de pausar), porque um banner que
- *    troca sozinho enquanto a pessoa está lendo é irritante;
- *  - navegação por seta do teclado quando o carrossel está focado.
+ *  - navegação por seta do teclado e setas de avançar/voltar no hover, para
+ *    quem quiser adiantar.
  *
- * A rotação também para quando a aba sai de foco — não faz sentido gastar
- * animação para ninguém.
+ * A rotação é automática e não para no hover — a única coisa que a
+ * interrompe é a aba sair de foco, porque não faz sentido gastar animação
+ * para ninguém.
  */
 export default function HomeHeroCarousel({ slides }) {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [manualPause, setManualPause] = useState(false);
   const [progress, setProgress] = useState(0);
   const wrapRef = useRef(null);
 
@@ -41,7 +39,7 @@ export default function HomeHeroCarousel({ slides }) {
   // Um único rAF controla avanço e barra: dois timers separados sairiam de
   // sincronia e a barra terminaria antes (ou depois) da troca.
   useEffect(() => {
-    if (count < 2 || paused || manualPause) return undefined;
+    if (count < 2) return undefined;
 
     let raf = null;
     let start = performance.now();
@@ -71,7 +69,7 @@ export default function HomeHeroCarousel({ slides }) {
       if (raf) cancelAnimationFrame(raf);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [count, index, durationMs, paused, manualPause]);
+  }, [count, index, durationMs]);
 
   if (count === 0) return null;
 
@@ -82,10 +80,6 @@ export default function HomeHeroCarousel({ slides }) {
       ref={wrapRef}
       className="group relative rounded-3xl overflow-hidden mb-8 v-chrome-edge h-[300px] sm:h-[340px] lg:h-[380px]"
       style={{ border: '1px solid rgba(255,255,255,0.07)' }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPaused(false); }}
       onKeyDown={(e) => {
         if (!multi) return;
         if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
@@ -128,17 +122,8 @@ export default function HomeHeroCarousel({ slides }) {
             <ChevronRight className="w-4 h-4" />
           </button>
 
-          {/* Controles no canto inferior direito, longe do texto do slide */}
+          {/* Indicadores no canto inferior direito, longe do texto do slide */}
           <div className="absolute bottom-4 right-4 z-40 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setManualPause((v) => !v)}
-              aria-label={manualPause ? 'Retomar rotação' : 'Pausar rotação'}
-              className="w-7 h-7 rounded-full v-glass flex items-center justify-center text-velvet-dim hover:text-velvet-text opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
-            >
-              {manualPause ? <Play className="w-3 h-3 fill-current ml-0.5" /> : <Pause className="w-3 h-3 fill-current" />}
-            </button>
-
             <div className="flex items-center gap-1.5">
               {slides.map((s, i) => (
                 <button
