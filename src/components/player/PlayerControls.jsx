@@ -36,9 +36,9 @@ export default function PlayerControls({
           max={duration || 100}
           step={1}
           onValueChange={(value) => onSeek(value[0])}
-          className="cursor-pointer [&_[role=slider]]:bg-zinc-300 [&_[role=slider]]:border-zinc-200 [&_[role=slider]]:shadow-[0_0_10px_rgba(200,200,210,0.5)] [&_.bg-primary]:bg-gradient-to-r [&_.bg-primary]:from-zinc-500 [&_.bg-primary]:to-zinc-300"
+          className="cursor-pointer [&_[role=slider]]:bg-velvet-silver [&_[role=slider]]:border-velvet-text [&_[role=slider]]:shadow-[0_0_10px_rgba(200,200,210,0.5)] [&_.bg-primary]:bg-gradient-to-r [&_.bg-primary]:from-velvet-ash [&_.bg-primary]:to-velvet-silver"
         />
-        <div className="flex justify-between text-xs text-zinc-500 font-medium">
+        <div className="flex justify-between text-xs text-velvet-faint font-medium">
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
@@ -50,7 +50,7 @@ export default function PlayerControls({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={onShuffleToggle}
-          className={`p-2 rounded-full transition-colors ${isShuffled ? 'text-zinc-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+          className={`p-2 rounded-full transition-colors ${isShuffled ? 'text-velvet-silver' : 'text-velvet-faint hover:text-velvet-silver'}`}
         >
           <Shuffle className="w-5 h-5" />
         </motion.button>
@@ -59,7 +59,7 @@ export default function PlayerControls({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={onPrev}
-          className="p-3 text-zinc-300 hover:text-white transition-colors"
+          className="p-3 text-velvet-silver hover:text-white transition-colors"
         >
           <SkipBack className="w-7 h-7 fill-current" />
         </motion.button>
@@ -110,7 +110,7 @@ export default function PlayerControls({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={onNext}
-          className="p-3 text-zinc-300 hover:text-white transition-colors"
+          className="p-3 text-velvet-silver hover:text-white transition-colors"
         >
           <SkipForward className="w-7 h-7 fill-current" />
         </motion.button>
@@ -119,11 +119,11 @@ export default function PlayerControls({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={onRepeatToggle}
-          className={`p-2 rounded-full transition-colors relative ${repeatMode !== 'off' ? 'text-zinc-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+          className={`p-2 rounded-full transition-colors relative ${repeatMode !== 'off' ? 'text-velvet-silver' : 'text-velvet-faint hover:text-velvet-silver'}`}
         >
           <Repeat className="w-5 h-5" />
           {repeatMode === 'one' && (
-            <span className="absolute -top-1 -right-1 text-[10px] font-bold text-zinc-300">1</span>
+            <span className="absolute -top-1 -right-1 text-[10px] font-bold text-velvet-silver">1</span>
           )}
         </motion.button>
       </div>
@@ -134,19 +134,19 @@ export default function PlayerControls({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={onFavoriteToggle}
-          className={`p-2 rounded-full transition-colors ${isFavorite ? 'text-pink-500' : 'text-zinc-500 hover:text-zinc-300'}`}
+          className={`p-2 rounded-full transition-colors ${isFavorite ? 'text-pink-500' : 'text-velvet-faint hover:text-velvet-silver'}`}
         >
           <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
         </motion.button>
 
         <div className="flex items-center gap-3 w-32">
-          <Volume2 className="w-5 h-5 text-zinc-500" />
+          <Volume2 className="w-5 h-5 text-velvet-faint" />
           <Slider
             value={[volume]}
             max={100}
             step={1}
             onValueChange={(value) => onVolumeChange(value[0])}
-            className="cursor-pointer [&_[role=slider]]:bg-zinc-400 [&_[role=slider]]:w-3 [&_[role=slider]]:h-3"
+            className="cursor-pointer [&_[role=slider]]:bg-velvet-silver [&_[role=slider]]:w-3 [&_[role=slider]]:h-3"
           />
         </div>
       </div>

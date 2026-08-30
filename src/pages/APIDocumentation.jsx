@@ -136,7 +136,7 @@ const data = await response.json();`,
     <div className="min-h-screen pb-32">
       {/* Header */}
       <div className="relative px-6 lg:px-8 py-12 mb-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-500/20 to-neutral-500/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-velvet-ash/20 to-velvet-ash/20" />
         <div className="absolute inset-0 backdrop-blur-3xl" />
         
         <div className="relative max-w-5xl mx-auto">
@@ -145,12 +145,12 @@ const data = await response.json();`,
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-4 mb-4"
           >
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-400 to-neutral-500 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-velvet-steel to-velvet-ash flex items-center justify-center shadow-lg">
               <Code className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-white">API Pública do VELVET MUSIC</h1>
-              <p className="text-zinc-400 mt-1">Integre músicas do VELVET MUSIC no seu aplicativo</p>
+              <h1 className="text-4xl font-black v-chrome-text v-display">API Pública do VELVET MUSIC</h1>
+              <p className="text-velvet-dim mt-1">Integre músicas do VELVET MUSIC no seu aplicativo</p>
             </div>
           </motion.div>
         </div>
@@ -163,16 +163,16 @@ const data = await response.json();`,
           animate={{ opacity: 1, y: 0 }}
           className="bg-white/5 rounded-2xl p-6 border border-white/10 mb-8"
         >
-          <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-            <Music2 className="w-5 h-5 text-zinc-300" />
+          <h2 className="text-xl font-bold mb-3 flex items-center gap-2 v-chrome-text">
+            <Music2 className="w-5 h-5 text-velvet-silver" />
             Sobre a API
           </h2>
-          <p className="text-zinc-300 mb-4">
+          <p className="text-velvet-silver mb-4">
             A API pública do VELVET MUSIC permite que você acesse músicas, álbuns e EPs publicados na plataforma. 
             Perfeito para criar integrações, widgets de música, ou permitir que usuários compartilhem músicas do VELVET MUSIC em outras plataformas.
           </p>
-          <div className="bg-zinc-400/10 border border-zinc-400/30 rounded-xl p-4">
-            <div className="text-sm text-zinc-200 font-mono break-all">
+          <div className="bg-velvet-silver/10 border border-velvet-steel/30 rounded-xl p-4">
+            <div className="text-sm text-velvet-text font-mono break-all">
               <strong>Endpoint:</strong> {apiEndpoint}
             </div>
           </div>
@@ -188,23 +188,23 @@ const data = await response.json();`,
           <div className="bg-white/5 rounded-xl p-5 border border-white/10">
             <Database className="w-8 h-8 text-cyan-400 mb-3" />
             <h3 className="font-bold text-white mb-2">Acesso Público</h3>
-            <p className="text-sm text-zinc-400">Sem necessidade de autenticação ou API keys</p>
+            <p className="text-sm text-velvet-dim">Sem necessidade de autenticação ou API keys</p>
           </div>
           <div className="bg-white/5 rounded-xl p-5 border border-white/10">
             <Search className="w-8 h-8 text-green-400 mb-3" />
             <h3 className="font-bold text-white mb-2">Busca Integrada</h3>
-            <p className="text-sm text-zinc-400">Pesquise por músicas e artistas facilmente</p>
+            <p className="text-sm text-velvet-dim">Pesquise por músicas e artistas facilmente</p>
           </div>
           <div className="bg-white/5 rounded-xl p-5 border border-white/10">
             <ExternalLink className="w-8 h-8 text-pink-400 mb-3" />
             <h3 className="font-bold text-white mb-2">CORS Habilitado</h3>
-            <p className="text-sm text-zinc-400">Use direto no frontend, de qualquer domínio</p>
+            <p className="text-sm text-velvet-dim">Use direto no frontend, de qualquer domínio</p>
           </div>
         </motion.div>
 
         {/* Exemplos */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">Exemplos de Uso</h2>
+          <h2 className="text-2xl font-bold v-chrome-text">Exemplos de Uso</h2>
           {examples.map((example, index) => (
             <motion.div
               key={example.id}
@@ -215,13 +215,13 @@ const data = await response.json();`,
             >
               <div className="p-6 border-b border-white/10">
                 <h3 className="text-xl font-bold text-white mb-2">{example.title}</h3>
-                <p className="text-zinc-400">{example.description}</p>
+                <p className="text-velvet-dim">{example.description}</p>
               </div>
 
               {/* Request */}
               <div className="p-6 border-b border-white/10">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-semibold text-zinc-300 uppercase">Request</h4>
+                  <h4 className="text-sm font-semibold text-velvet-silver uppercase">Request</h4>
                   <button
                     onClick={() => copyCode(example.code, example.id + '-req')}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors"
@@ -233,7 +233,7 @@ const data = await response.json();`,
                     )}
                   </button>
                 </div>
-                <pre className="bg-zinc-950 rounded-xl p-4 overflow-x-auto">
+                <pre className="bg-velvet-abyss rounded-xl p-4 overflow-x-auto">
                   <code className="text-sm text-cyan-300">{example.code}</code>
                 </pre>
               </div>
@@ -253,7 +253,7 @@ const data = await response.json();`,
                     )}
                   </button>
                 </div>
-                <pre className="bg-zinc-950 rounded-xl p-4 overflow-x-auto">
+                <pre className="bg-velvet-abyss rounded-xl p-4 overflow-x-auto">
                   <code className="text-sm text-green-300">{example.response}</code>
                 </pre>
               </div>
@@ -266,11 +266,11 @@ const data = await response.json();`,
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-8 bg-gradient-to-br from-zinc-400/20 to-neutral-400/20 rounded-2xl p-6 border border-zinc-400/30"
+          className="mt-8 bg-gradient-to-br from-velvet-steel/20 to-velvet-steel/20 rounded-2xl p-6 border border-velvet-steel/30"
         >
           <h3 className="text-xl font-bold text-white mb-4">🎵 Exemplo: Widget de Música em React</h3>
-          <pre className="bg-zinc-950 rounded-xl p-4 overflow-x-auto">
-            <code className="text-sm text-zinc-200">{`function HaussMusicWidget() {
+          <pre className="bg-velvet-abyss rounded-xl p-4 overflow-x-auto">
+            <code className="text-sm text-velvet-text">{`function HaussMusicWidget() {
   const [songs, setSongs] = useState([]);
   
   useEffect(() => {
@@ -303,7 +303,7 @@ const data = await response.json();`,
         </motion.div>
 
         {/* Footer */}
-        <div className="mt-12 text-center text-zinc-500">
+        <div className="mt-12 text-center text-velvet-faint">
           <p>🖤 Feito com amor pela equipe VELVET MUSIC</p>
           <p className="text-sm mt-2">Tem dúvidas? Entre em contato conosco!</p>
         </div>

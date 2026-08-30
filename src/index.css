@@ -2,8 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================================
+   VELVET CHROME — design system
+   Preto obsidiana + prata escovada. Superfícies de vidro, arestas cromadas,
+   profundidade real (perspectiva 3D) e brilho especular que segue o cursor.
+   ========================================================================= */
+
 @layer base {
   :root {
+    /* ---- Tokens shadcn (mantidos para compatibilidade dos componentes) ---- */
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -28,7 +35,7 @@
     --chart-3: 0 0% 40%;
     --chart-4: 0 0% 85%;
     --chart-5: 0 0% 25%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 0 0% 40%;
@@ -38,44 +45,70 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 0 0% 60%;
 
-    --spotify-black: #0a0a0a;
-    --spotify-darkgray: #161616;
-    --spotify-gray: #262626;
-    --spotify-lightgray: #5c5c5c;
-    --spotify-green: #c0c0c8;
-    --spotify-brightgreen: #e5e5ea;
-    --spotify-text: #ffffff;
-    --spotify-subtext: #a3a3a3;
+    /* ---- Paleta Velvet ---- */
+    --v-void:      #050506;   /* fundo absoluto */
+    --v-abyss:     #0a0a0c;   /* fundo da app */
+    --v-surface:   #101014;   /* painel */
+    --v-surface-2: #17171c;   /* painel elevado */
+    --v-line:      #26262e;   /* traço */
+
+    --v-silver:      #d8d8e2;  /* prata principal */
+    --v-silver-hi:   #ffffff;  /* realce especular */
+    --v-silver-mid:  #a8a8b6;
+    --v-silver-low:  #6d6d7a;
+    --v-text:        #f4f4f7;
+    --v-text-dim:    #9a9aa6;
+    --v-text-faint:  #62626e;
+
+    /* Nível de áudio ao vivo (0–1), escrito pelo audioBus a cada frame.
+       Qualquer elemento pode reagir ao som só lendo esta variável. */
+    --v-level: 0;
+    --v-level-low: 0;
+    --v-level-high: 0;
+
+    /* Posição do cursor dentro do elemento com brilho (0–100%) */
+    --v-mx: 50%;
+    --v-my: 50%;
+
+    /* Legado (o código antigo ainda referencia estas) */
+    --spotify-black: #0a0a0c;
+    --spotify-darkgray: #101014;
+    --spotify-gray: #17171c;
+    --spotify-lightgray: #6d6d7a;
+    --spotify-green: #d8d8e2;
+    --spotify-brightgreen: #ffffff;
+    --spotify-text: #f4f4f7;
+    --spotify-subtext: #9a9aa6;
   }
 
   .dark {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 75%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 13%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 13%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 0 0% 13%;
+    --background: 240 10% 3%;
+    --foreground: 0 0% 96%;
+    --card: 240 9% 6%;
+    --card-foreground: 0 0% 96%;
+    --popover: 240 9% 7%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 240 10% 87%;
+    --primary-foreground: 240 10% 5%;
+    --secondary: 240 8% 11%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 240 8% 11%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 8% 13%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 40%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 0% 75%;
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 70%;
-    --sidebar-primary: 0 0% 75%;
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 0 0% 9%;
+    --border: 240 8% 17%;
+    --input: 240 8% 17%;
+    --ring: 240 10% 80%;
+    --sidebar-background: 240 10% 2%;
+    --sidebar-foreground: 240 5% 65%;
+    --sidebar-primary: 240 10% 87%;
+    --sidebar-primary-foreground: 240 10% 5%;
+    --sidebar-accent: 240 9% 8%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 0 0% 75%;
+    --sidebar-border: 240 8% 12%;
+    --sidebar-ring: 240 10% 80%;
   }
 }
 
@@ -83,131 +116,601 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    background: var(--v-abyss);
+    color: var(--v-text);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Nebulosa fria e imóvel por trás de tudo: dá profundidade ao preto
+       sem custar nada de runtime. */
+    background-image:
+      radial-gradient(1200px 700px at 15% -10%, rgba(150,150,175,0.10), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(110,110,140,0.08), transparent 55%),
+      radial-gradient(800px 800px at 50% 120%, rgba(90,90,120,0.07), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* Quem prefere menos movimento recebe a mesma interface, parada. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }
 
-/* ===== Spotify Design System ===== */
+/* =========================================================================
+   SUPERFÍCIES
+   ========================================================================= */
 
 @layer components {
+
+  /* Vidro obsidiana: painel escuro translúcido com fio de luz na aresta
+     superior — é o material base de toda a interface. */
+  .v-glass {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.012) 38%, rgba(255,255,255,0) 100%),
+      rgba(16, 16, 20, 0.72);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.10),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+      0 18px 44px -24px rgba(0, 0, 0, 0.95);
+  }
+
+  .v-glass-strong {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0) 100%),
+      rgba(20, 20, 25, 0.88);
+    backdrop-filter: blur(26px) saturate(150%);
+    -webkit-backdrop-filter: blur(26px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+      0 30px 70px -30px rgba(0, 0, 0, 1);
+  }
+
+  /* Painel sólido, para listas longas onde blur custa caro. */
+  .v-panel {
+    background: linear-gradient(180deg, #14141a 0%, #0e0e12 100%);
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 30px -20px rgba(0,0,0,0.9);
+  }
+
+  /* Aresta cromada: um fio de prata que percorre a borda do elemento.
+     Usa mask para pintar SÓ a borda, sem segunda div. */
+  .v-chrome-edge {
+    position: relative;
+  }
+  .v-chrome-edge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(255,255,255,0.55) 0%,
+      rgba(255,255,255,0.06) 22%,
+      rgba(255,255,255,0) 45%,
+      rgba(255,255,255,0.10) 62%,
+      rgba(255,255,255,0.42) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.75;
+  }
+
+  /* Brilho especular que segue o cursor (--v-mx/--v-my vêm do JS). */
+  .v-specular {
+    position: relative;
+    overflow: hidden;
+  }
+  .v-specular::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 320ms ease;
+    background: radial-gradient(
+      340px circle at var(--v-mx) var(--v-my),
+      rgba(255,255,255,0.16),
+      rgba(255,255,255,0.05) 32%,
+      transparent 62%
+    );
+  }
+  .v-specular:hover::after { opacity: 1; }
+
+  /* Opcional: qualquer elemento com data-specular="tilt" também inclina. */
+  [data-specular="tilt"] {
+    --v-rx: 0deg;
+    --v-ry: 0deg;
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [data-specular="tilt"]:hover {
+    transform: perspective(900px) rotateX(var(--v-rx)) rotateY(var(--v-ry)) translateY(-4px);
+  }
+
+  /* =======================================================================
+     TIPOGRAFIA CROMADA
+     ======================================================================= */
+
+  /* Texto em metal polido.
+     Duas intensidades, e a diferença importa: a "quebra" escura no meio do
+     gradiente é o que o olho lê como reflexo de cromo, mas num título de
+     24px essa faixa escura cai exatamente sobre o miolo das letras e o
+     texto vira um borrão. Então o padrão é um brilho de prata suave, que
+     continua legível em qualquer tamanho, e a versão dramática fica
+     reservada para os títulos grandes (que sempre vêm com .v-display). */
+  .v-chrome-text {
+    background: linear-gradient(
+      176deg,
+      #ffffff 0%,
+      #f0f0f6 26%,
+      #c6c6d2 52%,
+      #eaeaf2 74%,
+      #b6b6c4 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.12)) drop-shadow(0 3px 12px rgba(0,0,0,0.7));
+  }
+
+  /* Cromo pleno: só em display grande, onde a faixa escura tem espaço para
+     ler como reflexo em vez de sujeira. */
+  .v-chrome-text.v-display {
+    background: linear-gradient(
+      178deg,
+      #ffffff 0%,
+      #e9e9f0 18%,
+      #9a9aa8 44%,
+      #5c5c68 52%,
+      #b9b9c6 60%,
+      #f2f2f7 82%,
+      #8f8f9d 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.16)) drop-shadow(0 6px 18px rgba(0,0,0,0.75));
+  }
+
+  /* Variante viva: o reflexo desliza lentamente pelo texto. */
+  .v-chrome-text-live {
+    background-size: 100% 260%;
+    animation: v-chrome-drift 9s ease-in-out infinite;
+  }
+
+  .v-display {
+    font-family: 'Playfair Display', ui-serif, Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+
+  /* =======================================================================
+     BOTÕES
+     ======================================================================= */
+
+  /* Botão de cromo escovado. Varredura clara→escura, realce no topo,
+     sobe no hover e afunda no clique. */
+  .btn-metal,
+  .btn-green {
+    @apply relative font-semibold transition-all duration-200 disabled:pointer-events-none;
+    color: #0b0b0e;
+    background: linear-gradient(180deg, #ffffff 0%, #e2e2ea 30%, #b5b5c2 62%, #85858f 100%);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,0.95),
+      inset 0 -1px 2px rgba(0,0,0,0.30),
+      0 2px 10px rgba(0,0,0,0.45);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  /* Faixa de luz que atravessa o botão no hover. */
+  .btn-metal::before,
+  .btn-green::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: -60%;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.85), transparent);
+    transform: skewX(-18deg);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .btn-metal:hover:not(:disabled)::before,
+  .btn-green:hover:not(:disabled)::before {
+    opacity: 1;
+    animation: v-sheen 780ms ease-out;
+  }
+  .btn-green { @apply rounded-full; }
+
+  .btn-metal:hover:not(:disabled),
+  .btn-green:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ffffff 0%, #f0f0f6 30%, #c9c9d6 62%, #9898a4 100%);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,1),
+      inset 0 -1px 2px rgba(0,0,0,0.22),
+      0 6px 20px rgba(216,216,226,0.22),
+      0 3px 14px rgba(0,0,0,0.5);
+    transform: translateY(-1.5px);
+  }
+  .btn-metal:active:not(:disabled),
+  .btn-green:active:not(:disabled) {
+    transform: translateY(0.5px);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-metal:disabled,
+  .btn-green:disabled {
+    opacity: 0.45;
+    color: #babac4;
+    background: linear-gradient(180deg, #3a3a44, #26262e);
+    box-shadow: none;
+  }
+
+  /* Botão fantasma: só a aresta cromada acende. */
+  .btn-ghost-metal {
+    @apply relative rounded-full font-medium transition-all duration-200;
+    color: var(--v-text-dim);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.09);
+  }
+  .btn-ghost-metal:hover {
+    color: var(--v-text);
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.22);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 6px 20px -8px rgba(216,216,226,0.35);
+    transform: translateY(-1px);
+  }
+
+  .btn-pill {
+    @apply px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200;
+  }
+  .btn-pill-active {
+    @apply btn-pill;
+    color: #0b0b0e;
+    background: linear-gradient(180deg, #ffffff, #c9c9d6);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 16px -6px rgba(216,216,226,0.5);
+  }
+  .btn-pill-inactive {
+    @apply btn-pill;
+    color: var(--v-text-dim);
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .btn-pill-inactive:hover {
+    color: var(--v-text);
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,255,255,0.16);
+  }
+
+  /* =======================================================================
+     CARDS
+     ======================================================================= */
+
+  /* O card padrão do app. Ele carrega o reflexo e a inclinação 3D de
+     série: o rastreador global (lib/specular.js) escreve --v-mx/--v-my e
+     --v-rx/--v-ry no elemento sob o cursor, e o resto é CSS. Por isso todo
+     card do site ganhou profundidade sem nenhuma mudança no JSX. */
   .card-spotify {
-    @apply bg-[#161616] rounded-xl p-4 transition-all duration-300 hover:bg-[#262626] cursor-pointer;
+    @apply relative rounded-2xl p-4 cursor-pointer;
+    --v-rx: 0deg;
+    --v-ry: 0deg;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012));
+    border: 1px solid rgba(255,255,255,0.06);
+    transform-style: preserve-3d;
+    transition:
+      background 300ms ease,
+      border-color 300ms ease,
+      box-shadow 300ms ease,
+      transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* O reflexo nasce onde o cursor está, não num canto fixo. */
+  .card-spotify::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 320ms ease;
+    background: radial-gradient(
+      320px circle at var(--v-mx, 50%) var(--v-my, 50%),
+      rgba(255,255,255,0.15),
+      rgba(255,255,255,0.04) 34%,
+      transparent 64%
+    );
+  }
+
+  .card-spotify:hover {
+    background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+    border-color: rgba(255,255,255,0.18);
+    box-shadow:
+      0 28px 56px -28px rgba(0,0,0,1),
+      0 0 34px -14px rgba(216,216,226,0.30);
+    transform: perspective(900px) rotateX(var(--v-rx)) rotateY(var(--v-ry)) translateY(-5px) scale(1.015);
+  }
+  .card-spotify:hover::after { opacity: 1; }
+
+  /* Foco por teclado recebe o mesmo destaque do hover, sem a inclinação
+     (que dependeria de um cursor que não existe ali). */
+  .card-spotify:focus-visible {
+    border-color: rgba(216,216,226,0.55);
+    box-shadow: 0 0 0 2px rgba(216,216,226,0.35), 0 24px 50px -28px rgba(0,0,0,1);
   }
 
   .card-spotify-elevated {
-    @apply bg-[#262626] rounded-xl p-4 transition-all duration-300 hover:bg-[#333] cursor-pointer;
+    @apply relative rounded-2xl p-4 cursor-pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.025));
+    border: 1px solid rgba(255,255,255,0.10);
+    transition: all 300ms ease;
+  }
+  .card-spotify-elevated:hover {
+    background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.05));
+    border-color: rgba(255,255,255,0.2);
   }
 
-  /* Cover-only hover treatment: the artwork lifts and catches a soft
-     metallic sheen while the card itself stays in place. */
+  /* Capa que levanta e pega um brilho metálico no hover do card. */
   .cover-hover {
-    transition: transform 300ms ease, box-shadow 300ms ease;
+    transition: transform 420ms cubic-bezier(0.22,1,0.36,1), box-shadow 420ms ease;
   }
-
   .cover-hover::after {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
     opacity: 0;
-    background: linear-gradient(150deg, rgba(255,255,255,0.28), transparent 42%);
-    transition: opacity 300ms ease;
+    background: linear-gradient(150deg, rgba(255,255,255,0.34), transparent 44%);
+    transition: opacity 420ms ease;
   }
-
   .group:hover .cover-hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 28px -16px rgba(0, 0, 0, 0.95), 0 0 20px rgba(220, 220, 230, 0.16);
+    transform: translateY(-7px) scale(1.015);
+    box-shadow: 0 22px 40px -18px rgba(0,0,0,0.98), 0 0 28px rgba(216,216,226,0.20);
+  }
+  .group:hover .cover-hover::after { opacity: 1; }
+
+  /* =======================================================================
+     PROFUNDIDADE 3D
+     ======================================================================= */
+
+  /* Cena com perspectiva: filhos com translateZ ganham paralaxe real. */
+  .v-scene   { perspective: 1100px; perspective-origin: 50% 50%; }
+  .v-scene-tight { perspective: 700px; }
+  .v-3d      { transform-style: preserve-3d; will-change: transform; }
+  .v-layer-1 { transform: translateZ(18px); }
+  .v-layer-2 { transform: translateZ(38px); }
+  .v-layer-3 { transform: translateZ(64px); }
+
+  /* Reflexo no "chão" abaixo de um elemento (usado sob capas e no hero). */
+  .v-reflect::after {
+    content: '';
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 100%;
+    height: 42%;
+    background: inherit;
+    background-size: cover;
+    transform: scaleY(-1);
+    opacity: 0.16;
+    filter: blur(3px);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent 72%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent 72%);
+    pointer-events: none;
   }
 
-  .group:hover .cover-hover::after {
-    opacity: 1;
-  }
+  /* =======================================================================
+     REATIVO AO ÁUDIO
+     Tudo abaixo lê --v-level, que o audioBus atualiza a cada frame.
+     ======================================================================= */
 
-  /* Brushed-chrome primary button: light-to-dark sweep + top highlight,
-     brightens and lifts on hover, presses in on click. */
-  .btn-metal,
-  .btn-green {
-    @apply relative text-zinc-900 font-semibold transition-all duration-200 disabled:pointer-events-none;
-    background: linear-gradient(180deg, #f4f4f5 0%, #d4d4d8 35%, #a1a1aa 70%, #71717a 100%);
+  .v-audio-glow {
     box-shadow:
-      inset 0 1px 1px rgba(255, 255, 255, 0.8),
-      inset 0 -1px 2px rgba(0, 0, 0, 0.25),
-      0 2px 8px rgba(0, 0, 0, 0.35);
-  }
-  .btn-green {
-    @apply rounded-full;
-  }
-  .btn-metal:hover:not(:disabled),
-  .btn-green:hover:not(:disabled) {
-    background: linear-gradient(180deg, #ffffff 0%, #e4e4e7 35%, #b4b4bb 70%, #82828a 100%);
-    box-shadow:
-      inset 0 1px 1px rgba(255, 255, 255, 0.9),
-      inset 0 -1px 2px rgba(0, 0, 0, 0.2),
-      0 4px 14px rgba(255, 255, 255, 0.12),
-      0 2px 10px rgba(0, 0, 0, 0.4);
-    transform: translateY(-1px);
-  }
-  .btn-metal:active:not(:disabled),
-  .btn-green:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
-  }
-  .btn-metal:disabled,
-  .btn-green:disabled {
-    opacity: 0.5;
-    background: linear-gradient(180deg, #52525b, #3f3f46);
-    box-shadow: none;
+      0 0 calc(18px + var(--v-level) * 60px) calc(var(--v-level) * 6px) rgba(216,216,226, calc(0.10 + var(--v-level) * 0.45)),
+      0 20px 46px -26px rgba(0,0,0,0.95);
+    transition: box-shadow 90ms linear;
   }
 
-  .btn-pill {
-    @apply px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200;
+  .v-audio-scale {
+    transform: scale(calc(1 + var(--v-level) * 0.045));
+    transition: transform 90ms linear;
   }
 
-  .btn-pill-active {
-    @apply btn-pill bg-white text-black;
+  .v-audio-ring {
+    border-color: rgba(216,216,226, calc(0.12 + var(--v-level) * 0.55));
+    transition: border-color 90ms linear;
   }
 
-  .btn-pill-inactive {
-    @apply btn-pill bg-[#282828] text-white hover:bg-[#333];
-  }
+  /* =======================================================================
+     ESQUELETOS / CARREGAMENTO
+     ======================================================================= */
 
   .skeleton {
-    @apply animate-pulse rounded-lg bg-[#282828];
+    @apply rounded-xl;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%);
+    background-size: 200% 100%;
+    animation: v-shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Divisor com um brilho de prata no centro. */
+  .v-rule {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 20%, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.18) 80%, transparent);
+  }
+
+  /* Selo/etiqueta metálica pequena. */
+  .v-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider;
+    color: #0b0b0e;
+    background: linear-gradient(180deg, #f6f6fa, #b6b6c4);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px -3px rgba(0,0,0,0.8);
+  }
+  .v-badge-dim {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider;
+    color: var(--v-text-dim);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
   }
 }
 
-/* ===== Scrollbar ===== */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #535353; border-radius: 100px; }
-::-webkit-scrollbar-thumb:hover { background: #6a6a6a; }
+/* =========================================================================
+   KEYFRAMES
+   ========================================================================= */
 
-/* Hide the scrollbar on horizontal carousels (mood playlists row, etc.) */
+@keyframes v-sheen {
+  0%   { left: -60%; }
+  100% { left: 130%; }
+}
+
+@keyframes v-chrome-drift {
+  0%, 100% { background-position: 50% 0%; }
+  50%      { background-position: 50% 100%; }
+}
+
+@keyframes v-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes v-float {
+  0%, 100% { transform: translateY(0) rotateX(0deg); }
+  50%      { transform: translateY(-10px) rotateX(2deg); }
+}
+
+@keyframes v-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes v-rise {
+  from { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes v-scan {
+  0%   { transform: translateY(-120%); opacity: 0; }
+  12%  { opacity: 0.7; }
+  88%  { opacity: 0.7; }
+  100% { transform: translateY(320%); opacity: 0; }
+}
+
+@keyframes v-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* =========================================================================
+   BARRA DE ROLAGEM
+   ========================================================================= */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  background-color: rgba(255,255,255,0.14);
+}
+::-webkit-scrollbar-thumb:hover { background-color: rgba(216,216,226,0.42); }
+::-webkit-scrollbar-corner { background: transparent; }
+
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.16) transparent; }
+
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-/* ===== Range Input ===== */
+/* =========================================================================
+   RANGE — trilho de prata, botão sempre visível no toque
+   ========================================================================= */
+
 input[type="range"] {
-  -webkit-appearance: none; appearance: none;
-  height: 4px; border-radius: 100px; outline: none; cursor: pointer;
-  background: #535353;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 100px;
+  outline: none;
+  cursor: pointer;
+  background: rgba(255,255,255,0.14);
 }
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: #fff; cursor: pointer;
-  opacity: 0; transition: opacity 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff, #c2c2d0);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.6);
+  cursor: pointer;
+  /* Antes o botão ficava invisível até o hover — o que o deixava
+     inalcançável no toque. Agora ele existe sempre e só cresce no hover. */
+  opacity: 0.85;
+  transition: opacity 0.15s, transform 0.15s;
 }
-input[type="range"]:hover::-webkit-slider-thumb { opacity: 1; }
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  opacity: 1;
+  transform: scale(1.18);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 13px; height: 13px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff, #c2c2d0);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.6);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-track {
+  height: 4px; border-radius: 100px; background: rgba(255,255,255,0.14);
+}
 
-/* ===== Selection ===== */
-::selection { background: rgba(200,200,210,0.3); color: #fff; }
+/* =========================================================================
+   SELEÇÃO E FOCO
+   ========================================================================= */
 
-/* ===== Focus ===== */
+::selection { background: rgba(216,216,226,0.32); color: #fff; }
+
 .focus-ring {
-  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c0c0c8]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a];
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  --tw-ring-color: rgba(216,216,226,0.55);
+  --tw-ring-offset-color: #0a0a0c;
 }
+
+/* Foco visível global — teclado nunca fica perdido. */
+:focus-visible {
+  outline: 2px solid rgba(216,216,226,0.6);
+  outline-offset: 2px;
+}
+
+/* Pular para o conteúdo (leitores de tela / teclado) */
+.v-skip-link {
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translate(-50%, -140%);
+  z-index: 200;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: #f4f4f7;
+  color: #0b0b0e;
+  font-weight: 600;
+  transition: transform 200ms ease;
+}
+.v-skip-link:focus { transform: translate(-50%, 0); }

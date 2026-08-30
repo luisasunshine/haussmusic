@@ -117,7 +117,7 @@ export default function ExpandedPlayer({
         {/* Song Info Overlay */}
         <div className="absolute top-0 left-0 right-0 p-8 bg-gradient-to-b from-black/80 to-transparent">
           <h1 className="text-4xl font-bold text-white mb-2">{song.title}</h1>
-          <p className="text-xl text-zinc-300">
+          <p className="text-xl text-velvet-silver">
             {song.artist}
             {song.featuring && ` feat. ${song.featuring}`}
           </p>
@@ -125,7 +125,7 @@ export default function ExpandedPlayer({
       </div>
 
       {/* Bottom Controls */}
-      <div className="bg-zinc-950 border-t border-white/5 px-8 py-6">
+      <div className="bg-velvet-abyss border-t border-white/5 px-8 py-6">
         <div className="max-w-5xl mx-auto space-y-4">
           {/* Progress Bar */}
           <div className="space-y-2">
@@ -141,7 +141,7 @@ export default function ExpandedPlayer({
               </div>
             </div>
             
-            <div className="flex justify-between text-xs text-zinc-500">
+            <div className="flex justify-between text-xs text-velvet-faint">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -157,7 +157,7 @@ export default function ExpandedPlayer({
                 onClick={onClose}
                 className="p-2 hover:bg-white/10 rounded-full transition-colors"
               >
-                <X className="w-5 h-5 text-zinc-400" />
+                <X className="w-5 h-5 text-velvet-dim" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -165,7 +165,7 @@ export default function ExpandedPlayer({
                 onClick={onFavoriteToggle}
                 className="p-2 hover:bg-white/10 rounded-full transition-colors"
               >
-                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-pink-500 text-pink-500' : 'text-zinc-400'}`} />
+                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-pink-500 text-pink-500' : 'text-velvet-dim'}`} />
               </motion.button>
             </div>
 
@@ -176,7 +176,7 @@ export default function ExpandedPlayer({
                 whileTap={{ scale: 0.9 }}
                 onClick={toggleRepeat}
                 className={`p-2 rounded-full transition-colors ${
-                  repeatMode !== 'off' ? 'text-cyan-400' : 'text-zinc-500 hover:text-white'
+                  repeatMode !== 'off' ? 'text-cyan-400' : 'text-velvet-faint hover:text-white'
                 }`}
               >
                 {repeatMode === 'one' ? (
@@ -220,7 +220,7 @@ export default function ExpandedPlayer({
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-500 hover:text-white"
+                className="p-2 rounded-full hover:bg-white/10 transition-colors text-velvet-faint hover:text-white"
               >
                 <MoreHorizontal className="w-5 h-5" />
               </motion.button>

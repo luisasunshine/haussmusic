@@ -170,7 +170,7 @@ export default function Release() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-zinc-500">Carregando...</div>
+        <div className="text-velvet-faint">Carregando...</div>
       </div>
     );
   }
@@ -178,7 +178,7 @@ export default function Release() {
   if (!release) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-zinc-500">Lançamento não encontrado</div>
+        <div className="text-velvet-faint">Lançamento não encontrado</div>
       </div>
     );
   }
@@ -206,9 +206,9 @@ export default function Release() {
           ) : release.cover_url ? (
             <img src={release.cover_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-40" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-zinc-800/50 to-zinc-800/50" />
+            <div className="w-full h-full bg-gradient-to-br from-velvet-raised/50 to-velvet-raised/50" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-velvet-abyss via-velvet-abyss/60 to-transparent" />
         </div>
 
         {/* Content */}
@@ -223,7 +223,7 @@ export default function Release() {
               {release.cover_url ? (
                 <img src={release.cover_url} alt={release.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-zinc-500 to-zinc-500 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-velvet-ash to-velvet-ash flex items-center justify-center">
                   <Music2 className="w-20 h-20 text-white/50" />
                 </div>
               )}
@@ -235,7 +235,7 @@ export default function Release() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 onClick={() => navigate(-1)}
-                className="mb-2 lg:mb-4 flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm"
+                className="mb-2 lg:mb-4 flex items-center gap-2 text-velvet-dim hover:text-white transition-colors text-sm"
               >
                 <ArrowLeft className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
                 Voltar
@@ -253,15 +253,15 @@ export default function Release() {
                   )}
                 </div>
                 <h1 className="text-2xl lg:text-5xl font-black text-white mb-2 lg:mb-3 line-clamp-2">{release.title}</h1>
-                <div className="flex items-center gap-2 text-sm lg:text-xl text-zinc-300 mb-2 lg:mb-4">
+                <div className="flex items-center gap-2 text-sm lg:text-xl text-velvet-silver mb-2 lg:mb-4">
                   <User className="w-3.5 lg:w-5 h-3.5 lg:h-5" />
                   <span className="truncate">{release.artist}</span>
                   {release.featuring && (
-                    <span className="text-zinc-500 truncate">feat. {release.featuring}</span>
+                    <span className="text-velvet-faint truncate">feat. {release.featuring}</span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 lg:gap-6 text-xs lg:text-sm text-zinc-400 flex-wrap">
+                <div className="flex items-center gap-3 lg:gap-6 text-xs lg:text-sm text-velvet-dim flex-wrap">
                   {release.release_date && (
                     <div className="flex items-center gap-1.5 lg:gap-2">
                       <Calendar className="w-3 lg:w-4 h-3 lg:h-4" />
@@ -323,7 +323,7 @@ export default function Release() {
           <Heart className={`w-5 lg:w-6 h-5 lg:h-6 ${isFavorite ? 'fill-current' : ''}`} />
         </motion.button>
 
-        <div className="ml-auto text-xs lg:text-base text-zinc-400">
+        <div className="ml-auto text-xs lg:text-base text-velvet-dim">
           {release.likes || 0} curtidas
         </div>
       </div>
@@ -331,7 +331,7 @@ export default function Release() {
       {/* Description */}
       {release.description && (
         <div className="px-4 lg:px-6 xl:px-8 mb-6 lg:mb-8">
-          <p className="text-sm lg:text-base text-zinc-400 max-w-3xl">{release.description}</p>
+          <p className="text-sm lg:text-base text-velvet-dim max-w-3xl">{release.description}</p>
         </div>
       )}
 
@@ -352,7 +352,7 @@ export default function Release() {
                }`}
              >
               <div className="w-8 lg:w-10 text-center flex-shrink-0">
-                <span className={`text-sm lg:text-base text-zinc-500 group-hover:hidden ${playingTrackIndex === index ? 'hidden' : ''}`}>
+                <span className={`text-sm lg:text-base text-velvet-faint group-hover:hidden ${playingTrackIndex === index ? 'hidden' : ''}`}>
                   {index + 1}
                 </span>
                 {playingTrackIndex === index ? (
@@ -367,11 +367,11 @@ export default function Release() {
                   {song.title}
                 </div>
                 {song.featuring && (
-                  <div className="text-xs text-zinc-500 truncate">feat. {song.featuring}</div>
+                  <div className="text-xs text-velvet-faint truncate">feat. {song.featuring}</div>
                 )}
               </div>
 
-              <div className="text-xs lg:text-sm text-zinc-500 flex-shrink-0">
+              <div className="text-xs lg:text-sm text-velvet-faint flex-shrink-0">
                 {formatDuration(song.duration)}
               </div>
             </motion.div>

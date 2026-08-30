@@ -74,14 +74,14 @@ export default function LabelDashboard() {
     queryKey: ['labelAllPosts'],
     queryFn: () => base44.entities.Post.list('-release_date', 200),
     enabled: !!label,
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { data: allSongs = [] } = useQuery({
     queryKey: ['labelAllSongs'],
     queryFn: () => base44.entities.Song.list('-created_date', 300),
     enabled: !!label,
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const managedArtistIds = new Set(label?.managed_artists || []);
@@ -212,10 +212,10 @@ export default function LabelDashboard() {
   const totalLikes = labelPosts.reduce((acc, post) => acc + (post.likes || 0), 0) + labelSongs.reduce((acc, s) => acc + (s.likes || 0), 0);
 
   const stats = [
-    { icon: Music, value: managedArtists.length, label: 'Artistas', color: 'from-zinc-300 to-zinc-500', bg: 'bg-zinc-400/10', text: 'text-zinc-300' },
-    { icon: Eye, value: totalPlays, label: 'Reproduções', color: 'from-neutral-400 to-neutral-600', bg: 'bg-neutral-400/10', text: 'text-neutral-300' },
+    { icon: Music, value: managedArtists.length, label: 'Artistas', color: 'from-velvet-silver to-velvet-ash', bg: 'bg-velvet-silver/10', text: 'text-velvet-silver' },
+    { icon: Eye, value: totalPlays, label: 'Reproduções', color: 'from-velvet-steel to-velvet-ash', bg: 'bg-velvet-steel/10', text: 'text-velvet-silver' },
     { icon: Heart, value: totalLikes, label: 'Curtidas', color: 'from-slate-300 to-slate-500', bg: 'bg-slate-400/10', text: 'text-slate-300' },
-    { icon: Disc, value: labelPosts.length, label: 'Lançamentos', color: 'from-zinc-200 to-zinc-400', bg: 'bg-zinc-300/10', text: 'text-zinc-200' },
+    { icon: Disc, value: labelPosts.length, label: 'Lançamentos', color: 'from-velvet-text to-velvet-steel', bg: 'bg-velvet-silver/10', text: 'text-velvet-text' },
   ];
 
   const availableReps = allUsers.filter(u => !representatives.find(r => r.id === u.id) && u.id !== user?.id);
@@ -224,7 +224,7 @@ export default function LabelDashboard() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#c0c0c8] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#d8d8e2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -234,7 +234,7 @@ export default function LabelDashboard() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-3 text-center">
           <AlertCircle className="w-8 h-8 text-red-500" />
-          <p className="text-[#B3B3B3]">Acesso restrito a gravadoras</p>
+          <p className="text-[#9a9aa6]">Acesso restrito a gravadoras</p>
         </div>
       </div>
     );
@@ -246,12 +246,12 @@ export default function LabelDashboard() {
         <div className="min-h-screen px-6 lg:px-8 py-10">
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-[#c0c0c8]/10 flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="w-5 h-5 text-[#c0c0c8]" />
+              <div className="w-10 h-10 rounded-xl bg-[#d8d8e2]/10 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-[#d8d8e2]" />
               </div>
               <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-white">Escolha uma gravadora para gerenciar</h1>
-                <p className="text-sm text-zinc-500">{labels.length} gravadora{labels.length !== 1 ? 's' : ''} cadastrada{labels.length !== 1 ? 's' : ''}</p>
+                <h1 className="text-xl lg:text-2xl font-bold v-chrome-text">Escolha uma gravadora para gerenciar</h1>
+                <p className="text-sm text-velvet-faint">{labels.length} gravadora{labels.length !== 1 ? 's' : ''} cadastrada{labels.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
 
@@ -264,7 +264,7 @@ export default function LabelDashboard() {
                   onClick={() => setSelectedLabelId(l.id)}
                   className="group flex flex-col items-center gap-2 text-center"
                 >
-                  <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] ring-1 ring-white/10 group-hover:ring-[#c0c0c8]/50 shadow-lg group-hover:shadow-[#c0c0c8]/20 transition-all">
+                  <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#d8d8e2]/30 to-[#101014] ring-1 ring-white/10 group-hover:ring-[#d8d8e2]/50 shadow-lg group-hover:shadow-[#d8d8e2]/20 transition-all">
                     {l.profile_picture ? (
                       <img src={l.profile_picture} alt={l.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     ) : (
@@ -273,7 +273,7 @@ export default function LabelDashboard() {
                       </div>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-white truncate max-w-full group-hover:text-[#c0c0c8] transition-colors">{l.name}</span>
+                  <span className="text-sm font-medium text-white truncate max-w-full group-hover:text-[#d8d8e2] transition-colors">{l.name}</span>
                 </motion.button>
               ))}
             </div>
@@ -285,8 +285,8 @@ export default function LabelDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen px-6">
         <div className="flex flex-col items-center gap-4 text-center max-w-md">
-          <AlertCircle className="w-8 h-8 text-[#c0c0c8]" />
-          <p className="text-[#B3B3B3]">
+          <AlertCircle className="w-8 h-8 text-[#d8d8e2]" />
+          <p className="text-[#9a9aa6]">
             Sua conta ainda não está associada a nenhuma gravadora. Peça a um admin para te adicionar como representante em Admin → Gravadoras.
           </p>
         </div>
@@ -298,7 +298,7 @@ export default function LabelDashboard() {
     <div className="min-h-screen pb-32">
       {/* Hero Header */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#c0c0c8]/20 via-[#121212] to-[#e5e5ea]/10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#d8d8e2]/20 via-[#0a0a0c] to-[#f4f4f7]/10" />
         <div className="relative px-6 lg:px-8 pt-8 pb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Label logo */}
@@ -321,7 +321,7 @@ export default function LabelDashboard() {
                 input.click();
               }}
             >
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-[#c0c0c8]/30 shadow-2xl shadow-[#c0c0c8]/20 bg-gradient-to-br from-[#c0c0c8] to-[#e5e5ea] flex items-center justify-center">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-[#d8d8e2]/30 shadow-2xl shadow-[#d8d8e2]/20 bg-gradient-to-br from-[#d8d8e2] to-[#f4f4f7] flex items-center justify-center">
                 {label.profile_picture ? (
                   <img src={label.profile_picture} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -341,10 +341,10 @@ export default function LabelDashboard() {
               className="flex-1"
             >
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#c0c0c8] bg-[#c0c0c8]/10 px-3 py-1 rounded-full">Gravadora</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#d8d8e2] bg-[#d8d8e2]/10 px-3 py-1 rounded-full">Gravadora</span>
               </div>
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-1">{label.name}</h1>
-              <p className="text-zinc-400 text-sm md:text-base">Dashboard da Gravadora — Gerencie seus artistas e publicações</p>
+              <h1 className="text-3xl md:text-5xl font-black mb-1 v-chrome-text v-display">{label.name}</h1>
+              <p className="text-velvet-dim text-sm md:text-base">Dashboard da Gravadora — Gerencie seus artistas e publicações</p>
             </motion.div>
 
             {/* Quick Action */}
@@ -358,7 +358,7 @@ export default function LabelDashboard() {
                   if (selectedArtistId) { setEditingRelease(null); setShowReleaseCreator(true); }
                   else toast.error('Selecione um artista primeiro');
                 }}
-                className="btn-metal rounded-full px-6 py-6 h-auto text-base font-bold shadow-lg shadow-[#c0c0c8]/30"
+                className="btn-metal rounded-full px-6 py-6 h-auto text-base font-bold shadow-lg shadow-[#d8d8e2]/30"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Novo Lançamento
@@ -373,12 +373,12 @@ export default function LabelDashboard() {
             transition={{ delay: 0.3 }}
             className="mt-6 max-w-md"
           >
-            <label className="text-sm font-medium text-[#B3B3B3] mb-2 block">Selecione o artista para publicar</label>
+            <label className="text-sm font-medium text-[#9a9aa6] mb-2 block">Selecione o artista para publicar</label>
             <Select value={selectedArtistId} onValueChange={setSelectedArtistId}>
-              <SelectTrigger className="bg-[#181818] border-[#383838] text-white">
+              <SelectTrigger className="bg-[#101014] border-[#26262e] text-white">
                 <SelectValue placeholder="Escolha um artista" />
               </SelectTrigger>
-              <SelectContent className="bg-[#282828] border-[#383838]">
+              <SelectContent className="bg-[#1c1c22] border-[#26262e]">
                 {managedArtists.map((artist) => (
                   <SelectItem key={artist.id} value={artist.id} className="text-white">
                     {artist.display_name || artist.full_name}
@@ -427,19 +427,19 @@ export default function LabelDashboard() {
       <div className="px-6 lg:px-8 pt-6">
         <Tabs defaultValue="releases" className="w-full">
           <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl grid w-full grid-cols-4">
-            <TabsTrigger value="releases" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900 text-xs">
+            <TabsTrigger value="releases" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void text-xs">
               <Disc className="w-4 h-4 mr-1" />
               Lançamentos
             </TabsTrigger>
-            <TabsTrigger value="artists" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900 text-xs">
+            <TabsTrigger value="artists" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void text-xs">
               <Users className="w-4 h-4 mr-1" />
               Artistas
             </TabsTrigger>
-            <TabsTrigger value="representatives" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900 text-xs">
+            <TabsTrigger value="representatives" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void text-xs">
               <Users className="w-4 h-4 mr-1" />
               Representantes
             </TabsTrigger>
-            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900 text-xs">
+            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void text-xs">
               ⚙️ Dados
             </TabsTrigger>
           </TabsList>
@@ -448,12 +448,12 @@ export default function LabelDashboard() {
           <TabsContent value="releases" className="mt-6">
             {labelPosts.length > 0 && (
               <div className="relative max-w-sm mb-5">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-velvet-faint" />
                 <Input
                   placeholder="Buscar lançamentos..."
                   value={releaseSearch}
                   onChange={(e) => setReleaseSearch(e.target.value)}
-                  className="bg-[#181818] border-white/10 text-white placeholder:text-zinc-600 pl-9"
+                  className="bg-[#101014] border-white/10 text-white placeholder:text-velvet-faint pl-9"
                 />
               </div>
             )}
@@ -472,13 +472,13 @@ export default function LabelDashboard() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.04 }}
-                      className="group bg-[#181818] rounded-xl overflow-hidden hover:bg-[#282828] transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl"
+                      className="group bg-[#101014] rounded-xl overflow-hidden hover:bg-[#1c1c22] transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl"
                     >
                       <div className="aspect-square relative overflow-hidden">
                         {post.cover_url ? (
                           <img src={post.cover_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/40 to-[#e5e5ea]/40 flex items-center justify-center">
+                          <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/40 to-[#f4f4f7]/40 flex items-center justify-center">
                             <Disc className="w-16 h-16 text-white/20" />
                           </div>
                         )}
@@ -486,7 +486,7 @@ export default function LabelDashboard() {
                           <motion.div
                             initial={{ opacity: 0, scale: 0.5 }}
                             whileHover={{ opacity: 1, scale: 1 }}
-                            className="w-12 h-12 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-2xl"
+                            className="w-12 h-12 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-2xl"
                             onClick={(e) => {
                               e.stopPropagation();
                               window.location.href = `/Release?id=${post.id}`;
@@ -501,7 +501,7 @@ export default function LabelDashboard() {
                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditingRelease(post); setShowReleaseCreator(true); }}
-                            className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-[#c0c0c8] rounded-lg transition-colors"
+                            className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-[#d8d8e2] rounded-lg transition-colors"
                           >
                             <Edit2 className="w-3.5 h-3.5 text-white" />
                           </button>
@@ -518,8 +518,8 @@ export default function LabelDashboard() {
                       </div>
                       <div className="p-3">
                         <h3 className="font-semibold text-white text-sm truncate">{post.title}</h3>
-                        <p className="text-xs text-zinc-400 truncate mt-0.5">{post.artist}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
+                        <p className="text-xs text-velvet-dim truncate mt-0.5">{post.artist}</p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-velvet-faint">
                           {post.release_date && (
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
@@ -538,15 +538,15 @@ export default function LabelDashboard() {
                   key="empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-20 bg-[#181818] rounded-2xl border border-white/5"
+                  className="text-center py-20 bg-[#101014] rounded-2xl border border-white/5"
                 >
-                  <div className="w-20 h-20 rounded-full bg-[#c0c0c8]/10 flex items-center justify-center mx-auto mb-4">
-                    <Disc className="w-10 h-10 text-[#c0c0c8]" />
+                  <div className="w-20 h-20 rounded-full bg-[#d8d8e2]/10 flex items-center justify-center mx-auto mb-4">
+                    <Disc className="w-10 h-10 text-[#d8d8e2]" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">
                     {labelPosts.length === 0 ? 'Nenhum lançamento ainda' : 'Nenhum resultado'}
                   </h3>
-                  <p className="text-zinc-400">
+                  <p className="text-velvet-dim">
                     {labelPosts.length === 0 ? 'Selecione um artista e comece a publicar.' : 'Tente buscar por outro termo.'}
                   </p>
                 </motion.div>
@@ -558,12 +558,12 @@ export default function LabelDashboard() {
           <TabsContent value="artists" className="mt-6">
             {managedArtists.length > 0 && (
               <div className="relative max-w-sm mb-5">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-velvet-faint" />
                 <Input
                   placeholder="Buscar artistas..."
                   value={artistSearch}
                   onChange={(e) => setArtistSearch(e.target.value)}
-                  className="bg-[#181818] border-white/10 text-white placeholder:text-zinc-600 pl-9"
+                  className="bg-[#101014] border-white/10 text-white placeholder:text-velvet-faint pl-9"
                 />
               </div>
             )}
@@ -582,13 +582,13 @@ export default function LabelDashboard() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.04 }}
-                      className="group bg-[#181818] rounded-xl overflow-hidden hover:bg-[#282828] transition-all duration-300 shadow-lg hover:shadow-xl"
+                      className="group bg-[#101014] rounded-xl overflow-hidden hover:bg-[#1c1c22] transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                       <div className="relative aspect-square overflow-hidden">
                         {artist.profile_picture ? (
                           <img src={artist.profile_picture} alt={artist.display_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/40 to-[#e5e5ea]/40 flex items-center justify-center">
+                          <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/40 to-[#f4f4f7]/40 flex items-center justify-center">
                             <Music className="w-16 h-16 text-white/20" />
                           </div>
                         )}
@@ -596,7 +596,7 @@ export default function LabelDashboard() {
                       </div>
                       <div className="p-4">
                         <h3 className="font-semibold text-white truncate">{artist.display_name || artist.full_name}</h3>
-                        <p className="text-xs text-zinc-400 mt-1 truncate">{artist.bio || 'Artista'}</p>
+                        <p className="text-xs text-velvet-dim mt-1 truncate">{artist.bio || 'Artista'}</p>
                         <div className="mt-3 flex gap-2">
                           <Button
                             size="sm"
@@ -605,7 +605,7 @@ export default function LabelDashboard() {
                               setSelectedArtistId(artist.id);
                               setShowReleaseCreator(true);
                             }}
-                            className="flex-1 h-8 bg-[#c0c0c8]/20 hover:bg-[#c0c0c8]/30 text-[#e5e5ea] text-xs"
+                            className="flex-1 h-8 bg-[#d8d8e2]/20 hover:bg-[#d8d8e2]/30 text-[#f4f4f7] text-xs"
                           >
                             Publicar
                           </Button>
@@ -631,15 +631,15 @@ export default function LabelDashboard() {
                   key="empty-artists"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-20 bg-[#181818] rounded-2xl border border-white/5"
+                  className="text-center py-20 bg-[#101014] rounded-2xl border border-white/5"
                 >
-                  <div className="w-20 h-20 rounded-full bg-[#c0c0c8]/10 flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-10 h-10 text-[#c0c0c8]" />
+                  <div className="w-20 h-20 rounded-full bg-[#d8d8e2]/10 flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-10 h-10 text-[#d8d8e2]" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">
                     {managedArtists.length === 0 ? 'Nenhum artista gerenciado' : 'Nenhum resultado'}
                   </h3>
-                  <p className="text-zinc-400">
+                  <p className="text-velvet-dim">
                     {managedArtists.length === 0 ? 'Solicite a um admin para vincular artistas à sua gravadora.' : 'Tente buscar por outro termo.'}
                   </p>
                 </motion.div>
@@ -663,9 +663,9 @@ export default function LabelDashboard() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="flex items-center gap-4 bg-[#181818] rounded-xl p-4 border border-white/5 hover:border-white/10 transition-colors"
+                      className="flex items-center gap-4 bg-[#101014] rounded-xl p-4 border border-white/5 hover:border-white/10 transition-colors"
                     >
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#c0c0c8] to-[#e5e5ea] flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d8d8e2] to-[#f4f4f7] flex items-center justify-center flex-shrink-0">
                         {rep.profile_picture ? (
                           <img src={rep.profile_picture} alt="" className="w-full h-full rounded-full object-cover" />
                         ) : (
@@ -674,7 +674,7 @@ export default function LabelDashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-white truncate">{rep.display_name || rep.full_name}</h3>
-                        <p className="text-xs text-zinc-500">{rep.email}</p>
+                        <p className="text-xs text-velvet-faint">{rep.email}</p>
                       </div>
                       <Button
                         size="sm"
@@ -697,11 +697,11 @@ export default function LabelDashboard() {
                   key="empty-reps"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-12 bg-[#181818] rounded-2xl border border-white/5"
+                  className="text-center py-12 bg-[#101014] rounded-2xl border border-white/5"
                 >
-                  <Users className="w-10 h-10 text-[#c0c0c8] mx-auto mb-3" />
+                  <Users className="w-10 h-10 text-[#d8d8e2] mx-auto mb-3" />
                   <h3 className="text-lg font-bold text-white mb-1">Nenhum representante</h3>
-                  <p className="text-sm text-zinc-400 mb-4">Adicione um representante para ajudar a gerenciar a gravadora</p>
+                  <p className="text-sm text-velvet-dim mb-4">Adicione um representante para ajudar a gerenciar a gravadora</p>
                 </motion.div>
               )}
 
@@ -713,7 +713,7 @@ export default function LabelDashboard() {
                     Adicionar Representante
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-[#282828] border-[#383838]">
+                <DialogContent className="bg-[#1c1c22] border-[#26262e]">
                   <DialogHeader>
                     <DialogTitle className="text-white">Adicionar Representante</DialogTitle>
                   </DialogHeader>
@@ -723,7 +723,7 @@ export default function LabelDashboard() {
                         placeholder="Pesquisar por nome ou email"
                         value={searchRepresentative}
                         onChange={(e) => setSearchRepresentative(e.target.value)}
-                        className="bg-[#181818] border-[#383838] text-white placeholder-[#535353]"
+                        className="bg-[#101014] border-[#26262e] text-white placeholder-[#62626e]"
                       />
                     </div>
                     <div className="max-h-64 overflow-y-auto space-y-2">
@@ -733,19 +733,19 @@ export default function LabelDashboard() {
                             key={u.id}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex items-center justify-between bg-[#181818] rounded-lg p-3 border border-white/5"
+                            className="flex items-center justify-between bg-[#101014] rounded-lg p-3 border border-white/5"
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <div className="w-10 h-10 rounded-full bg-[#c0c0c8]/20 flex items-center justify-center flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-[#d8d8e2]/20 flex items-center justify-center flex-shrink-0">
                                 {u.profile_picture ? (
                                   <img src={u.profile_picture} alt="" className="w-full h-full rounded-full object-cover" />
                                 ) : (
-                                  <Users className="w-5 h-5 text-[#c0c0c8]" />
+                                  <Users className="w-5 h-5 text-[#d8d8e2]" />
                                 )}
                               </div>
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-white truncate">{u.display_name || u.full_name}</p>
-                                <p className="text-xs text-zinc-500 truncate">{u.email}</p>
+                                <p className="text-xs text-velvet-faint truncate">{u.email}</p>
                               </div>
                             </div>
                             <Button
@@ -759,7 +759,7 @@ export default function LabelDashboard() {
                           </motion.div>
                         ))
                       ) : (
-                        <p className="text-center text-zinc-500 text-sm py-4">Nenhum usuário disponível</p>
+                        <p className="text-center text-velvet-faint text-sm py-4">Nenhum usuário disponível</p>
                       )}
                     </div>
                   </div>
@@ -773,16 +773,16 @@ export default function LabelDashboard() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-4 bg-[#181818] rounded-2xl p-6 border border-white/5"
+              className="space-y-4 bg-[#101014] rounded-2xl p-6 border border-white/5"
             >
               <div>
-                <label className="text-sm font-medium text-[#B3B3B3] mb-2 block">Logo da Gravadora</label>
-                <label className="relative block w-28 h-28 rounded-2xl overflow-hidden border-2 border-dashed border-white/10 hover:border-[#c0c0c8]/50 transition-colors cursor-pointer group">
+                <label className="text-sm font-medium text-[#9a9aa6] mb-2 block">Logo da Gravadora</label>
+                <label className="relative block w-28 h-28 rounded-2xl overflow-hidden border-2 border-dashed border-white/10 hover:border-[#d8d8e2]/50 transition-colors cursor-pointer group">
                   {label.profile_picture ? (
                     <img src={label.profile_picture} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-[#282828]">
-                      <Music className="w-8 h-8 text-zinc-600" />
+                    <div className="w-full h-full flex items-center justify-center bg-[#1c1c22]">
+                      <Music className="w-8 h-8 text-velvet-faint" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
@@ -804,7 +804,7 @@ export default function LabelDashboard() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-[#B3B3B3] mb-2 block">Nome da Gravadora</label>
+                <label className="text-sm font-medium text-[#9a9aa6] mb-2 block">Nome da Gravadora</label>
                 <Input
                   defaultValue={label.name || ''}
                   onBlur={(e) => {
@@ -812,7 +812,7 @@ export default function LabelDashboard() {
                       updateLabelMutation.mutate({ name: e.target.value });
                     }
                   }}
-                  className="bg-[#282828] border-[#383838] text-white placeholder-[#535353]"
+                  className="bg-[#1c1c22] border-[#26262e] text-white placeholder-[#62626e]"
                 />
               </div>
             </motion.div>

@@ -350,7 +350,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
             exit={{ opacity: 0, y: 30, scale: 0.97 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
-            className="relative w-full max-w-3xl my-8 bg-[#1a1a1a] rounded-3xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            className="relative w-full max-w-3xl my-8 bg-[#0e0e12] rounded-3xl border border-white/[0.08] shadow-2xl overflow-hidden"
           >
             {/* Upload overlay */}
             <AnimatePresence>
@@ -361,7 +361,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                 >
                   <div className="flex flex-col items-center gap-3">
                     <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
-                      <Loader2 className="w-10 h-10 text-[#e5e5ea]" />
+                      <Loader2 className="w-10 h-10 text-[#f4f4f7]" />
                     </motion.div>
                     <p className="text-white/80 text-sm font-medium">Enviando {uploadingWhat}...</p>
                   </div>
@@ -372,7 +372,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 z-10 p-2 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all"
+              className="absolute top-5 right-5 z-10 p-2 rounded-full bg-white/5 hover:bg-white/10 text-velvet-dim hover:text-white transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -381,21 +381,21 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
             <div className="p-6 md:p-8 space-y-8 max-h-[80vh] overflow-y-auto">
               {/* ===== HEADER ===== */}
               <div className="text-center pt-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#c0c0c8]/10 text-[#e5e5ea] text-xs font-semibold mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#d8d8e2]/10 text-[#f4f4f7] text-xs font-semibold mb-3">
                   <Sparkles className="w-3.5 h-3.5" />
                   {podcastMode ? (releaseToEdit ? 'Editando podcast' : 'Novo podcast') : (releaseToEdit ? 'Editando lançamento' : 'Novo lançamento')}
                 </div>
-                <h2 className="text-2xl md:text-3xl font-black text-white">
+                <h2 className="text-2xl md:text-3xl font-black v-chrome-text v-display">
                   {podcastMode ? (releaseToEdit ? 'Editar Podcast' : 'Criar Podcast') : (releaseToEdit ? 'Editar Lançamento' : 'Criar Lançamento')}
                 </h2>
-                <p className="text-zinc-500 text-sm mt-1">{podcastMode ? 'Preencha os detalhes do seu podcast' : 'Preencha os detalhes do seu projeto musical'}</p>
+                <p className="text-velvet-faint text-sm mt-1">{podcastMode ? 'Preencha os detalhes do seu podcast' : 'Preencha os detalhes do seu projeto musical'}</p>
               </div>
 
               {/* ===== TYPE SELECTOR (music releases only) ===== */}
               {!podcastMode && (
               <section>
-                <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300 mb-3">
-                  <Tag className="w-4 h-4 text-[#c0c0c8]" /> Tipo de Lançamento
+                <label className="flex items-center gap-2 text-sm font-semibold text-velvet-silver mb-3">
+                  <Tag className="w-4 h-4 text-[#d8d8e2]" /> Tipo de Lançamento
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {TYPES.map(({ value, label, desc, icon: Icon }) => (
@@ -405,13 +405,13 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                       onClick={() => setFormData(p => ({ ...p, type: value }))}
                       className={`flex flex-col items-center gap-1 py-4 px-3 rounded-2xl border transition-all ${
                         formData.type === value
-                          ? 'border-[#c0c0c8] bg-[#c0c0c8]/10'
+                          ? 'border-[#d8d8e2] bg-[#d8d8e2]/10'
                           : 'border-white/5 bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.05]'
                       }`}
                     >
-                      <Icon className={`w-5 h-5 ${formData.type === value ? 'text-[#e5e5ea]' : 'text-zinc-500'}`} />
-                      <span className={`text-sm font-bold ${formData.type === value ? 'text-white' : 'text-zinc-400'}`}>{label}</span>
-                      <span className="text-[10px] text-zinc-600">{desc}</span>
+                      <Icon className={`w-5 h-5 ${formData.type === value ? 'text-[#f4f4f7]' : 'text-velvet-faint'}`} />
+                      <span className={`text-sm font-bold ${formData.type === value ? 'text-white' : 'text-velvet-dim'}`}>{label}</span>
+                      <span className="text-[10px] text-velvet-faint">{desc}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -420,15 +420,15 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
 
               {/* ===== BASIC INFO ===== */}
               <section className="space-y-4">
-                <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
-                  <Mic className="w-4 h-4 text-[#c0c0c8]" /> Informações Básicas
+                <label className="flex items-center gap-2 text-sm font-semibold text-velvet-silver">
+                  <Mic className="w-4 h-4 text-[#d8d8e2]" /> Informações Básicas
                 </label>
                 <div className="grid gap-3">
                   <input
                     type="text" value={formData.title}
                     onChange={e => setFormData(p => ({ ...p, title: e.target.value }))}
                     placeholder={podcastMode ? 'Nome do podcast *' : 'Título do lançamento *'}
-                    className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#c0c0c8]/40 transition-colors"
+                    className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-velvet-faint focus:outline-none focus:border-[#d8d8e2]/40 transition-colors"
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <input
@@ -436,13 +436,13 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                       onChange={e => setFormData(p => ({ ...p, artist: e.target.value }))}
                       placeholder="Nome do artista *"
                       disabled={!!managedArtist && !!labelContext}
-                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#c0c0c8]/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-velvet-faint focus:outline-none focus:border-[#d8d8e2]/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                     <input
                       type="text" value={formData.featuring}
                       onChange={e => setFormData(p => ({ ...p, featuring: e.target.value }))}
                       placeholder="Participações (feat.)"
-                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#c0c0c8]/40 transition-colors"
+                      className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-velvet-faint focus:outline-none focus:border-[#d8d8e2]/40 transition-colors"
                     />
                   </div>
                   <div className={`grid ${(!podcastMode && !formData.is_scheduled) ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
@@ -450,7 +450,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                       <select
                         value={formData.genre}
                         onChange={e => setFormData(p => ({ ...p, genre: e.target.value }))}
-                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm focus:outline-none focus:border-[#c0c0c8]/40 transition-colors [&>option]:bg-[#1a1a1a]"
+                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm focus:outline-none focus:border-[#d8d8e2]/40 transition-colors [&>option]:bg-[#0e0e12]"
                       >
                         {GENRES.map(g => <option key={g} value={g}>{GENRE_LABELS[g]}</option>)}
                       </select>
@@ -459,7 +459,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                       <input
                         type="date" value={formData.release_date} max={getTodayDate()}
                         onChange={e => setFormData(p => ({ ...p, release_date: e.target.value }))}
-                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm focus:outline-none focus:border-[#c0c0c8]/40 transition-colors"
+                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm focus:outline-none focus:border-[#d8d8e2]/40 transition-colors"
                       />
                     )}
                   </div>
@@ -469,10 +469,10 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                 {/* Podcast categories — pick one or more */}
                 {podcastMode && (
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300 mb-2">
-                      <Tag className="w-4 h-4 text-[#c0c0c8]" /> Categorias
+                    <label className="flex items-center gap-2 text-sm font-semibold text-velvet-silver mb-2">
+                      <Tag className="w-4 h-4 text-[#d8d8e2]" /> Categorias
                       {formData.categories?.length > 0 && (
-                        <span className="text-xs font-normal text-zinc-500">({formData.categories.length})</span>
+                        <span className="text-xs font-normal text-velvet-faint">({formData.categories.length})</span>
                       )}
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -490,8 +490,8 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                             }))}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                               on
-                                ? 'bg-[#c0c0c8]/15 text-[#e5e5ea] border-[#c0c0c8]/40'
-                                : 'bg-white/[0.03] text-zinc-400 border-white/[0.08] hover:border-white/20 hover:text-white'
+                                ? 'bg-[#d8d8e2]/15 text-[#f4f4f7] border-[#d8d8e2]/40'
+                                : 'bg-white/[0.03] text-velvet-dim border-white/[0.08] hover:border-white/20 hover:text-white'
                             }`}
                           >
                             {cat}
@@ -508,20 +508,20 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                     type="checkbox"
                     checked={formData.is_scheduled}
                     onChange={(e) => setFormData(p => ({ ...p, is_scheduled: e.target.checked, scheduled_datetime: e.target.checked ? p.scheduled_datetime : '' }))}
-                    className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#c0c0c8] focus:ring-[#c0c0c8] focus:ring-offset-0"
+                    className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#d8d8e2] focus:ring-[#d8d8e2] focus:ring-offset-0"
                   />
                   <div className="flex-1">
                     <span className="text-sm font-medium text-white">Agendar estreia na plataforma</span>
-                    <p className="text-xs text-zinc-500">O lançamento ficará como "Em Breve" até a data escolhida</p>
+                    <p className="text-xs text-velvet-faint">O lançamento ficará como "Em Breve" até a data escolhida</p>
                   </div>
                 </label>
                 {formData.is_scheduled && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-[#c0c0c8]/5 border border-[#c0c0c8]/15"
+                    className="flex items-center gap-3 p-3 rounded-2xl bg-[#d8d8e2]/5 border border-[#d8d8e2]/15"
                   >
-                    <Clock className="w-4 h-4 text-[#e5e5ea] shrink-0" />
+                    <Clock className="w-4 h-4 text-[#f4f4f7] shrink-0" />
                     <input
                       type="datetime-local"
                       value={formData.scheduled_datetime ? (() => {
@@ -538,7 +538,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                         const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
                         return local.toISOString().slice(0, 16);
                       })()}
-                      className="flex-1 px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:border-[#c0c0c8]/40 transition-colors"
+                      className="flex-1 px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:border-[#d8d8e2]/40 transition-colors"
                     />
                   </motion.div>
                 )}
@@ -546,23 +546,23 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
 
               {/* ===== MEDIA ===== */}
               <section>
-                <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300 mb-3">
-                  <Image className="w-4 h-4 text-[#c0c0c8]" /> {podcastMode ? 'Capa' : 'Capa & Vídeo'}
+                <label className="flex items-center gap-2 text-sm font-semibold text-velvet-silver mb-3">
+                  <Image className="w-4 h-4 text-[#d8d8e2]" /> {podcastMode ? 'Capa' : 'Capa & Vídeo'}
                 </label>
                 <div className={`grid ${podcastMode ? 'grid-cols-1 max-w-[220px]' : 'grid-cols-2'} gap-3`}>
                   {/* Cover */}
                   <label className="relative group cursor-pointer">
                     <div className={`aspect-square rounded-2xl border-2 border-dashed overflow-hidden transition-all ${
-                      formData.cover_url ? 'border-[#c0c0c8]/40' : 'border-white/[0.08] hover:border-white/20'
+                      formData.cover_url ? 'border-[#d8d8e2]/40' : 'border-white/[0.08] hover:border-white/20'
                     }`}>
                       {formData.cover_url ? (
                         <img src={formData.cover_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center gap-2 bg-white/[0.02]">
                           <div className="w-10 h-10 rounded-full bg-white/[0.05] flex items-center justify-center">
-                            <Upload className="w-5 h-5 text-zinc-500" />
+                            <Upload className="w-5 h-5 text-velvet-faint" />
                           </div>
-                          <span className="text-xs text-zinc-500 text-center px-2">{podcastMode ? <>Capa do<br/>Podcast</> : <>Capa do<br/>Lançamento</>}</span>
+                          <span className="text-xs text-velvet-faint text-center px-2">{podcastMode ? <>Capa do<br/>Podcast</> : <>Capa do<br/>Lançamento</>}</span>
                         </div>
                       )}
                       {formData.cover_url && (
@@ -578,16 +578,16 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                   {!podcastMode && (
                   <label className="relative group cursor-pointer">
                     <div className={`aspect-square rounded-2xl border-2 border-dashed overflow-hidden transition-all ${
-                      formData.background_video_url ? 'border-[#c0c0c8]/40' : 'border-white/[0.08] hover:border-white/20'
+                      formData.background_video_url ? 'border-[#d8d8e2]/40' : 'border-white/[0.08] hover:border-white/20'
                     }`}>
                       {formData.background_video_url ? (
                         <BackgroundMedia src={formData.background_video_url} alt="Fundo" className="w-full h-full object-cover" />
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center gap-2 bg-white/[0.02]">
                           <div className="w-10 h-10 rounded-full bg-white/[0.05] flex items-center justify-center">
-                            <Video className="w-5 h-5 text-zinc-500" />
+                            <Video className="w-5 h-5 text-velvet-faint" />
                           </div>
-                          <span className="text-xs text-zinc-500 text-center px-2">Vídeo ou GIF de Fundo<br/>(opcional)</span>
+                          <span className="text-xs text-velvet-faint text-center px-2">Vídeo ou GIF de Fundo<br/>(opcional)</span>
                         </div>
                       )}
                       {formData.background_video_url && (
@@ -605,15 +605,15 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
               {/* ===== TRACKS ===== */}
               <section>
                 <div className="flex items-center justify-between mb-3">
-                  <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
-                    <Music className="w-4 h-4 text-[#c0c0c8]" /> {podcastMode ? 'Episódios' : 'Faixas'}
+                  <label className="flex items-center gap-2 text-sm font-semibold text-velvet-silver">
+                    <Music className="w-4 h-4 text-[#d8d8e2]" /> {podcastMode ? 'Episódios' : 'Faixas'}
                     {formData.tracks.length > 0 && (
-                      <span className="text-xs font-normal text-zinc-500 ml-1">
+                      <span className="text-xs font-normal text-velvet-faint ml-1">
                         ({formData.tracks.length} — {totalDuration()})
                       </span>
                     )}
                   </label>
-                  <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#c0c0c8]/15 hover:bg-[#c0c0c8]/25 text-[#e5e5ea] rounded-full text-sm font-medium cursor-pointer transition-colors">
+                  <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#d8d8e2]/15 hover:bg-[#d8d8e2]/25 text-[#f4f4f7] rounded-full text-sm font-medium cursor-pointer transition-colors">
                     <Plus className="w-4 h-4" />
                     Adicionar
                     <input type="file" accept="audio/*" multiple className="hidden" onChange={e => {
@@ -639,32 +639,32 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                   className="bg-white/[0.03] border border-white/[0.06] rounded-2xl group hover:border-white/10 transition-all overflow-hidden"
                                 >
                                   <div className="flex items-center gap-3 p-3">
-                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing text-zinc-600 hover:text-zinc-400 transition-colors">
+                                    <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing text-velvet-faint hover:text-velvet-dim transition-colors">
                                       <GripVertical className="w-4 h-4" />
                                     </div>
-                                    <span className="text-xs text-zinc-600 w-5 text-right font-mono">{index + 1}</span>
+                                    <span className="text-xs text-velvet-faint w-5 text-right font-mono">{index + 1}</span>
                                     <div className="flex-1 min-w-0 space-y-1">
                                       <input
                                         type="text" value={track.title}
                                         onChange={e => updateTrack(index, { title: e.target.value })}
-                                        className="w-full bg-transparent text-white text-sm font-medium focus:outline-none placeholder:text-zinc-600"
+                                        className="w-full bg-transparent text-white text-sm font-medium focus:outline-none placeholder:text-velvet-faint"
                                         placeholder="Nome da faixa"
                                       />
                                       {(formData.type === 'album' || formData.type === 'ep') && (
                                         <input
                                           type="text" value={track.featuring || ''}
                                           onChange={e => updateTrack(index, { featuring: e.target.value })}
-                                          className="w-full bg-transparent text-zinc-500 text-xs focus:outline-none placeholder:text-zinc-700"
+                                          className="w-full bg-transparent text-velvet-faint text-xs focus:outline-none placeholder:text-velvet-faint"
                                           placeholder="feat. (opcional)"
                                         />
                                       )}
                                     </div>
-                                    <span className="text-xs text-zinc-600 tabular-nums w-12 text-right">
+                                    <span className="text-xs text-velvet-faint tabular-nums w-12 text-right">
                                       {Math.floor(track.duration/60)}:{String(track.duration%60).padStart(2,'0')}
                                     </span>
                                     <button
                                       onClick={() => handleRemoveTrack(index)}
-                                      className="p-1.5 rounded-lg text-zinc-700 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                                      className="p-1.5 rounded-lg text-velvet-faint hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -674,13 +674,13 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                       credits + lyrics — clicking it opens the editors below */}
                                   <button
                                     onClick={() => setExpandedTrack(expandedTrack === index ? null : index)}
-                                    className="w-full flex items-center justify-between px-3 py-2.5 border-t border-white/[0.05] text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/[0.03] transition-colors"
+                                    className="w-full flex items-center justify-between px-3 py-2.5 border-t border-white/[0.05] text-xs font-medium text-velvet-dim hover:text-white hover:bg-white/[0.03] transition-colors"
                                   >
                                     <span className="flex items-center gap-2">
-                                      <FileText className="w-3.5 h-3.5 text-[#c0c0c8]" />
+                                      <FileText className="w-3.5 h-3.5 text-[#d8d8e2]" />
                                       Créditos e letra
                                       {(track.has_credits || track.has_lyrics) && (
-                                        <span className="text-[10px] font-semibold text-[#c0c0c8] bg-[#c0c0c8]/10 px-1.5 py-0.5 rounded-full">
+                                        <span className="text-[10px] font-semibold text-[#d8d8e2] bg-[#d8d8e2]/10 px-1.5 py-0.5 rounded-full">
                                           {[track.has_credits && 'créditos', track.has_lyrics && 'letra'].filter(Boolean).join(' + ')}
                                         </span>
                                       )}
@@ -706,9 +706,9 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                                 type="checkbox"
                                                 checked={!!track.has_credits}
                                                 onChange={e => updateTrack(index, { has_credits: e.target.checked, credits: (track.credits && track.credits.length) ? track.credits : [{ title: '', description: '' }] })}
-                                                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#c0c0c8] focus:ring-[#c0c0c8] focus:ring-offset-0"
+                                                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#d8d8e2] focus:ring-[#d8d8e2] focus:ring-offset-0"
                                               />
-                                              <Users className="w-4 h-4 text-[#c0c0c8]" />
+                                              <Users className="w-4 h-4 text-[#d8d8e2]" />
                                               <span className="text-sm font-semibold text-white">Créditos</span>
                                             </label>
                                             {track.has_credits && (
@@ -720,18 +720,18 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                                         type="text" value={c.title || ''}
                                                         onChange={e => updateTrack(index, { credits: (track.credits || []).map((x, j) => j === ci ? { ...x, title: e.target.value } : x) })}
                                                         placeholder="Categoria (ex: Produção e engenharia)"
-                                                        className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#c0c0c8]/40"
+                                                        className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm placeholder:text-velvet-faint focus:outline-none focus:border-[#d8d8e2]/40"
                                                       />
                                                       <input
                                                         type="text" value={c.description || ''}
                                                         onChange={e => updateTrack(index, { credits: (track.credits || []).map((x, j) => j === ci ? { ...x, description: e.target.value } : x) })}
                                                         placeholder="Descrição (ex: Nome do produtor)"
-                                                        className="w-full px-3 py-2 bg-white/[0.02] border border-white/[0.06] rounded-xl text-zinc-300 text-xs placeholder:text-zinc-700 focus:outline-none focus:border-[#c0c0c8]/30"
+                                                        className="w-full px-3 py-2 bg-white/[0.02] border border-white/[0.06] rounded-xl text-velvet-silver text-xs placeholder:text-velvet-faint focus:outline-none focus:border-[#d8d8e2]/30"
                                                       />
                                                     </div>
                                                     <button
                                                       onClick={() => updateTrack(index, { credits: (track.credits || []).filter((_, j) => j !== ci) })}
-                                                      className="p-2 mt-0.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                                      className="p-2 mt-0.5 rounded-lg text-velvet-faint hover:text-red-400 hover:bg-red-500/10 transition-all"
                                                     >
                                                       <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
@@ -739,7 +739,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                                 ))}
                                                 <button
                                                   onClick={() => updateTrack(index, { credits: [...(track.credits || []), { title: '', description: '' }] })}
-                                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-medium transition-colors"
+                                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-velvet-silver text-xs font-medium transition-colors"
                                                 >
                                                   <Plus className="w-3.5 h-3.5" /> Adicionar categoria
                                                 </button>
@@ -754,9 +754,9 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                                 type="checkbox"
                                                 checked={!!track.has_lyrics}
                                                 onChange={e => updateTrack(index, { has_lyrics: e.target.checked, lyrics_raw: track.lyrics_raw ?? formatLyrics(track.lyrics || []) })}
-                                                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#c0c0c8] focus:ring-[#c0c0c8] focus:ring-offset-0"
+                                                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#d8d8e2] focus:ring-[#d8d8e2] focus:ring-offset-0"
                                               />
-                                              <FileText className="w-4 h-4 text-[#c0c0c8]" />
+                                              <FileText className="w-4 h-4 text-[#d8d8e2]" />
                                               <span className="text-sm font-semibold text-white">Letra</span>
                                             </label>
                                             {track.has_lyrics && (
@@ -766,13 +766,13 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                                   onChange={e => updateTrack(index, { lyrics_raw: e.target.value })}
                                                   rows={7}
                                                   placeholder={'Uma linha por verso.\nOpcional: [00:12] no início da linha para sincronizar com a voz.'}
-                                                  className="w-full px-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm leading-relaxed placeholder:text-zinc-600 focus:outline-none focus:border-[#c0c0c8]/40 resize-y font-mono"
+                                                  className="w-full px-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm leading-relaxed placeholder:text-velvet-faint focus:outline-none focus:border-[#d8d8e2]/40 resize-y font-mono"
                                                 />
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                   <button
                                                     onClick={() => handleSyncLyrics(index)}
                                                     disabled={syncingTrackIndex === index}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#c0c0c8]/15 hover:bg-[#c0c0c8]/25 disabled:opacity-60 text-[#e5e5ea] text-xs font-medium transition-colors"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#d8d8e2]/15 hover:bg-[#d8d8e2]/25 disabled:opacity-60 text-[#f4f4f7] text-xs font-medium transition-colors"
                                                   >
                                                     {syncingTrackIndex === index ? (
                                                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -783,12 +783,12 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                                                   </button>
                                                   <button
                                                     onClick={() => updateTrack(index, { lyrics_raw: autoDistributeLyrics(track.lyrics_raw ?? formatLyrics(track.lyrics || []), track.duration) })}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 text-xs font-medium transition-colors"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-velvet-silver text-xs font-medium transition-colors"
                                                   >
                                                     <Wand2 className="w-3.5 h-3.5" /> Distribuir tempos
                                                   </button>
                                                 </div>
-                                                <p className="text-[10px] text-zinc-600">
+                                                <p className="text-[10px] text-velvet-faint">
                                                   "Sincronizar com IA" ouve o áudio e encontra quando cada verso é cantado — pode levar um minuto ou mais. "Distribuir tempos" apenas espalha os versos igualmente pela duração da faixa.
                                                 </p>
                                               </div>
@@ -810,10 +810,10 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                 ) : (
                   <div className="text-center py-10 rounded-2xl border border-dashed border-white/[0.06]">
                     <div className="w-12 h-12 rounded-full bg-white/[0.03] flex items-center justify-center mx-auto mb-3">
-                      <Music className="w-6 h-6 text-zinc-600" />
+                      <Music className="w-6 h-6 text-velvet-faint" />
                     </div>
-                    <p className="text-sm text-zinc-500">{podcastMode ? 'Adicione os episódios do seu podcast' : 'Adicione as faixas do seu lançamento'}</p>
-                    <p className="text-xs text-zinc-600 mt-1">Arraste para reordenar depois</p>
+                    <p className="text-sm text-velvet-faint">{podcastMode ? 'Adicione os episódios do seu podcast' : 'Adicione as faixas do seu lançamento'}</p>
+                    <p className="text-xs text-velvet-faint mt-1">Arraste para reordenar depois</p>
                   </div>
                 )}
               </section>
@@ -834,7 +834,7 @@ export default function ReleaseCreatorPanel({ isOpen, onClose, releaseToEdit, on
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSave('published')}
                   disabled={saving || !formData.title || !formData.artist || formData.tracks.length === 0}
-                  className="flex-[2] py-3 rounded-2xl bg-[#c0c0c8] hover:bg-[#9B6CF7] text-white text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#c0c0c8]/25"
+                  className="flex-[2] py-3 rounded-2xl bg-[#d8d8e2] hover:bg-[#9B6CF7] text-white text-sm font-bold transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#d8d8e2]/25"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   {podcastMode ? (releaseToEdit ? 'Atualizar podcast' : 'Publicar podcast') : (releaseToEdit ? 'Atualizar lançamento' : 'Publicar lançamento')}

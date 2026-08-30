@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { Mail, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
+import VelvetBackdrop from '@/components/fx/VelvetBackdrop';
 import { useNavigate } from 'react-router-dom';
 
 export default function AuthPage() {
@@ -77,24 +78,23 @@ export default function AuthPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-center p-4">
-      {/* Background effects */}
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--v-void)' }}>
+      {/* Poeira de prata em profundidade — a mesma do resto do app, para a
+          porta de entrada já ser a linguagem visual da casa. */}
+      <VelvetBackdrop />
+
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.1, 0.2, 0.1]
-          }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-1/4 -left-1/4 w-96 h-96 bg-zinc-400 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.25, 1], opacity: [0.10, 0.22, 0.10] }}
+          transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-1/4 -left-1/4 w-[32rem] h-[32rem] rounded-full blur-3xl"
+          style={{ background: 'radial-gradient(circle, #d8d8e2, transparent 70%)' }}
         />
         <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.1, 0.2, 0.1]
-          }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-neutral-400 rounded-full blur-3xl"
+          animate={{ scale: [1.25, 1, 1.25], opacity: [0.08, 0.18, 0.08] }}
+          transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute bottom-1/4 -right-1/4 w-[32rem] h-[32rem] rounded-full blur-3xl"
+          style={{ background: 'radial-gradient(circle, #8f8f9d, transparent 70%)' }}
         />
       </div>
 
@@ -104,20 +104,31 @@ export default function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl">
+        <div className="v-glass-strong v-chrome-edge rounded-3xl p-8">
           {/* Logo */}
-          <div className="flex items-center justify-center mb-8">
-            <img src="/logo.png" alt="VELVET MUSIC" className="w-56 h-auto object-contain" />
+          <div className="flex flex-col items-center justify-center mb-8 gap-3">
+            <motion.img
+              src="/logo.png"
+              alt=""
+              initial={{ opacity: 0, scale: 0.85, rotate: -8 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 18, delay: 0.1 }}
+              className="w-32 h-32 object-contain"
+              style={{ filter: 'drop-shadow(0 8px 26px rgba(216,216,226,0.35))' }}
+            />
+            <h1 className="v-chrome-text v-chrome-text-live text-2xl font-black tracking-[0.22em]">
+              VELVET MUSIC
+            </h1>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-xl">
+          <div className="flex gap-1.5 mb-6 p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.045)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <button
               onClick={() => setMode('login')}
               className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
                 mode === 'login'
-                  ? 'bg-zinc-400 text-white'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'btn-green !rounded-xl'
+                  : 'text-velvet-dim hover:text-velvet-text'
               }`}
             >
               Entrar
@@ -126,8 +137,8 @@ export default function AuthPage() {
               onClick={() => setMode('register')}
               className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
                 mode === 'register'
-                  ? 'bg-zinc-400 text-white'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'btn-green !rounded-xl'
+                  : 'text-velvet-dim hover:text-velvet-text'
               }`}
             >
               Cadastrar
@@ -145,28 +156,28 @@ export default function AuthPage() {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="text-sm text-zinc-400 mb-2 block">Nome de exibição</label>
+                    <label className="text-sm text-velvet-dim mb-2 block">Nome de exibição</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-velvet-faint" />
                       <Input
                         type="text"
                         value={formData.display_name}
                         onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                         placeholder="Seu nome"
-                        className="pl-11 bg-white/5 border-white/10 text-white"
+                        className="pl-11 h-11 rounded-xl bg-white/[0.045] border-white/[0.10] text-velvet-text placeholder:text-velvet-faint focus-visible:ring-velvet-silver/50 focus-visible:border-velvet-silver/40 transition-colors"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm text-zinc-400 mb-2 block">Nome de usuário (opcional)</label>
+                    <label className="text-sm text-velvet-dim mb-2 block">Nome de usuário (opcional)</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-velvet-faint" />
                       <Input
                         type="text"
                         value={formData.username}
                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                         placeholder="@username"
-                        className="pl-11 bg-white/5 border-white/10 text-white"
+                        className="pl-11 h-11 rounded-xl bg-white/[0.045] border-white/[0.10] text-velvet-text placeholder:text-velvet-faint focus-visible:ring-velvet-silver/50 focus-visible:border-velvet-silver/40 transition-colors"
                       />
                     </div>
                   </div>
@@ -175,54 +186,54 @@ export default function AuthPage() {
             </AnimatePresence>
 
             <div>
-              <label className="text-sm text-zinc-400 mb-2 block">
+              <label className="text-sm text-velvet-dim mb-2 block">
                 {mode === 'login' ? 'Email ou usuário' : 'Email'}
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-velvet-faint" />
                 <Input
                   type="text"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder={mode === 'login' ? 'email ou @username' : 'seu@email.com'}
                   required
-                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  className="pl-11 h-11 rounded-xl bg-white/[0.045] border-white/[0.10] text-velvet-text placeholder:text-velvet-faint focus-visible:ring-velvet-silver/50 focus-visible:border-velvet-silver/40 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-sm text-zinc-400 mb-2 block">Senha</label>
+              <label className="text-sm text-velvet-dim mb-2 block">Senha</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-velvet-faint" />
                 <Input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="••••••••"
                   required
-                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  className="pl-11 h-11 rounded-xl bg-white/[0.045] border-white/[0.10] text-velvet-text placeholder:text-velvet-faint focus-visible:ring-velvet-silver/50 focus-visible:border-velvet-silver/40 transition-colors"
                 />
               </div>
               {mode === 'register' && (
-                <p className="text-xs text-zinc-500 mt-1">Mínimo 6 caracteres</p>
+                <p className="text-xs text-velvet-faint mt-1.5">Mínimo 6 caracteres</p>
               )}
             </div>
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full py-3"
+              className="btn-green w-full h-12 text-base tracking-wide"
             >
-              {loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
+              {loading ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar conta'}
             </Button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-sm text-zinc-500">ou</span>
-            <div className="flex-1 h-px bg-white/10" />
+            <div className="flex-1 v-rule" />
+            <span className="text-xs uppercase tracking-[0.2em] text-velvet-faint">ou</span>
+            <div className="flex-1 v-rule" />
           </div>
 
           {/* Google login */}

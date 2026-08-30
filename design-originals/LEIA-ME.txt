@@ -1,0 +1,14 @@
+Originais em resolução máxima (4320 x 4320 px).
+
+Os arquivos public/logo.png e public/logo2.png foram reduzidos para 512 px:
+juntos pesavam 4,0 MB e eram exibidos em 44 px na sidebar e 20 px no botão
+da revista. Agora pesam 69 KB somados.
+
+Esta pasta fica FORA de public/, então não vai para o deploy. Se um dia
+precisar reexportar o logo em outro tamanho, é daqui.
+
+Sobraram em public/ dois arquivos que eu não consegui apagar (esta sessão
+não tem permissão de exclusão nesta pasta) — eles já foram sobrescritos
+pela versão leve, mas são duplicatas inúteis e podem ser apagados à mão:
+  public/logo-original.png
+  public/logo2-original.png

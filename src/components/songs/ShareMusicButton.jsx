@@ -21,7 +21,7 @@ export default function ShareMusicButton({ song }) {
   return (
     <button
       onClick={handleShare}
-      className="p-2 rounded-full hover:bg-[#282828] transition-colors text-[#B3B3B3] hover:text-white"
+      className="p-2 rounded-full hover:bg-[#1c1c22] transition-colors text-[#9a9aa6] hover:text-white"
       title="Compartilhar música"
     >
       {copied ? (

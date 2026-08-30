@@ -44,7 +44,7 @@ export default function VideoPlayer({ song, isPlaying, onClose, onExpand }) {
 
         <div className="absolute bottom-3 left-3 right-3">
           <p className="text-white text-sm font-medium truncate">{song.title}</p>
-          <p className="text-zinc-400 text-xs truncate">{song.artist}</p>
+          <p className="text-velvet-dim text-xs truncate">{song.artist}</p>
         </div>
       </motion.div>
     </AnimatePresence>

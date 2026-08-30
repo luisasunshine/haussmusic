@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -25,8 +24,22 @@ const AuthenticatedApp = () => {
   // Show loading spinner while checking auth
   if (isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-zinc-700 border-t-zinc-200 rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex flex-col items-center justify-center gap-5" style={{ background: 'var(--v-abyss)' }}>
+        {/* Anel de cromo girando — a primeira coisa que o usuário vê já é
+            a linguagem visual do resto do app. */}
+        <div className="relative w-14 h-14">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'conic-gradient(from 0deg, transparent 0%, rgba(216,216,226,0.15) 40%, #ffffff 75%, transparent 100%)',
+              animation: 'v-spin-slow 1.1s linear infinite',
+              WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px))',
+              mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px))',
+            }}
+          />
+          <div className="absolute inset-0 rounded-full" style={{ border: '1px solid rgba(255,255,255,0.08)' }} />
+        </div>
+        <p className="v-chrome-text v-display text-sm font-bold tracking-[0.35em]">VELVET</p>
       </div>
     );
   }
@@ -82,7 +95,6 @@ function App() {
           <NavigationTracker />
           <AuthenticatedApp />
         </Router>
-        <Toaster />
       </QueryClientProvider>
     </AuthProvider>
   )

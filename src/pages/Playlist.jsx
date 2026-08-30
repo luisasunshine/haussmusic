@@ -45,7 +45,7 @@ export default function Playlist() {
   const { data: allSongs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const deletePlaylistMutation = useMutation({
@@ -160,7 +160,7 @@ export default function Playlist() {
   if (!playlist) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-zinc-500">Carregando...</div>
+        <div className="text-velvet-faint">Carregando...</div>
       </div>
     );
   }
@@ -169,8 +169,8 @@ export default function Playlist() {
     <div className="min-h-screen pb-40 lg:pb-32 relative z-40">
       {/* Header */}
       <div className="relative h-80 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/50 to-neutral-800/50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-velvet-raised/50 to-velvet-raised/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-velvet-abyss via-velvet-abyss/60 to-transparent" />
 
         <div className="relative h-full flex items-end px-6 lg:px-8 pb-8">
           <div className="flex items-end gap-6 w-full">
@@ -178,7 +178,7 @@ export default function Playlist() {
              <motion.div
                initial={{ opacity: 0, scale: 0.9 }}
                animate={{ opacity: 1, scale: 1 }}
-               className="w-56 h-56 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 bg-gradient-to-br from-zinc-500 to-neutral-500"
+               className="w-56 h-56 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 bg-gradient-to-br from-velvet-ash to-velvet-ash"
              >
                {(() => {
                  // Se houver cover_url customizada, usa ela
@@ -231,7 +231,7 @@ export default function Playlist() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 onClick={() => navigate(-1)}
-                className="mb-4 flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+                className="mb-4 flex items-center gap-2 text-velvet-dim hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Voltar
@@ -242,13 +242,13 @@ export default function Playlist() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <div className="text-sm text-zinc-300 uppercase mb-2">Playlist</div>
-                <h1 className="text-5xl font-black text-white mb-3">{playlist.name}</h1>
+                <div className="text-sm text-velvet-silver uppercase mb-2">Playlist</div>
+                <h1 className="text-5xl font-black mb-3 v-chrome-text v-display">{playlist.name}</h1>
                 {playlist.description && (
-                  <p className="text-zinc-400 mb-4">{playlist.description}</p>
+                  <p className="text-velvet-dim mb-4">{playlist.description}</p>
                 )}
 
-                <div className="flex items-center gap-6 text-sm text-zinc-400">
+                <div className="flex items-center gap-6 text-sm text-velvet-dim">
                   <div className="flex items-center gap-2">
                     <Music2 className="w-4 h-4" />
                     {songs.length} músicas
@@ -271,7 +271,7 @@ export default function Playlist() {
           whileTap={{ scale: 0.95 }}
           onClick={handlePlayAll}
           disabled={songs.length === 0}
-          className="px-8 py-3 rounded-full bg-zinc-400 hover:bg-zinc-300 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white font-bold flex items-center gap-2 shadow-lg shadow-zinc-400/30"
+          className="px-8 py-3 rounded-full bg-velvet-silver hover:bg-velvet-silver disabled:bg-white/[0.10] disabled:cursor-not-allowed text-white font-bold flex items-center gap-2 shadow-lg shadow-velvet-steel/30"
         >
           {isPlaying && currentSong?.id === songs[0]?.id ? (
             <Pause className="w-5 h-5 fill-current" />
@@ -287,7 +287,7 @@ export default function Playlist() {
               variant="ghost"
               size="icon"
               onClick={() => setShowAddSongsDialog(true)}
-              className="text-zinc-300 hover:bg-zinc-400/10"
+              className="text-velvet-silver hover:bg-velvet-silver/10"
               title="Adicionar músicas"
             >
               <Plus className="w-5 h-5" />
@@ -297,7 +297,7 @@ export default function Playlist() {
               variant="ghost"
               size="icon"
               onClick={handleEditClick}
-              className="text-zinc-300 hover:bg-zinc-400/10"
+              className="text-velvet-silver hover:bg-velvet-silver/10"
             >
               <Edit2 className="w-5 h-5" />
             </Button>
@@ -320,55 +320,55 @@ export default function Playlist() {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+        <DialogContent className="bg-velvet-surface border-white/[0.07] text-white">
           <DialogHeader>
             <DialogTitle>Editar Playlist</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Nome *</label>
+              <label className="text-sm text-velvet-dim mb-1 block">Nome *</label>
               <Input
                 value={editForm.name}
                 onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Nome da playlist"
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-white/[0.07] border-white/[0.10]"
               />
             </div>
             <div>
-              <label className="text-sm text-zinc-400 mb-1 block">Descrição</label>
+              <label className="text-sm text-velvet-dim mb-1 block">Descrição</label>
               <Textarea
                 value={editForm.description}
                 onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Descrição da playlist"
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-white/[0.07] border-white/[0.10]"
               />
             </div>
             <div>
-              <label className="text-sm text-zinc-400 mb-2 block">Capa da Playlist</label>
+              <label className="text-sm text-velvet-dim mb-2 block">Capa da Playlist</label>
               {editForm.cover_url && (
-                <div className="mb-3 rounded-lg overflow-hidden bg-zinc-800">
+                <div className="mb-3 rounded-lg overflow-hidden bg-white/[0.07]">
                   <img src={editForm.cover_url} alt="Capa" className="w-full h-32 object-cover" />
                 </div>
               )}
-              <label className="block p-4 border-2 border-dashed border-zinc-700 rounded-lg hover:border-zinc-300 transition-colors cursor-pointer text-center">
+              <label className="block p-4 border-2 border-dashed border-white/[0.10] rounded-lg hover:border-velvet-silver transition-colors cursor-pointer text-center">
                 {uploading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-zinc-300" />
-                    <span className="text-zinc-400 text-sm">Enviando...</span>
+                    <Loader2 className="w-4 h-4 animate-spin text-velvet-silver" />
+                    <span className="text-velvet-dim text-sm">Enviando...</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <Upload className="w-5 h-5 text-zinc-500" />
-                    <span className="text-zinc-400 text-sm">Clique para enviar uma capa</span>
+                    <Upload className="w-5 h-5 text-velvet-faint" />
+                    <span className="text-velvet-dim text-sm">Clique para enviar uma capa</span>
                   </div>
                 )}
                 <input type="file" accept="image/*" className="hidden" onChange={handleUploadCover} disabled={uploading} />
               </label>
             </div>
-            <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-zinc-800 border border-zinc-700">
+            <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-white/[0.07] border border-white/[0.10]">
               <div>
                 <p className="text-sm text-white font-medium">{editForm.is_public ? 'Playlist pública' : 'Playlist privada'}</p>
-                <p className="text-xs text-zinc-400 mt-0.5">{editForm.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
+                <p className="text-xs text-velvet-dim mt-0.5">{editForm.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
               </div>
               <Switch checked={editForm.is_public} onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, is_public: checked }))} />
             </div>
@@ -385,17 +385,17 @@ export default function Playlist() {
 
       {/* Add Songs Dialog */}
       <Dialog open={showAddSongsDialog} onOpenChange={(open) => { setShowAddSongsDialog(open); if (!open) setSongSearch(''); }}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-h-[80vh] flex flex-col">
+        <DialogContent className="bg-velvet-surface border-white/[0.07] text-white max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Adicionar músicas</DialogTitle>
           </DialogHeader>
           <div className="relative mt-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-velvet-faint" />
             <Input
               value={songSearch}
               onChange={(e) => setSongSearch(e.target.value)}
               placeholder="Buscar por título ou artista..."
-              className="bg-zinc-800 border-zinc-700 pl-9"
+              className="bg-white/[0.07] border-white/[0.10] pl-9"
               autoFocus
             />
           </div>
@@ -407,26 +407,26 @@ export default function Playlist() {
                   key={song.id}
                   onClick={() => toggleSongInPlaylistMutation.mutate(song.id)}
                   disabled={toggleSongInPlaylistMutation.isPending}
-                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800 transition-colors text-left disabled:opacity-50"
+                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.07] transition-colors text-left disabled:opacity-50"
                 >
-                  <div className="w-10 h-10 rounded-md overflow-hidden bg-zinc-800 flex-shrink-0 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-md overflow-hidden bg-white/[0.07] flex-shrink-0 flex items-center justify-center">
                     {song.cover_url ? (
                       <img src={song.cover_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <Music2 className="w-4 h-4 text-zinc-600" />
+                      <Music2 className="w-4 h-4 text-velvet-faint" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate">{song.title}</p>
-                    <p className="text-xs text-zinc-500 truncate">{song.artist}</p>
+                    <p className="text-xs text-velvet-faint truncate">{song.artist}</p>
                   </div>
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border ${inPlaylist ? 'bg-zinc-300 border-zinc-300' : 'border-zinc-600'}`}>
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border ${inPlaylist ? 'bg-velvet-silver border-velvet-silver' : 'border-white/[0.14]'}`}>
                     {inPlaylist && <Check className="w-3 h-3 text-black" />}
                   </span>
                 </button>
               );
             }) : (
-              <p className="text-center text-zinc-500 py-8 text-sm">Nenhuma música encontrada</p>
+              <p className="text-center text-velvet-faint py-8 text-sm">Nenhuma música encontrada</p>
             )}
           </div>
         </DialogContent>
@@ -461,18 +461,18 @@ export default function Playlist() {
           </div>
         ) : (
           <div className="text-center py-16">
-            <Music2 className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
+            <Music2 className="w-16 h-16 text-velvet-faint mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-white mb-2">Playlist vazia</h3>
             {isOwner ? (
               <>
-                <p className="text-zinc-500 mb-5">Adicione músicas para começar</p>
-                <Button onClick={() => setShowAddSongsDialog(true)} className="bg-zinc-300 hover:bg-zinc-200 text-black">
+                <p className="text-velvet-faint mb-5">Adicione músicas para começar</p>
+                <Button onClick={() => setShowAddSongsDialog(true)} className="bg-velvet-silver hover:bg-velvet-text text-black">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar músicas
                 </Button>
               </>
             ) : (
-              <p className="text-zinc-500">Nenhuma música adicionada</p>
+              <p className="text-velvet-faint">Nenhuma música adicionada</p>
             )}
           </div>
         )}

@@ -80,7 +80,7 @@ export default function GlowingOrb({ isPlaying, coverUrl }) {
         style={{
           transformStyle: 'preserve-3d',
           border: '3px solid transparent',
-          backgroundImage: 'linear-gradient(#09090b, #09090b), linear-gradient(135deg, rgba(192,192,192,0.4), rgba(200,200,210,0.6), rgba(192,192,192,0.4))',
+          backgroundImage: 'linear-gradient(#050506, #050506), linear-gradient(135deg, rgba(192,192,192,0.4), rgba(200,200,210,0.6), rgba(192,192,192,0.4))',
           backgroundOrigin: 'border-box',
           backgroundClip: 'padding-box, border-box',
           boxShadow: `
@@ -106,7 +106,7 @@ export default function GlowingOrb({ isPlaying, coverUrl }) {
         style={{
           transformStyle: 'preserve-3d',
           border: '2px solid transparent',
-          backgroundImage: 'linear-gradient(#09090b, #09090b), linear-gradient(45deg, rgba(150,150,160,0.4), transparent, rgba(200,200,210,0.5), transparent)',
+          backgroundImage: 'linear-gradient(#050506, #050506), linear-gradient(45deg, rgba(150,150,160,0.4), transparent, rgba(200,200,210,0.5), transparent)',
           backgroundOrigin: 'border-box',
           backgroundClip: 'padding-box, border-box',
           boxShadow: '0 0 40px rgba(150,150,160,0.3), inset 0 0 20px rgba(200,200,210,0.1)'
@@ -174,7 +174,7 @@ export default function GlowingOrb({ isPlaying, coverUrl }) {
             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-zinc-800 via-zinc-700 to-zinc-900 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-velvet-raised via-velvet-line to-velvet-surface flex items-center justify-center">
             <motion.div
               animate={{
                 scale: isPlaying ? [1, 1.2, 1] : 1
@@ -189,9 +189,9 @@ export default function GlowingOrb({ isPlaying, coverUrl }) {
         
         {/* Vinyl record center */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-zinc-900 to-black border-4 border-zinc-800 shadow-inner">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-velvet-surface to-black border-4 border-white/[0.07] shadow-inner">
             <div className="w-full h-full rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-silver/50 to-zinc-600" />
+              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-silver/50 to-velvet-ash" />
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,11 +10,16 @@ import ArtistNameBanner from '@/components/home/ArtistNameBanner';
 import HomeHeroCarousel from '@/components/home/HomeHeroCarousel';
 import MoodPlaylists from '@/components/home/MoodPlaylists';
 import PublicPlaylists from '@/components/home/PublicPlaylists';
-import VelvetIntro from '@/components/home/VelvetIntro';
 import BackgroundMedia from '@/components/media/BackgroundMedia';
+
+// A abertura em three.js é pesada e só roda na primeira visita da sessão.
+// Mantê-la fora do pacote principal tira ~674 KB do carregamento de todo
+// mundo que já viu a intro.
+const VelvetIntro = lazy(() => import('@/components/home/VelvetIntro'));
 import { DiscordIcon } from '@/components/social/SocialBrandIcons';
 import { hasUserType } from '@/lib/utils';
 import { useSongLikes } from '@/lib/songLikes';
+import Reveal from '@/components/fx/Reveal';
 
 const pills = [
   { label: 'Tudo', key: 'all' },
@@ -94,7 +99,7 @@ export default function Home() {
   const { data: allSongs = [], isLoading: songsLoading } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { data: posts = [] } = useQuery({
@@ -103,7 +108,7 @@ export default function Home() {
       const all = await base44.entities.Post.list('-created_date', 20);
       return all;
     },
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   // A wider, polled pool keeps the artist grid and sidebar current even when
@@ -111,7 +116,7 @@ export default function Home() {
   const { data: recentUsers = [] } = useQuery({
     queryKey: ['recent-users-sidebar'],
     queryFn: () => base44.entities.User.list('-created_date', 200),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
   const recentArtists = recentUsers.filter(u => hasUserType(u, 'artista')).slice(0, 15);
   // Every account defaults to user_type ['ouvinte'] at signup, and granting
@@ -243,27 +248,39 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
           </div>
 
-          <div className="relative h-full flex items-end p-5 lg:p-8">
-            <div className="flex items-end gap-5 w-full">
+          <div className="relative h-full flex items-end p-5 lg:p-8 v-scene">
+            <div className="flex items-end gap-5 w-full v-3d">
               {featuredSong.cover_url && (
-                <div className="hidden sm:block w-24 h-24 lg:w-32 lg:h-32 rounded-xl overflow-hidden shadow-2xl flex-shrink-0 ring-2 ring-white/10">
+                /* A capa flutua à frente do banner, com sombra própria e um
+                   giro leve no hover — é o objeto mais próximo da cena. */
+                <motion.div
+                  whileHover={{ rotateY: -12, rotateX: 7, scale: 1.06 }}
+                  transition={{ type: 'spring', stiffness: 240, damping: 20 }}
+                  className="hidden sm:block w-24 h-24 lg:w-32 lg:h-32 rounded-2xl overflow-hidden flex-shrink-0 v-audio-glow"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: 'translateZ(50px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 30px 60px -24px rgba(0,0,0,1)',
+                  }}
+                >
                   <img src={featuredSong.cover_url} alt={featuredSong.title} className="w-full h-full object-cover" />
-                </div>
+                </motion.div>
               )}
-              <div className="flex-1 min-w-0">
-                <p className="text-[#e5e5ea] text-xs font-bold uppercase tracking-widest mb-1.5">Mais Ouvidas</p>
-                <h1 className="text-2xl lg:text-4xl font-black text-white mb-0.5 truncate">{featuredSong.title}</h1>
-                <p className="text-white/70 text-sm lg:text-base mb-4 truncate">{featuredSong.artist}{featuredSong.featuring ? ` feat. ${featuredSong.featuring}` : ''}</p>
+              <div className="flex-1 min-w-0" style={{ transform: 'translateZ(24px)' }}>
+                <p className="text-velvet-silver text-[11px] font-bold uppercase tracking-[0.28em] mb-2">Mais Ouvidas</p>
+                <h1 className="text-3xl lg:text-5xl font-black v-chrome-text v-chrome-text-live v-display mb-1 truncate">{featuredSong.title}</h1>
+                <p className="text-white/75 text-sm lg:text-base mb-4 truncate">{featuredSong.artist}{featuredSong.featuring ? ` feat. ${featuredSong.featuring}` : ''}</p>
 
                 <div className="flex items-center gap-3">
                   {featuredSongScheduled ? (
-                    <span className="px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase">Em Breve</span>
+                    <span className="v-badge-dim px-4 py-2 text-xs">Em Breve</span>
                   ) : (
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={(e) => { e.stopPropagation(); dispatchPlaySong(featuredSong); }}
-                      className="w-12 h-12 rounded-full bg-[#c0c0c8] flex items-center justify-center shadow-lg shadow-[#c0c0c8]/40"
+                      className="w-12 h-12 btn-green flex items-center justify-center shadow-halo"
                     >
                       {currentPlayingSong?.id === featuredSong.id ? (
                         <Pause className="w-6 h-6 text-black fill-black" />
@@ -275,7 +292,7 @@ export default function Home() {
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={(e) => toggleFavorite(featuredSong, e)}
-                    className={`p-2 rounded-full ${isLiked(featuredSong) ? 'text-[#c0c0c8]' : 'text-white/60 hover:text-white'}`}
+                    className={`p-2 rounded-full ${isLiked(featuredSong) ? 'text-[#d8d8e2]' : 'text-white/60 hover:text-white'}`}
                   >
                     <Heart className={`w-5 h-5 ${isLiked(featuredSong) ? 'fill-current' : ''}`} />
                   </motion.button>
@@ -308,8 +325,8 @@ export default function Home() {
 
           <div className="relative h-full flex items-end p-5 lg:p-8">
             <div className="flex-1 min-w-0">
-              <p className="text-[#e5e5ea] text-xs font-bold uppercase tracking-widest mb-1.5">{banner.category || 'Destaque'}</p>
-              <h1 className="text-2xl lg:text-4xl font-black text-white mb-0.5">{banner.title}</h1>
+              <p className="text-velvet-silver text-[11px] font-bold uppercase tracking-[0.28em] mb-2">{banner.category || 'Destaque'}</p>
+              <h1 className="text-3xl lg:text-5xl font-black v-chrome-text v-display mb-1">{banner.title}</h1>
               {banner.artist_name && (
                 <p className="text-white/70 text-sm lg:text-base mb-1">{banner.artist_name}</p>
               )}
@@ -322,7 +339,7 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-block mt-4 px-5 py-2.5 rounded-full bg-[#c0c0c8] text-black text-sm font-bold hover:bg-white transition-colors"
+                  className="inline-block mt-4 px-5 py-2.5 btn-green px-5 py-2.5 text-sm"
                 >
                   {banner.button_text || 'Saiba Mais'}
                 </a>
@@ -346,7 +363,20 @@ export default function Home() {
             className="fixed inset-0 z-[100] overflow-hidden"
             style={{ background: 'radial-gradient(circle at 50% 45%, #1c1c28 0%, #0a0a0f 60%, #050506 100%)' }}
           >
-            <VelvetIntro logoUrl={logoUrl} onComplete={handleIntroComplete} />
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    className="w-28 h-28 object-contain animate-pulse"
+                    style={{ filter: 'drop-shadow(0 8px 30px rgba(216,216,226,0.4))' }}
+                  />
+                </div>
+              }
+            >
+              <VelvetIntro logoUrl={logoUrl} onComplete={handleIntroComplete} />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>
@@ -377,14 +407,14 @@ export default function Home() {
               <button
                 onClick={() => discordUrl ? window.open(discordUrl, '_blank', 'noopener') : toast('Em Breve!')}
                 title="Discord"
-                className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#5865F2]/20 border border-white/10 hover:border-[#5865F2]/40 flex items-center justify-center text-[#B3B3B3] hover:text-[#5865F2] transition-colors"
+                className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#5865F2]/20 border border-white/10 hover:border-[#5865F2]/40 flex items-center justify-center text-[#9a9aa6] hover:text-[#5865F2] transition-colors"
               >
                 <DiscordIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => revistaUrl ? window.open(revistaUrl, '_blank', 'noopener') : toast('Em Breve!')}
                 title="Revista"
-                className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#c0c0c8]/20 border border-white/10 hover:border-[#c0c0c8]/40 flex items-center justify-center text-[#B3B3B3] hover:text-[#c0c0c8] transition-colors"
+                className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#d8d8e2]/20 border border-white/10 hover:border-[#d8d8e2]/40 flex items-center justify-center text-[#9a9aa6] hover:text-[#d8d8e2] transition-colors"
               >
                 <img src="/logo2.png" alt="Revista" className="w-5 h-5 object-contain" />
               </button>
@@ -404,13 +434,13 @@ export default function Home() {
                 <>
                   {/* Trending Now */}
                   {trending.length > 0 && (
-                    <section className="mb-8">
+                    <Reveal as="section" className="mb-8">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h2 className="text-xl lg:text-2xl font-bold text-white">Em Alta</h2>
-                          <p className="text-sm text-[#B3B3B3]">O que está bombando agora</p>
+                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Em Alta</h2>
+                          <p className="text-sm text-[#9a9aa6]">O que está bombando agora</p>
                         </div>
-                        <TrendingUp className="w-5 h-5 text-[#c0c0c8]" />
+                        <TrendingUp className="w-5 h-5 text-[#d8d8e2]" />
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
                         {trending.map((song, i) => {
@@ -424,22 +454,22 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(song)}
                             className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : ''}`}
                           >
-                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#1c1c22]">
                               {song.cover_url ? (
                                 <img src={song.cover_url} alt={song.title} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/20 to-[#18181b] flex items-center justify-center">
-                                  <Music2 className="w-8 h-8 text-[#535353]" />
+                                <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/20 to-[#101014] flex items-center justify-center">
+                                  <Music2 className="w-8 h-8 text-[#62626e]" />
                                 </div>
                               )}
                               {scheduled ? (
-                                <div className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Em Breve</div>
+                                <div className="absolute top-2 left-2 v-badge-dim">Em Breve</div>
                               ) : (
                                 <motion.button
                                   whileHover={{ scale: 1.08 }}
                                   whileTap={{ scale: 0.9 }}
                                   onClick={(e) => { e.stopPropagation(); dispatchPlaySong(song); }}
-                                  className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                  className="absolute bottom-2 right-2 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                                 >
                                   {currentPlayingSong?.id === song.id ? (
                                     <Pause className="w-5 h-5 text-black fill-black" />
@@ -450,14 +480,14 @@ export default function Home() {
                               )}
                             </div>
                             <h3 className="font-bold text-white text-sm truncate">{song.title}</h3>
-                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{song.artist}</p>
+                            <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{song.artist}</p>
                             {song.plays > 0 && (
-                              <p className="text-[11px] text-[#696969] mt-1">{formatPlays(song.plays)} plays</p>
+                              <p className="text-[11px] text-[#62626e] mt-1">{formatPlays(song.plays)} plays</p>
                             )}
                           </motion.div>
                         )})}
                       </div>
-                    </section>
+                    </Reveal>
                   )}
 
                   {/* Community playlists marked public, newest first */}
@@ -468,13 +498,13 @@ export default function Home() {
 
                   {/* Podcasts */}
                   {podcastShows.length > 0 && (
-                    <section className="mb-8">
+                    <Reveal as="section" className="mb-8">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h2 className="text-xl lg:text-2xl font-bold text-white">Podcasts</h2>
-                          <p className="text-sm text-[#B3B3B3]">Conversas e histórias em áudio</p>
+                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Podcasts</h2>
+                          <p className="text-sm text-[#9a9aa6]">Conversas e histórias em áudio</p>
                         </div>
-                        <Mic className="w-5 h-5 text-[#c0c0c8]" />
+                        <Mic className="w-5 h-5 text-[#d8d8e2]" />
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                         {podcastShows.map((show, i) => {
@@ -488,12 +518,12 @@ export default function Home() {
                               className="card-spotify group cursor-pointer"
                               onClick={() => { window.location.href = createPageUrl('Release') + '?id=' + show.id; }}
                             >
-                              <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                              <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#1c1c22]">
                                 {show.cover_url ? (
                                   <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
-                                    <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
+                                  <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-[#101014] flex items-center justify-center">
+                                    <Mic className="w-9 h-9 text-[#d8d8e2]/60" />
                                   </div>
                                 )}
                                 {firstEp && (
@@ -501,30 +531,30 @@ export default function Home() {
                                     whileHover={{ scale: 1.08 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={(e) => { e.stopPropagation(); dispatchPlaySong(firstEp); }}
-                                    className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                    className="absolute bottom-2 right-2 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                                   >
                                     <Play className="w-5 h-5 text-black fill-black ml-0.5" />
                                   </motion.button>
                                 )}
                               </div>
                               <h3 className="font-bold text-white text-sm truncate">{show.title}</h3>
-                              <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{show.artist}</p>
+                              <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{show.artist}</p>
                             </motion.div>
                           );
                         })}
                       </div>
-                    </section>
+                    </Reveal>
                   )}
 
                   {/* Recent Releases */}
                   {recentSongs.length > 0 && (
-                    <section className="mb-8">
+                    <Reveal as="section" className="mb-8">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h2 className="text-xl lg:text-2xl font-bold text-white">Lançamentos Recentes</h2>
-                          <p className="text-sm text-[#B3B3B3]">As músicas mais recentes</p>
+                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Lançamentos Recentes</h2>
+                          <p className="text-sm text-[#9a9aa6]">As músicas mais recentes</p>
                         </div>
-                        <Calendar className="w-5 h-5 text-[#B3B3B3]" />
+                        <Calendar className="w-5 h-5 text-[#9a9aa6]" />
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         {recentSongs.map((song, i) => {
@@ -538,22 +568,22 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(song)}
                             className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : ''}`}
                           >
-                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#1c1c22]">
                               {song.cover_url ? (
                                 <img src={song.cover_url} alt={song.title} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-zinc-800/60 to-zinc-900 flex items-center justify-center">
-                                  <Music2 className="w-8 h-8 text-[#535353]" />
+                                <div className="w-full h-full bg-gradient-to-br from-velvet-raised/60 to-velvet-surface flex items-center justify-center">
+                                  <Music2 className="w-8 h-8 text-[#62626e]" />
                                 </div>
                               )}
                               {scheduled ? (
-                                <div className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Em Breve</div>
+                                <div className="absolute top-2 left-2 v-badge-dim">Em Breve</div>
                               ) : (
                                 <motion.button
                                   whileHover={{ scale: 1.08 }}
                                   whileTap={{ scale: 0.9 }}
                                   onClick={(e) => { e.stopPropagation(); dispatchPlaySong(song); }}
-                                  className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                  className="absolute bottom-2 right-2 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                                 >
                                   {currentPlayingSong?.id === song.id ? (
                                     <Pause className="w-5 h-5 text-black fill-black" />
@@ -564,22 +594,22 @@ export default function Home() {
                               )}
                             </div>
                             <h3 className="font-bold text-white text-sm truncate">{song.title}</h3>
-                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{song.artist}</p>
+                            <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{song.artist}</p>
                           </motion.div>
                         )})}
                       </div>
-                    </section>
+                    </Reveal>
                   )}
 
                   {/* Top Rated */}
                   {topRated.length > 0 && (
-                    <section className="mb-8">
+                    <Reveal as="section" className="mb-8">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h2 className="text-xl lg:text-2xl font-bold text-white">Melhor Avaliadas</h2>
-                          <p className="text-sm text-[#B3B3B3]">As favoritas da comunidade</p>
+                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Melhor Avaliadas</h2>
+                          <p className="text-sm text-[#9a9aa6]">As favoritas da comunidade</p>
                         </div>
-                        <Star className="w-5 h-5 text-[#c0c0c8]" />
+                        <Star className="w-5 h-5 text-[#d8d8e2]" />
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
                         {topRated.map((song, i) => {
@@ -593,16 +623,16 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(song)}
                             className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : ''}`}
                           >
-                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#1c1c22]">
                               {song.cover_url ? (
                                 <img src={song.cover_url} alt={song.title} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-yellow-900/60 to-amber-950 flex items-center justify-center">
-                                  <Star className="w-8 h-8 text-[#535353]" />
+                                  <Star className="w-8 h-8 text-[#62626e]" />
                                 </div>
                               )}
                               <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
-                                <Star className="w-3 h-3 text-[#c0c0c8] fill-current" />
+                                <Star className="w-3 h-3 text-[#d8d8e2] fill-current" />
                                 <span className="text-[11px] font-bold text-white">{song.rating.toFixed(1)}</span>
                               </div>
                               {!scheduled && (
@@ -610,7 +640,7 @@ export default function Home() {
                                   whileHover={{ scale: 1.08 }}
                                   whileTap={{ scale: 0.9 }}
                                   onClick={(e) => { e.stopPropagation(); dispatchPlaySong(song); }}
-                                  className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                  className="absolute bottom-2 right-2 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                                 >
                                   {currentPlayingSong?.id === song.id ? (
                                     <Pause className="w-5 h-5 text-black fill-black" />
@@ -620,26 +650,26 @@ export default function Home() {
                                 </motion.button>
                               )}
                               {scheduled && (
-                                <div className="absolute top-2 right-2 text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Em Breve</div>
+                                <div className="absolute top-2 right-2 v-badge-dim">Em Breve</div>
                               )}
                             </div>
                             <h3 className="font-bold text-white text-sm truncate">{song.title}</h3>
-                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{song.artist}</p>
+                            <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{song.artist}</p>
                           </motion.div>
                         )})}
                       </div>
-                    </section>
+                    </Reveal>
                   )}
                 </>
               )}
 
               {/* SONGS view: full song grid */}
               {activePill === 'songs' && (
-                <section className="mb-8">
+                <Reveal as="section" className="mb-8">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className="text-xl lg:text-2xl font-bold text-white">Todas as Músicas</h2>
-                      <p className="text-sm text-[#B3B3B3]">{musicSongs.length} músicas</p>
+                      <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Todas as Músicas</h2>
+                      <p className="text-sm text-[#9a9aa6]">{musicSongs.length} músicas</p>
                     </div>
                   </div>
                   {musicSongs.length > 0 ? (
@@ -655,23 +685,23 @@ export default function Home() {
                           onClick={() => dispatchPlaySong(song)}
                           className={`card-spotify group ${scheduled ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
                         >
-                          <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                          <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#1c1c22]">
                             {song.cover_url ? (
                               <img src={song.cover_url} alt={song.title} className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/20 to-[#18181b] flex items-center justify-center">
-                                <Music2 className="w-8 h-8 text-[#535353]" />
+                              <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/20 to-[#101014] flex items-center justify-center">
+                                <Music2 className="w-8 h-8 text-[#62626e]" />
                               </div>
                             )}
                             {scheduled ? (
-                              <div className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Em Breve</div>
+                              <div className="absolute top-2 left-2 v-badge-dim">Em Breve</div>
                             ) : (
                               <>
                                 <motion.button
                                   whileHover={{ scale: 1.08 }}
                                   whileTap={{ scale: 0.9 }}
                                   onClick={(e) => { e.stopPropagation(); dispatchPlaySong(song); }}
-                                  className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                  className="absolute bottom-2 right-2 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                                 >
                                   {currentPlayingSong?.id === song.id ? (
                                     <Pause className="w-5 h-5 text-black fill-black" />
@@ -682,7 +712,7 @@ export default function Home() {
                                 <motion.button
                                   whileTap={{ scale: 0.9 }}
                                   onClick={(e) => toggleFavorite(song, e)}
-                                  className={`absolute top-2 right-2 p-1.5 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity ${isLiked(song) ? 'text-[#c0c0c8]' : 'text-white hover:text-[#c0c0c8]'}`}
+                                  className={`absolute top-2 right-2 p-1.5 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity ${isLiked(song) ? 'text-[#d8d8e2]' : 'text-white hover:text-[#d8d8e2]'}`}
                                 >
                                   <Heart className={`w-4 h-4 ${isLiked(song) ? 'fill-current' : ''}`} />
                                 </motion.button>
@@ -690,26 +720,26 @@ export default function Home() {
                             )}
                           </div>
                           <h3 className="font-bold text-white text-sm truncate">{song.title}</h3>
-                          <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{song.artist}</p>
+                          <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{song.artist}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[11px] text-[#535353]">{formatDuration(song.duration)}</span>
+                            <span className="text-[11px] text-[#62626e]">{formatDuration(song.duration)}</span>
                             {song.plays > 0 && (
-                              <span className="text-[11px] text-[#535353]">{formatPlays(song.plays)} plays</span>
+                              <span className="text-[11px] text-[#62626e]">{formatPlays(song.plays)} plays</span>
                             )}
                           </div>
                         </motion.div>
                       )})}
                     </div>
                   ) : (
-                    <p className="text-[#B3B3B3] text-center py-10">Nenhuma música encontrada</p>
+                    <p className="text-[#9a9aa6] text-center py-10">Nenhuma música encontrada</p>
                   )}
-                </section>
+                </Reveal>
               )}
 
               {/* ALBUMS view: show album/EP releases */}
               {activePill === 'albums' && (
-                <section className="mb-8">
-                  <h2 className="text-xl lg:text-2xl font-bold text-white mb-4">Álbuns e EPs</h2>
+                <Reveal as="section" className="mb-8">
+                  <h2 className="text-xl lg:text-2xl font-bold mb-4 v-chrome-text">Álbuns e EPs</h2>
                   {recentAlbums.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                       {recentAlbums.map((album, i) => (
@@ -720,40 +750,40 @@ export default function Home() {
                             transition={{ delay: i * 0.04 }}
                             className="card-spotify group"
                           >
-                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-lg overflow-hidden mb-3 bg-[#1c1c22]">
                               {album.cover_url ? (
                                 <img src={album.cover_url} alt={album.title} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-zinc-800/60 to-zinc-900 flex items-center justify-center">
-                                  <Music2 className="w-8 h-8 text-[#535353]" />
+                                <div className="w-full h-full bg-gradient-to-br from-velvet-raised/60 to-velvet-surface flex items-center justify-center">
+                                  <Music2 className="w-8 h-8 text-[#62626e]" />
                                 </div>
                               )}
                             </div>
                             <h3 className="font-bold text-white text-sm truncate">{album.title}</h3>
-                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{album.artist}</p>
-                            <span className="text-[10px] text-[#696969] uppercase">{album.type}</span>
+                            <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{album.artist}</p>
+                            <span className="text-[10px] text-[#62626e] uppercase">{album.type}</span>
                             {album.is_scheduled && (
-                              <span className="inline-block mt-1 text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Em Breve</span>
+                              <span className="inline-block mt-1 v-badge-dim">Em Breve</span>
                             )}
                           </motion.div>
                         </Link>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[#B3B3B3] text-center py-10">Nenhum álbum encontrado</p>
+                    <p className="text-[#9a9aa6] text-center py-10">Nenhum álbum encontrado</p>
                   )}
-                </section>
+                </Reveal>
               )}
 
               {/* PODCASTS view: podcast shows */}
               {activePill === 'podcasts' && (
-                <section className="mb-8">
+                <Reveal as="section" className="mb-8">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className="text-xl lg:text-2xl font-bold text-white">Podcasts</h2>
-                      <p className="text-sm text-[#B3B3B3]">Conversas e histórias em áudio</p>
+                      <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Podcasts</h2>
+                      <p className="text-sm text-[#9a9aa6]">Conversas e histórias em áudio</p>
                     </div>
-                    <Mic className="w-5 h-5 text-[#c0c0c8]" />
+                    <Mic className="w-5 h-5 text-[#d8d8e2]" />
                   </div>
                   {podcastShows.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
@@ -768,12 +798,12 @@ export default function Home() {
                             className="card-spotify group cursor-pointer"
                             onClick={() => { window.location.href = createPageUrl('Release') + '?id=' + show.id; }}
                           >
-                            <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#1c1c22]">
                               {show.cover_url ? (
                                 <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
-                                  <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
+                                <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-[#101014] flex items-center justify-center">
+                                  <Mic className="w-9 h-9 text-[#d8d8e2]/60" />
                                 </div>
                               )}
                               {firstEp && (
@@ -781,28 +811,28 @@ export default function Home() {
                                   whileHover={{ scale: 1.08 }}
                                   whileTap={{ scale: 0.9 }}
                                   onClick={(event) => { event.stopPropagation(); dispatchPlaySong(firstEp); }}
-                                  className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                  className="absolute bottom-2 right-2 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                                 >
                                   <Play className="w-5 h-5 text-black fill-black ml-0.5" />
                                 </motion.button>
                               )}
                             </div>
                             <h3 className="font-bold text-white text-sm truncate">{show.title}</h3>
-                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{show.artist}</p>
+                            <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{show.artist}</p>
                           </motion.div>
                         );
                       })}
                     </div>
                   ) : (
-                    <p className="text-[#B3B3B3] text-center py-10">Nenhum podcast publicado ainda</p>
+                    <p className="text-[#9a9aa6] text-center py-10">Nenhum podcast publicado ainda</p>
                   )}
 
                   {podcastEpisodes.length > 0 && (
-                    <section className="mt-10">
+                    <Reveal as="section" className="mt-10">
                       <div className="flex items-end justify-between gap-4 mb-4">
                         <div>
-                          <h2 className="text-xl lg:text-2xl font-bold text-white">Ouça por categoria</h2>
-                          <p className="text-sm text-[#B3B3B3]">Encontre episódios pelo assunto que mais te interessa</p>
+                          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Ouça por categoria</h2>
+                          <p className="text-sm text-[#9a9aa6]">Encontre episódios pelo assunto que mais te interessa</p>
                         </div>
                       </div>
 
@@ -836,38 +866,38 @@ export default function Home() {
                             onClick={() => dispatchPlaySong(episode)}
                             className="card-spotify group cursor-pointer"
                           >
-                            <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828]">
+                            <div className="cover-hover relative aspect-square rounded-xl overflow-hidden mb-3 bg-[#1c1c22]">
                               {episode.cover_url ? (
                                 <img src={episode.cover_url} alt={episode.title} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
-                                  <Mic className="w-9 h-9 text-[#c0c0c8]/60" />
+                                <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-[#101014] flex items-center justify-center">
+                                  <Mic className="w-9 h-9 text-[#d8d8e2]/60" />
                                 </div>
                               )}
                               <motion.button
                                 whileHover={{ scale: 1.08 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={(event) => { event.stopPropagation(); dispatchPlaySong(episode); }}
-                                className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                                className="absolute bottom-2 right-2 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                               >
                                 {currentPlayingSong?.id === episode.id ? <Pause className="w-5 h-5 text-black fill-black" /> : <Play className="w-5 h-5 text-black fill-black ml-0.5" />}
                               </motion.button>
                             </div>
                             <h3 className="font-bold text-white text-sm truncate">{episode.title}</h3>
-                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{episode.artist}</p>
-                            {episode.categories?.length > 0 && <p className="text-[11px] text-[#c0c0c8] truncate mt-1">{episode.categories.join(' · ')}</p>}
+                            <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{episode.artist}</p>
+                            {episode.categories?.length > 0 && <p className="text-[11px] text-[#d8d8e2] truncate mt-1">{episode.categories.join(' · ')}</p>}
                           </motion.div>
                         ))}
                       </div>
-                    </section>
+                    </Reveal>
                   )}
-                </section>
+                </Reveal>
               )}
 
               {/* ARTISTS view: show artist list */}
               {activePill === 'artists' && (
-                <section className="mb-8">
-                  <h2 className="text-xl lg:text-2xl font-bold text-white mb-4">Artistas</h2>
+                <Reveal as="section" className="mb-8">
+                  <h2 className="text-xl lg:text-2xl font-bold mb-4 v-chrome-text">Artistas</h2>
                   {songArtists.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                       {songArtists.map((artist, i) => (
@@ -879,17 +909,17 @@ export default function Home() {
                             className="card-spotify group text-center"
                           >
                             <div className="relative w-24 h-24 mx-auto mb-3">
-                              <div className="w-full h-full rounded-full overflow-hidden bg-[#282828]">
+                              <div className="w-full h-full rounded-full overflow-hidden bg-[#1c1c22]">
                                 {artist.profile_picture ? (
                                   <img src={artist.profile_picture} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-zinc-800 flex items-center justify-center">
-                                    <User className="w-10 h-10 text-[#535353]" />
+                                  <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-velvet-raised flex items-center justify-center">
+                                    <User className="w-10 h-10 text-[#62626e]" />
                                   </div>
                                 )}
                               </div>
                               {artist.verified && (
-                                <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center border-2 border-[#121212]">
+                                <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center border-2 border-[#0a0a0c]">
                                   <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
@@ -897,15 +927,15 @@ export default function Home() {
                               )}
                             </div>
                             <h3 className="font-bold text-white text-sm truncate">{artist.display_name || artist.full_name || 'Artista'}</h3>
-                            <p className="text-xs text-[#B3B3B3]">Artista</p>
+                            <p className="text-xs text-[#9a9aa6]">Artista</p>
                           </motion.div>
                         </Link>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[#B3B3B3] text-center py-10">Nenhum artista encontrado</p>
+                    <p className="text-[#9a9aa6] text-center py-10">Nenhum artista encontrado</p>
                   )}
-                </section>
+                </Reveal>
               )}
             </div>
 
@@ -918,20 +948,20 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   className="card-spotify-elevated"
                 >
-                  <h3 className="text-xs font-bold text-[#B3B3B3] uppercase tracking-wider mb-3">Tocando Agora</h3>
+                  <h3 className="text-xs font-bold text-[#9a9aa6] uppercase tracking-wider mb-3">Tocando Agora</h3>
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#181818] shrink-0">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#101014] shrink-0">
                       {currentPlayingSong.cover_url ? (
                         <img src={currentPlayingSong.cover_url} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/20 to-zinc-900 flex items-center justify-center">
-                          <Music2 className="w-6 h-6 text-[#535353]" />
+                        <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/20 to-velvet-surface flex items-center justify-center">
+                          <Music2 className="w-6 h-6 text-[#62626e]" />
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-white truncate">{currentPlayingSong.title}</p>
-                      <p className="text-xs text-[#B3B3B3] truncate">{currentPlayingSong.artist}</p>
+                      <p className="text-xs text-[#9a9aa6] truncate">{currentPlayingSong.artist}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -949,7 +979,7 @@ export default function Home() {
                     <button
                       onClick={() => setPeopleTab('artists')}
                       className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md transition-colors ${
-                        peopleTab === 'artists' ? 'text-white bg-white/10' : 'text-[#B3B3B3] hover:text-white'
+                        peopleTab === 'artists' ? 'text-white bg-white/10' : 'text-[#9a9aa6] hover:text-white'
                       }`}
                     >
                       Artistas
@@ -957,7 +987,7 @@ export default function Home() {
                     <button
                       onClick={() => setPeopleTab('listeners')}
                       className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md transition-colors ${
-                        peopleTab === 'listeners' ? 'text-white bg-white/10' : 'text-[#B3B3B3] hover:text-white'
+                        peopleTab === 'listeners' ? 'text-white bg-white/10' : 'text-[#9a9aa6] hover:text-white'
                       }`}
                     >
                       Ouvintes
@@ -966,19 +996,19 @@ export default function Home() {
                   <div className="space-y-2 max-h-80 overflow-y-auto">
                     {(peopleTab === 'artists' ? recentArtists : recentListeners).map((person) => {
                       const row = (
-                        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#383838] transition-colors cursor-pointer">
+                        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#26262e] transition-colors cursor-pointer">
                           <div className="relative shrink-0">
-                            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#282828]">
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#1c1c22]">
                               {person.profile_picture ? (
                                 <img src={person.profile_picture} alt="" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-zinc-800 flex items-center justify-center">
-                                  <User className="w-5 h-5 text-[#535353]" />
+                                <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-velvet-raised flex items-center justify-center">
+                                  <User className="w-5 h-5 text-[#62626e]" />
                                 </div>
                               )}
                             </div>
                             {person.verified && (
-                              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center border-2 border-[#181818]">
+                              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center border-2 border-[#101014]">
                                 <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
@@ -987,7 +1017,7 @@ export default function Home() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-white truncate">{person.display_name || person.full_name || 'Usuário'}</p>
-                            <p className="text-[11px] text-[#B3B3B3]">{peopleTab === 'artists' ? 'Artista' : 'Ouvinte'}</p>
+                            <p className="text-[11px] text-[#9a9aa6]">{peopleTab === 'artists' ? 'Artista' : 'Ouvinte'}</p>
                           </div>
                         </div>
                       );
@@ -1009,23 +1039,23 @@ export default function Home() {
                   transition={{ delay: 0.15 }}
                   className="card-spotify-elevated"
                 >
-                  <h3 className="text-xs font-bold text-[#B3B3B3] uppercase tracking-wider mb-3">Álbuns Recentes</h3>
+                  <h3 className="text-xs font-bold text-[#9a9aa6] uppercase tracking-wider mb-3">Álbuns Recentes</h3>
                   <div className="space-y-2">
                     {recentAlbums.slice(0, 4).map((album) => (
                       <Link key={album.id} to={createPageUrl('Release') + '?id=' + album.id}>
-                        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#383838] transition-colors cursor-pointer">
-                          <div className="w-10 h-10 rounded-md overflow-hidden bg-[#282828] shrink-0">
+                        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#26262e] transition-colors cursor-pointer">
+                          <div className="w-10 h-10 rounded-md overflow-hidden bg-[#1c1c22] shrink-0">
                             {album.cover_url ? (
                               <img src={album.cover_url} alt="" className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-zinc-800/60 to-zinc-900 flex items-center justify-center">
-                                <Music2 className="w-5 h-5 text-[#535353]" />
+                              <div className="w-full h-full bg-gradient-to-br from-velvet-raised/60 to-velvet-surface flex items-center justify-center">
+                                <Music2 className="w-5 h-5 text-[#62626e]" />
                               </div>
                             )}
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-white truncate">{album.title}</p>
-                            <p className="text-[11px] text-[#B3B3B3] truncate">{album.artist}</p>
+                            <p className="text-[11px] text-[#9a9aa6] truncate">{album.artist}</p>
                           </div>
                         </div>
                       </Link>
@@ -1039,11 +1069,11 @@ export default function Home() {
           {/* Empty state */}
           {!songsLoading && allSongs.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 rounded-full bg-[#282828] flex items-center justify-center mb-4">
-                <Music2 className="w-10 h-10 text-[#535353]" />
+              <div className="w-20 h-20 rounded-full bg-[#1c1c22] flex items-center justify-center mb-4">
+                <Music2 className="w-10 h-10 text-[#62626e]" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Bem-vindo ao VELVET MUSIC</h2>
-              <p className="text-[#B3B3B3] max-w-md">Sua plataforma de streaming musical. Explore músicas, crie playlists e descubra novos artistas.</p>
+              <h2 className="text-2xl font-bold mb-2 v-chrome-text">Bem-vindo ao VELVET MUSIC</h2>
+              <p className="text-[#9a9aa6] max-w-md">Sua plataforma de streaming musical. Explore músicas, crie playlists e descubra novos artistas.</p>
             </div>
           )}
         </div>

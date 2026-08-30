@@ -22,7 +22,7 @@ function formatTotal(songs) {
 function PlaylistCover({ label, songs, rounded = 'rounded-2xl' }) {
   if (label.profile_picture) {
     return (
-      <div className={`absolute inset-0 ${rounded} overflow-hidden bg-[#18181b]`}>
+      <div className={`absolute inset-0 ${rounded} overflow-hidden bg-[#101014]`}>
         <img src={label.profile_picture} alt="" className="w-full h-full object-contain" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/5" />
       </div>
@@ -187,8 +187,8 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl lg:text-2xl font-bold text-white">Por Gravadora</h2>
-          <p className="text-xs text-[#B3B3B3] mt-0.5">As músicas de cada gravadora do acervo VELVET</p>
+          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Por Gravadora</h2>
+          <p className="text-xs text-[#9a9aa6] mt-0.5">As músicas de cada gravadora do acervo VELVET</p>
         </div>
         {hasOverflow && <div className="hidden sm:flex items-center gap-1.5">
           <button onClick={() => nudge(-1)} className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center text-white/70 hover:text-white transition-colors">
@@ -226,7 +226,7 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
             </div>
             {/* Play affordance on hover */}
             <div
-              className="absolute bottom-3.5 right-3.5 w-11 h-11 rounded-full bg-[#c0c0c8] flex items-center justify-center shadow-xl shadow-black/40 opacity-0 translate-y-3 scale-90 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out hover:bg-[#d4d4dc]"
+              className="absolute bottom-3.5 right-3.5 w-11 h-11 btn-green flex items-center justify-center opacity-0 translate-y-3 scale-90 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out"
               onClick={(e) => { e.stopPropagation(); playPlaylist(pl); }}
               role="button"
             >
@@ -248,7 +248,7 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
               initial={{ y: 40, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 40, opacity: 0, scale: 0.98 }}
               transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full sm:max-w-lg max-h-[88vh] bg-[#121212] rounded-t-3xl sm:rounded-3xl border border-white/[0.08] overflow-hidden flex flex-col"
+              className="relative w-full sm:max-w-lg max-h-[88vh] bg-[#0a0a0c] rounded-t-3xl sm:rounded-3xl border border-white/[0.08] overflow-hidden flex flex-col"
             >
               {/* Header with the big cover */}
               <div className="relative h-44 flex-shrink-0">
@@ -258,7 +258,7 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
                 </button>
                 <div className="absolute bottom-0 inset-x-0 p-5">
                   <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm w-fit mb-2">
-                    <span className="text-[9px] font-bold tracking-wider text-[#e5e5ea]">GRAVADORA</span>
+                    <span className="text-[9px] font-bold tracking-wider text-[#f4f4f7]">GRAVADORA</span>
                   </div>
                   <h2 className="text-2xl font-black text-white drop-shadow-lg">{active.label.name}</h2>
                   <p className="text-white/70 text-sm">{active.songs.length} músicas · {formatTotal(active.songs)}</p>
@@ -269,7 +269,7 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
               <div className="flex items-center gap-2.5 px-5 py-3 border-b border-white/[0.06] flex-shrink-0">
                 <button
                   onClick={() => playPlaylist(active)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#c0c0c8] hover:bg-[#d4d4dc] text-black font-bold text-sm transition-colors"
+                  className="flex items-center gap-2 px-5 py-2.5 btn-green px-5 py-2.5 text-sm"
                 >
                   <Play className="w-4 h-4 fill-black" /> Reproduzir
                 </button>
@@ -291,19 +291,19 @@ export default function MoodPlaylists({ songs = [], onPlaySong, userEmail }) {
                     onClick={() => { onPlaySong?.(song); }}
                     className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.05] transition-colors text-left group/row"
                   >
-                    <span className="w-5 text-center text-xs text-[#B3B3B3]">{idx + 1}</span>
-                    <div className="w-10 h-10 rounded-md overflow-hidden bg-[#282828] shrink-0">
+                    <span className="w-5 text-center text-xs text-[#9a9aa6]">{idx + 1}</span>
+                    <div className="w-10 h-10 rounded-md overflow-hidden bg-[#1c1c22] shrink-0">
                       {song.cover_url ? (
                         <img src={song.cover_url} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#c0c0c8]/25 to-[#18181b]">
-                          <ListMusic className="w-4 h-4 text-[#535353]" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#d8d8e2]/25 to-[#101014]">
+                          <ListMusic className="w-4 h-4 text-[#62626e]" />
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white font-medium truncate">{song.title}</p>
-                      <p className="text-xs text-[#B3B3B3] truncate">{song.artist}</p>
+                      <p className="text-xs text-[#9a9aa6] truncate">{song.artist}</p>
                     </div>
                     <Play className="w-4 h-4 text-white/0 group-hover/row:text-white/60 transition-colors flex-shrink-0" />
                   </button>

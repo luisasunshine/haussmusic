@@ -44,7 +44,7 @@ export default function Library() {
   const { data: songs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { data: playlists = [] } = useQuery({
@@ -115,36 +115,36 @@ export default function Library() {
   ];
 
   return (
-    <div className="min-h-screen pb-40 lg:pb-32 bg-[#121212]">
+    <div className="min-h-screen pb-40 lg:pb-32 bg-[#0a0a0c]">
       {/* Header */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#c0c0c8]/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#d8d8e2]/10 via-transparent to-transparent" />
         <div className="relative px-4 lg:px-6 pt-8 pb-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-[#c0c0c8] to-[#e5e5ea] flex items-center justify-center shadow-lg shadow-[#c0c0c8]/20">
+            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-[#d8d8e2] to-[#f4f4f7] flex items-center justify-center shadow-lg shadow-[#d8d8e2]/20">
               <ListMusic className="w-7 lg:w-8 h-7 lg:h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-white">Sua Biblioteca</h1>
+              <h1 className="text-3xl lg:text-4xl font-bold v-chrome-text v-display">Sua Biblioteca</h1>
             </div>
           </div>
 
           {/* Stats Row */}
           <div className="flex flex-wrap gap-3 lg:gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#181818] border border-[#282828]">
-              <Music2 className="w-4 h-4 text-[#c0c0c8]" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#101014] border border-[#1c1c22]">
+              <Music2 className="w-4 h-4 text-[#d8d8e2]" />
               <span className="text-sm text-white font-medium">{favoriteSongs.length}</span>
-              <span className="text-xs text-[#B3B3B3]">curtidas</span>
+              <span className="text-xs text-[#9a9aa6]">curtidas</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#181818] border border-[#282828]">
-              <Disc3 className="w-4 h-4 text-[#e5e5ea]" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#101014] border border-[#1c1c22]">
+              <Disc3 className="w-4 h-4 text-[#f4f4f7]" />
               <span className="text-sm text-white font-medium">{likedReleases.length}</span>
-              <span className="text-xs text-[#B3B3B3]">álbuns</span>
+              <span className="text-xs text-[#9a9aa6]">álbuns</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#181818] border border-[#282828]">
-              <ListMusic className="w-4 h-4 text-[#c0c0c8]" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#101014] border border-[#1c1c22]">
+              <ListMusic className="w-4 h-4 text-[#d8d8e2]" />
               <span className="text-sm text-white font-medium">{playlists.length}</span>
-              <span className="text-xs text-[#B3B3B3]">playlists</span>
+              <span className="text-xs text-[#9a9aa6]">playlists</span>
             </div>
 
           </div>
@@ -153,9 +153,9 @@ export default function Library() {
 
       <div className="px-4 lg:px-6 pt-4">
         <Tabs defaultValue="favorites" className="w-full">
-          <TabsList className="bg-[#181818] border border-[#282828] p-1 rounded-xl mb-6 w-full grid grid-cols-3">
+          <TabsList className="bg-[#101014] border border-[#1c1c22] p-1 rounded-xl mb-6 w-full grid grid-cols-3">
             {tabs.map(tab => (
-              <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:bg-[#c0c0c8]/20 data-[state=active]:text-[#e5e5ea] rounded-lg gap-2 text-xs sm:text-sm">
+              <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:bg-[#d8d8e2]/20 data-[state=active]:text-[#f4f4f7] rounded-lg gap-2 text-xs sm:text-sm">
                 <tab.icon className="w-4 h-4" />
                 <span className="hidden sm:inline">{tab.label}</span>
               </TabsTrigger>
@@ -169,27 +169,27 @@ export default function Library() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg lg:text-xl font-bold text-white">Álbuns e EPs Curtidos</h3>
-                    <p className="text-xs text-[#B3B3B3]">{likedReleases.length} lançamentos</p>
+                    <p className="text-xs text-[#9a9aa6]">{likedReleases.length} lançamentos</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-4">
                   {likedReleases.map((r, i) => (
                     <Link key={r.id} to={createPageUrl('Release') + '?id=' + r.id}>
                       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} whileHover={{ y: -4 }} className="group">
-                        <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828] relative">
+                        <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-[#1c1c22] relative">
                           {r.cover_url ? (
                             <img src={r.cover_url} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
-                              <Disc3 className="w-10 h-10 text-[#535353]" />
+                            <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-[#101014] flex items-center justify-center">
+                              <Disc3 className="w-10 h-10 text-[#62626e]" />
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <p className="font-bold text-white text-sm truncate">{r.title}</p>
-                        <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{r.artist}</p>
+                        <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{r.artist}</p>
                         {r.is_scheduled && (
-                          <span className="inline-block mt-1 text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Em Breve</span>
+                          <span className="inline-block mt-1 v-badge-dim">Em Breve</span>
                         )}
                       </motion.div>
                     </Link>
@@ -203,16 +203,16 @@ export default function Library() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg lg:text-xl font-bold text-white">Músicas Curtidas</h3>
-                    <p className="text-xs text-[#B3B3B3]">{favoriteSongs.length} músicas</p>
+                    <p className="text-xs text-[#9a9aa6]">{favoriteSongs.length} músicas</p>
                   </div>
                   <Button
                     onClick={() => { if (favoriteSongs[0]) handlePlay(favoriteSongs[0]); }}
-                    className="w-10 h-10 rounded-full btn-metal p-0 shadow-lg shadow-[#c0c0c8]/30"
+                    className="w-10 h-10 rounded-full btn-metal p-0 shadow-lg shadow-[#d8d8e2]/30"
                   >
                     <Play className="w-5 h-5 text-black fill-black ml-0.5" />
                   </Button>
                 </div>
-                <div className="bg-[#181818] rounded-xl overflow-hidden border border-[#282828]">
+                <div className="bg-[#101014] rounded-xl overflow-hidden border border-[#1c1c22]">
                   {favoriteSongs.map((song, i) => {
                     const sched = isSongScheduled(song);
                     const schedPost = sched ? allPosts.find(p => p.title === song.album && p.is_scheduled) : null;
@@ -224,11 +224,11 @@ export default function Library() {
               </section>
             ) : likedReleases.length === 0 ? (
               <div className="text-center py-20">
-                <div className="w-20 h-20 rounded-full bg-[#181818] flex items-center justify-center mx-auto mb-5">
-                  <Heart className="w-10 h-10 text-[#282828]" />
+                <div className="w-20 h-20 rounded-full bg-[#101014] flex items-center justify-center mx-auto mb-5">
+                  <Heart className="w-10 h-10 text-[#1c1c22]" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Sem curtidas ainda</h3>
-                <p className="text-[#B3B3B3] max-w-xs mx-auto">Curta músicas e álbuns para vê-los aqui na sua biblioteca</p>
+                <p className="text-[#9a9aa6] max-w-xs mx-auto">Curta músicas e álbuns para vê-los aqui na sua biblioteca</p>
               </div>
             ) : null}
           </TabsContent>
@@ -238,29 +238,29 @@ export default function Library() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg lg:text-xl font-bold text-white">Suas Playlists</h3>
-                <p className="text-xs text-[#B3B3B3]">{playlists.length} playlists</p>
+                <p className="text-xs text-[#9a9aa6]">{playlists.length} playlists</p>
               </div>
               <Dialog open={showAddPlaylist} onOpenChange={setShowAddPlaylist}>
                 <DialogTrigger asChild>
-                  <Button className="btn-metal rounded-full px-5 shadow-lg shadow-[#c0c0c8]/20">
+                  <Button className="btn-metal rounded-full px-5 shadow-lg shadow-[#d8d8e2]/20">
                     <Plus className="w-4 h-4 mr-2" />Nova
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-[#181818] border-[#282828] text-white">
+                <DialogContent className="bg-[#101014] border-[#1c1c22] text-white">
                   <DialogHeader><DialogTitle>Nova Playlist</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-4">
                     <div>
-                      <label className="text-sm text-[#B3B3B3] mb-1 block">Nome *</label>
-                      <Input value={newPlaylist.name} onChange={(e) => setNewPlaylist(p => ({ ...p, name: e.target.value }))} placeholder="Nome da playlist" className="bg-[#282828] border-[#383838] text-white" />
+                      <label className="text-sm text-[#9a9aa6] mb-1 block">Nome *</label>
+                      <Input value={newPlaylist.name} onChange={(e) => setNewPlaylist(p => ({ ...p, name: e.target.value }))} placeholder="Nome da playlist" className="bg-[#1c1c22] border-[#26262e] text-white" />
                     </div>
                     <div>
-                      <label className="text-sm text-[#B3B3B3] mb-1 block">Descrição</label>
-                      <Textarea value={newPlaylist.description} onChange={(e) => setNewPlaylist(p => ({ ...p, description: e.target.value }))} placeholder="Descrição da playlist" className="bg-[#282828] border-[#383838] text-white" />
+                      <label className="text-sm text-[#9a9aa6] mb-1 block">Descrição</label>
+                      <Textarea value={newPlaylist.description} onChange={(e) => setNewPlaylist(p => ({ ...p, description: e.target.value }))} placeholder="Descrição da playlist" className="bg-[#1c1c22] border-[#26262e] text-white" />
                     </div>
-                    <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-[#282828] border border-[#383838]">
+                    <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-[#1c1c22] border border-[#26262e]">
                       <div>
                         <p className="text-sm text-white font-medium">{newPlaylist.is_public ? 'Playlist pública' : 'Playlist privada'}</p>
-                        <p className="text-xs text-[#B3B3B3] mt-0.5">{newPlaylist.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
+                        <p className="text-xs text-[#9a9aa6] mt-0.5">{newPlaylist.is_public ? 'Aparece em Playlists Públicas para todo mundo' : 'Só você consegue ver essa playlist'}</p>
                       </div>
                       <Switch checked={newPlaylist.is_public} onCheckedChange={(checked) => setNewPlaylist(p => ({ ...p, is_public: checked }))} />
                     </div>
@@ -278,7 +278,7 @@ export default function Library() {
                 {playlists.map((pl, i) => (
                   <Link key={pl.id} to={createPageUrl('Playlist') + '?id=' + pl.id}>
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} whileHover={{ y: -4 }} className="group cursor-pointer">
-                      <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828] relative">
+                      <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-[#1c1c22] relative">
                         {pl.cover_url ? (
                           <img src={pl.cover_url} alt={pl.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />
                         ) : (() => {
@@ -287,8 +287,8 @@ export default function Library() {
 
                           if (covers.length === 0) {
                             return (
-                              <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 via-zinc-800/50 to-[#18181b] flex items-center justify-center">
-                                <ListMusic className="w-12 h-12 text-[#535353] group-hover:text-[#c0c0c8]/40 transition-colors" />
+                              <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 via-velvet-raised/50 to-[#101014] flex items-center justify-center">
+                                <ListMusic className="w-12 h-12 text-[#62626e] group-hover:text-[#d8d8e2]/40 transition-colors" />
                               </div>
                             );
                           } else if (covers.length === 1) {
@@ -319,24 +319,24 @@ export default function Library() {
                         <motion.div
                           whileHover={{ scale: 1.08 }}
                           whileTap={{ scale: 0.9 }}
-                          className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-[#c0c0c8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
+                          className="absolute bottom-3 right-3 w-10 h-10 btn-green flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-xl translate-y-2 group-hover:translate-y-0"
                         >
                           <Play className="w-5 h-5 text-black fill-black ml-0.5" />
                         </motion.div>
                       </div>
                       <p className="font-bold text-white text-sm truncate">{pl.name}</p>
-                      <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{(pl.song_ids || []).length} músicas · {(() => { const dur = (pl.song_ids || []).reduce((acc, sid) => acc + (songs.find(s => s.id === sid)?.duration || 0), 0); return Math.floor(dur / 60) + ' min'; })()}</p>
+                      <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{(pl.song_ids || []).length} músicas · {(() => { const dur = (pl.song_ids || []).reduce((acc, sid) => acc + (songs.find(s => s.id === sid)?.duration || 0), 0); return Math.floor(dur / 60) + ' min'; })()}</p>
                     </motion.div>
                   </Link>
                 ))}
               </div>
             ) : (
               <div className="text-center py-20">
-                <div className="w-20 h-20 rounded-full bg-[#181818] flex items-center justify-center mx-auto mb-5">
-                  <ListMusic className="w-10 h-10 text-[#282828]" />
+                <div className="w-20 h-20 rounded-full bg-[#101014] flex items-center justify-center mx-auto mb-5">
+                  <ListMusic className="w-10 h-10 text-[#1c1c22]" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Nenhuma playlist</h3>
-                <p className="text-[#B3B3B3] max-w-xs mx-auto mb-6">Crie sua primeira playlist e organize suas músicas favoritas</p>
+                <p className="text-[#9a9aa6] max-w-xs mx-auto mb-6">Crie sua primeira playlist e organize suas músicas favoritas</p>
                 <Button onClick={() => setShowAddPlaylist(true)} className="btn-metal rounded-full px-6">
                   <Plus className="w-4 h-4 mr-2" />Criar Playlist
                 </Button>
@@ -347,12 +347,12 @@ export default function Library() {
           {/* Profile Tab */}
           <TabsContent value="profile">
             <div className="max-w-2xl mx-auto">
-              <div className="bg-[#181818] rounded-2xl p-6 lg:p-8 border border-[#282828]">
+              <div className="bg-[#101014] rounded-2xl p-6 lg:p-8 border border-[#1c1c22]">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-[#c0c0c8]/20 flex items-center justify-center">
-                    <UserCircle className="w-5 h-5 text-[#e5e5ea]" />
+                  <div className="w-10 h-10 rounded-xl bg-[#d8d8e2]/20 flex items-center justify-center">
+                    <UserCircle className="w-5 h-5 text-[#f4f4f7]" />
                   </div>
-                  <h2 className="text-xl font-bold text-white">Editar Perfil</h2>
+                  <h2 className="text-xl font-bold v-chrome-text">Editar Perfil</h2>
                 </div>
                 <ProfileEditor user={user} onUpdate={async () => { const u = await base44.auth.me(); setUser(u); }} />
               </div>

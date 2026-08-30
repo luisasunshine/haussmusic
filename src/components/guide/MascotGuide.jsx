@@ -106,7 +106,7 @@ export default function MascotGuide({ page }) {
               setCurrentStep(0);
               setShowGuide(true);
             }}
-            className="fixed bottom-24 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-zinc-400 via-zinc-400 to-neutral-400 shadow-2xl shadow-zinc-400/50 flex items-center justify-center group"
+            className="fixed bottom-24 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-velvet-steel via-velvet-steel to-velvet-steel shadow-2xl shadow-velvet-steel/50 flex items-center justify-center group"
             style={{
               boxShadow: '0 0 40px rgba(200,200,210,0.6), inset 0 0 20px rgba(255,255,255,0.3)'
             }}
@@ -151,7 +151,7 @@ export default function MascotGuide({ page }) {
                     y: [0, -5, 0]
                   }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-16 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-zinc-500 flex items-center justify-center"
+                  className="absolute -top-16 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-velvet-ash flex items-center justify-center"
                   style={{
                     boxShadow: '0 10px 40px rgba(59,130,246,0.6), inset 0 0 20px rgba(255,255,255,0.3)'
                   }}
@@ -182,18 +182,18 @@ export default function MascotGuide({ page }) {
                 </motion.div>
 
                 {/* Guide card */}
-                <div className="mt-12 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl p-6 border border-zinc-400/30 shadow-2xl">
+                <div className="mt-12 bg-gradient-to-br from-velvet-surface via-velvet-raised to-velvet-surface rounded-3xl p-6 border border-velvet-steel/30 shadow-2xl">
                   <button
                     onClick={handleDismiss}
                     className="absolute top-3 right-3 p-2 hover:bg-white/10 rounded-full transition-colors"
                   >
-                    <X className="w-4 h-4 text-zinc-400" />
+                    <X className="w-4 h-4 text-velvet-dim" />
                   </button>
 
                   <h3 className="text-xl font-bold text-white mb-3 pr-8">
                     {currentTour.title}
                   </h3>
-                  <p className="text-zinc-300 mb-6 leading-relaxed">
+                  <p className="text-velvet-silver mb-6 leading-relaxed">
                     {currentTour.message}
                   </p>
 
@@ -204,8 +204,8 @@ export default function MascotGuide({ page }) {
                           key={i}
                           className={`h-1.5 rounded-full transition-all ${
                             i === currentStep 
-                              ? 'w-8 bg-gradient-to-r from-zinc-400 to-neutral-400' 
-                              : 'w-1.5 bg-zinc-700'
+                              ? 'w-8 bg-gradient-to-r from-velvet-steel to-velvet-steel' 
+                              : 'w-1.5 bg-white/[0.10]'
                           }`}
                         />
                       ))}
@@ -239,7 +239,7 @@ export default function MascotGuide({ page }) {
                         repeat: Infinity,
                         delay: i * 0.6
                       }}
-                      className="absolute w-1 h-1 bg-zinc-300 rounded-full"
+                      className="absolute w-1 h-1 bg-velvet-silver rounded-full"
                       style={{
                         left: `${20 + i * 15}%`,
                         bottom: '10%'

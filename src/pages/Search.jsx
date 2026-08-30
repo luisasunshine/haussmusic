@@ -10,13 +10,13 @@ import { hasUserType } from '@/lib/utils';
 import { useSongLikes } from '@/lib/songLikes';
 
 const categoryCards = [
-  { id: 'pop', label: 'Pop', color: 'from-zinc-300 to-zinc-500', icon: Mic2 },
-  { id: 'rock', label: 'Rock', color: 'from-neutral-400 to-neutral-600', icon: Guitar },
-  { id: 'hip-hop', label: 'Hip-Hop', color: 'from-zinc-200 to-zinc-400', icon: Headphones },
+  { id: 'pop', label: 'Pop', color: 'from-velvet-silver to-velvet-ash', icon: Mic2 },
+  { id: 'rock', label: 'Rock', color: 'from-velvet-steel to-velvet-ash', icon: Guitar },
+  { id: 'hip-hop', label: 'Hip-Hop', color: 'from-velvet-text to-velvet-steel', icon: Headphones },
   { id: 'electronic', label: 'Eletrônico', color: 'from-slate-400 to-slate-600', icon: Radio },
-  { id: 'jazz', label: 'Jazz', color: 'from-zinc-400 to-zinc-600', icon: Music2 },
-  { id: 'classical', label: 'Clássico', color: 'from-neutral-300 to-neutral-500', icon: Disc3 },
-  { id: 'r&b', label: 'R&B', color: 'from-zinc-300 to-neutral-500', icon: Mic2 },
+  { id: 'jazz', label: 'Jazz', color: 'from-velvet-steel to-velvet-ash', icon: Music2 },
+  { id: 'classical', label: 'Clássico', color: 'from-velvet-silver to-velvet-ash', icon: Disc3 },
+  { id: 'r&b', label: 'R&B', color: 'from-velvet-silver to-velvet-ash', icon: Mic2 },
   { id: 'latin', label: 'Latino', color: 'from-slate-300 to-slate-500', icon: Guitar },
 ];
 
@@ -29,19 +29,19 @@ function ArtistRow({ artist, currentUser, follows, onFollowToggle }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center gap-4 p-3 bg-[#181818] rounded-xl hover:bg-[#282828] transition-colors group border border-[#282828] hover:border-[#c0c0c8]/20"
+      className="flex items-center gap-4 p-3 bg-[#101014] rounded-xl hover:bg-[#1c1c22] transition-colors group border border-[#1c1c22] hover:border-[#d8d8e2]/20"
     >
       <Link to={createPageUrl('ArtistProfile') + '?id=' + artist.id} className="flex items-center gap-4 flex-1 min-w-0">
         <div className="relative shrink-0">
           {artist.profile_picture ? (
-            <img src={artist.profile_picture} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-[#282828] group-hover:ring-[#c0c0c8]/30 transition-all" />
+            <img src={artist.profile_picture} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-[#1c1c22] group-hover:ring-[#d8d8e2]/30 transition-all" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-[#282828] flex items-center justify-center ring-2 ring-[#282828] group-hover:ring-[#c0c0c8]/30 transition-all">
-              <User className="w-6 h-6 text-[#B3B3B3]" />
+            <div className="w-12 h-12 rounded-full bg-[#1c1c22] flex items-center justify-center ring-2 ring-[#1c1c22] group-hover:ring-[#d8d8e2]/30 transition-all">
+              <User className="w-6 h-6 text-[#9a9aa6]" />
             </div>
           )}
           {artist.verified && (
-            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center border-2 border-[#181818]">
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center border-2 border-[#101014]">
               <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
@@ -49,8 +49,8 @@ function ArtistRow({ artist, currentUser, follows, onFollowToggle }) {
           )}
         </div>
         <div className="min-w-0">
-          <p className="font-bold text-white text-sm truncate group-hover:text-[#e5e5ea] transition-colors">{artist.display_name || artist.full_name}</p>
-          <p className="text-xs text-[#B3B3B3] flex items-center gap-1.5">
+          <p className="font-bold text-white text-sm truncate group-hover:text-[#f4f4f7] transition-colors">{artist.display_name || artist.full_name}</p>
+          <p className="text-xs text-[#9a9aa6] flex items-center gap-1.5">
             <Users className="w-3 h-3" />{followerCount} seguidores
           </p>
         </div>
@@ -61,7 +61,7 @@ function ArtistRow({ artist, currentUser, follows, onFollowToggle }) {
           onClick={() => onFollowToggle(artist)}
           className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
             isFollowing
-              ? 'bg-transparent border border-[#383838] text-white hover:border-red-500/30 hover:text-red-400'
+              ? 'bg-transparent border border-[#26262e] text-white hover:border-red-500/30 hover:text-red-400'
               : 'bg-white text-black hover:bg-[#e5e5e5]'
           }`}
         >
@@ -87,7 +87,7 @@ export default function Search() {
   const { data: songs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { data: releases = [] } = useQuery({
@@ -121,7 +121,7 @@ export default function Search() {
   const { data: follows = [] } = useQuery({
     queryKey: ['all-follows'],
     queryFn: () => base44.entities.Follow.list(),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   useEffect(() => {
@@ -219,12 +219,12 @@ export default function Search() {
   const topPlayedSongs = songs.filter(s => !s.is_podcast && (s.plays || 0) > 0).sort((a, b) => (b.plays || 0) - (a.plays || 0)).slice(0, 8);
 
   return (
-    <div className="min-h-screen pb-40 lg:pb-32 bg-[#121212]">
+    <div className="min-h-screen pb-40 lg:pb-32 bg-[#0a0a0c]">
       {/* Header + Search */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#c0c0c8]/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#d8d8e2]/10 via-transparent to-transparent" />
         <div className="relative px-4 lg:px-6 pt-8 pb-4">
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4">Buscar</h1>
+          <h1 className="text-3xl lg:text-4xl font-bold mb-4 v-chrome-text v-display">Buscar</h1>
 
           {/* Search Bar */}
           <div className="relative max-w-2xl">
@@ -233,15 +233,15 @@ export default function Search() {
               animate={{ scale: 1 }}
               className="relative"
             >
-              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#B3B3B3]" />
+              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9a9aa6]" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="O que você quer ouvir?"
-                className="w-full pl-12 pr-12 py-3.5 text-base bg-[#282828] border border-[#383838] rounded-xl outline-none transition-all focus:bg-[#333] focus:border-[#c0c0c8]/40 text-white placeholder:text-[#696969]"
+                className="w-full pl-12 pr-12 py-3.5 text-base bg-[#1c1c22] border border-[#26262e] rounded-xl outline-none transition-all focus:bg-[#26262e] focus:border-[#d8d8e2]/40 text-white placeholder:text-[#62626e]"
               />
               {query && (
-                <button onClick={() => setQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full bg-[#383838] hover:bg-[#535353] transition-colors">
+                <button onClick={() => setQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full bg-[#26262e] hover:bg-[#62626e] transition-colors">
                   <X className="w-4 h-4 text-white" />
                 </button>
               )}
@@ -250,8 +250,8 @@ export default function Search() {
             {/* Active category chip */}
             {selectedCategory && (
               <div className="flex items-center gap-2 mt-3">
-                <span className="text-xs text-[#B3B3B3]">Gênero:</span>
-                <button onClick={() => setSelectedCategory(null)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#c0c0c8]/15 text-[#e5e5ea] text-xs font-medium border border-[#c0c0c8]/20 hover:bg-[#c0c0c8]/25 transition-colors">
+                <span className="text-xs text-[#9a9aa6]">Gênero:</span>
+                <button onClick={() => setSelectedCategory(null)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#d8d8e2]/15 text-[#f4f4f7] text-xs font-medium border border-[#d8d8e2]/20 hover:bg-[#d8d8e2]/25 transition-colors">
                   {categoryCards.find(c => c.id === selectedCategory)?.label}
                   <X className="w-3 h-3" />
                 </button>
@@ -269,8 +269,8 @@ export default function Search() {
               {filteredArtists.length > 0 && (
                 <section className="mb-8">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-7 h-7 rounded-lg bg-[#c0c0c8]/20 flex items-center justify-center">
-                      <User className="w-3.5 h-3.5 text-[#e5e5ea]" />
+                    <div className="w-7 h-7 rounded-lg bg-[#d8d8e2]/20 flex items-center justify-center">
+                      <User className="w-3.5 h-3.5 text-[#f4f4f7]" />
                     </div>
                     <h3 className="text-lg font-bold text-white">Artistas</h3>
                   </div>
@@ -286,8 +286,8 @@ export default function Search() {
               {filteredReleases.length > 0 && (
                 <section className="mb-8">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-7 h-7 rounded-lg bg-[#c0c0c8]/20 flex items-center justify-center">
-                      <Disc3 className="w-3.5 h-3.5 text-[#e5e5ea]" />
+                    <div className="w-7 h-7 rounded-lg bg-[#d8d8e2]/20 flex items-center justify-center">
+                      <Disc3 className="w-3.5 h-3.5 text-[#f4f4f7]" />
                     </div>
                     <h3 className="text-lg font-bold text-white">Álbuns e EPs</h3>
                   </div>
@@ -295,18 +295,18 @@ export default function Search() {
                     {filteredReleases.map((r, i) => (
                       <Link key={r.id} to={createPageUrl('Release') + '?id=' + r.id}>
                         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} whileHover={{ y: -4 }} className="group">
-                          <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-[#282828] relative">
+                          <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-[#1c1c22] relative">
                             {r.cover_url ? (
                               <img src={r.cover_url} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />
                             ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-[#18181b] flex items-center justify-center">
-                                <Disc3 className="w-10 h-10 text-[#535353]" />
+                              <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-[#101014] flex items-center justify-center">
+                                <Disc3 className="w-10 h-10 text-[#62626e]" />
                               </div>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                           <p className="font-bold text-white text-sm truncate">{r.title}</p>
-                          <p className="text-xs text-[#B3B3B3] truncate mt-0.5">{r.artist}</p>
+                          <p className="text-xs text-[#9a9aa6] truncate mt-0.5">{r.artist}</p>
                         </motion.div>
                       </Link>
                     ))}
@@ -318,12 +318,12 @@ export default function Search() {
               {filteredSongs.length > 0 && (
                 <section className="mb-8">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-7 h-7 rounded-lg bg-[#c0c0c8]/20 flex items-center justify-center">
-                      <Music2 className="w-3.5 h-3.5 text-[#e5e5ea]" />
+                    <div className="w-7 h-7 rounded-lg bg-[#d8d8e2]/20 flex items-center justify-center">
+                      <Music2 className="w-3.5 h-3.5 text-[#f4f4f7]" />
                     </div>
                     <h3 className="text-lg font-bold text-white">Músicas</h3>
                   </div>
-                  <div className="space-y-1 bg-[#181818] rounded-xl border border-[#282828] overflow-hidden">
+                  <div className="space-y-1 bg-[#101014] rounded-xl border border-[#1c1c22] overflow-hidden">
                     {filteredSongs.map((song, i) => {
                       const scheduled = isSongScheduled(song);
                       return (
@@ -333,13 +333,13 @@ export default function Search() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: i * 0.02 }}
                         onClick={() => handlePlay(song)}
-                        className={`group flex items-center gap-3 p-2.5 transition-colors border-b border-[#282828] last:border-b-0 ${scheduled ? 'cursor-default opacity-60' : 'cursor-pointer'} ${currentSong?.id === song.id ? 'bg-[#c0c0c8]/[0.08]' : scheduled ? '' : 'hover:bg-[#282828]'}`}
+                        className={`group flex items-center gap-3 p-2.5 transition-colors border-b border-[#1c1c22] last:border-b-0 ${scheduled ? 'cursor-default opacity-60' : 'cursor-pointer'} ${currentSong?.id === song.id ? 'bg-[#d8d8e2]/[0.08]' : scheduled ? '' : 'hover:bg-[#1c1c22]'}`}
                       >
-                        <span className="w-6 text-center text-xs text-[#535353] font-medium">{i + 1}</span>
-                        <div className="relative w-10 h-10 rounded-md overflow-hidden bg-[#282828] shrink-0">
+                        <span className="w-6 text-center text-xs text-[#62626e] font-medium">{i + 1}</span>
+                        <div className="relative w-10 h-10 rounded-md overflow-hidden bg-[#1c1c22] shrink-0">
                           {song.cover_url ? <img src={song.cover_url} alt="" className="w-full h-full object-cover" /> : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-zinc-800 flex items-center justify-center">
-                              <Music2 className="w-4 h-4 text-[#535353]" />
+                            <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-velvet-raised flex items-center justify-center">
+                              <Music2 className="w-4 h-4 text-[#62626e]" />
                             </div>
                           )}
                           {currentSong?.id === song.id && (
@@ -350,16 +350,16 @@ export default function Search() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className={`text-sm font-medium truncate ${currentSong?.id === song.id ? 'text-[#c0c0c8]' : 'text-white'}`}>{song.title}</p>
+                            <p className={`text-sm font-medium truncate ${currentSong?.id === song.id ? 'text-[#d8d8e2]' : 'text-white'}`}>{song.title}</p>
                             {scheduled && (
-                              <span className="text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded whitespace-nowrap">Em Breve</span>
+                              <span className="v-badge-dim whitespace-nowrap">Em Breve</span>
                             )}
                           </div>
-                          <p className="text-xs text-[#B3B3B3] truncate">{song.artist}</p>
+                          <p className="text-xs text-[#9a9aa6] truncate">{song.artist}</p>
                         </div>
-                        <span className="text-xs text-[#535353] w-10 text-right">{formatDuration(song.duration)}</span>
+                        <span className="text-xs text-[#62626e] w-10 text-right">{formatDuration(song.duration)}</span>
                         <button onClick={(e) => { e.stopPropagation(); handleFavorite(song); }}
-                          className={`p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${isLiked(song) ? 'text-[#c0c0c8]' : 'text-[#B3B3B3] hover:text-white'}`}>
+                          className={`p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${isLiked(song) ? 'text-[#d8d8e2]' : 'text-[#9a9aa6] hover:text-white'}`}>
                           <Heart className={`w-4 h-4 ${isLiked(song) ? 'fill-current' : ''}`} />
                         </button>
                       </motion.div>
@@ -370,11 +370,11 @@ export default function Search() {
 
               {!hasResults && (
                 <div className="text-center py-20">
-                  <div className="w-20 h-20 rounded-full bg-[#181818] flex items-center justify-center mx-auto mb-5">
-                    <Music2 className="w-10 h-10 text-[#282828]" />
+                  <div className="w-20 h-20 rounded-full bg-[#101014] flex items-center justify-center mx-auto mb-5">
+                    <Music2 className="w-10 h-10 text-[#1c1c22]" />
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2">Nenhum resultado</h3>
-                  <p className="text-[#B3B3B3]">Tente buscar por outro termo ou gênero</p>
+                  <p className="text-[#9a9aa6]">Tente buscar por outro termo ou gênero</p>
                 </div>
               )}
             </motion.div>
@@ -382,7 +382,7 @@ export default function Search() {
             <motion.div key="browse" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="pt-2">
               {/* Explore Genres */}
               <section className="mb-10">
-                <h2 className="text-xl lg:text-2xl font-bold text-white mb-4">Explorar Tudo</h2>
+                <h2 className="text-xl lg:text-2xl font-bold mb-4 v-chrome-text">Explorar Tudo</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {categoryCards.map((cat, i) => {
                     const Icon = cat.icon;
@@ -410,11 +410,11 @@ export default function Search() {
                 <section>
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className="text-xl lg:text-2xl font-bold text-white">Mais Tocadas</h2>
-                      <p className="text-sm text-[#B3B3B3]">As músicas que o público mais ouve</p>
+                      <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Mais Tocadas</h2>
+                      <p className="text-sm text-[#9a9aa6]">As músicas que o público mais ouve</p>
                     </div>
                   </div>
-                  <div className="bg-[#181818] rounded-xl border border-[#282828] overflow-hidden">
+                  <div className="bg-[#101014] rounded-xl border border-[#1c1c22] overflow-hidden">
                     {topPlayedSongs.map((song, i) => {
                       const scheduled = isSongScheduled(song);
                       return (
@@ -424,13 +424,13 @@ export default function Search() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: i * 0.02 }}
                         onClick={() => handlePlay(song)}
-                        className={`group flex items-center gap-3 p-2.5 transition-colors border-b border-[#282828] last:border-b-0 ${scheduled ? 'cursor-default opacity-60' : 'cursor-pointer'} ${currentSong?.id === song.id ? 'bg-[#c0c0c8]/[0.08]' : scheduled ? '' : 'hover:bg-[#282828]'}`}
+                        className={`group flex items-center gap-3 p-2.5 transition-colors border-b border-[#1c1c22] last:border-b-0 ${scheduled ? 'cursor-default opacity-60' : 'cursor-pointer'} ${currentSong?.id === song.id ? 'bg-[#d8d8e2]/[0.08]' : scheduled ? '' : 'hover:bg-[#1c1c22]'}`}
                       >
-                        <span className="w-6 text-center text-xs text-[#535353] font-medium">{i + 1}</span>
-                        <div className="relative w-10 h-10 rounded-md overflow-hidden bg-[#282828] shrink-0">
+                        <span className="w-6 text-center text-xs text-[#62626e] font-medium">{i + 1}</span>
+                        <div className="relative w-10 h-10 rounded-md overflow-hidden bg-[#1c1c22] shrink-0">
                           {song.cover_url ? <img src={song.cover_url} alt="" className="w-full h-full object-cover" /> : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/30 to-zinc-800 flex items-center justify-center">
-                              <Music2 className="w-4 h-4 text-[#535353]" />
+                            <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/30 to-velvet-raised flex items-center justify-center">
+                              <Music2 className="w-4 h-4 text-[#62626e]" />
                             </div>
                           )}
                           {currentSong?.id === song.id && (
@@ -441,15 +441,15 @@ export default function Search() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className={`text-sm font-medium truncate ${currentSong?.id === song.id ? 'text-[#c0c0c8]' : 'text-white'}`}>{song.title}</p>
+                            <p className={`text-sm font-medium truncate ${currentSong?.id === song.id ? 'text-[#d8d8e2]' : 'text-white'}`}>{song.title}</p>
                             {scheduled && (
-                              <span className="text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded whitespace-nowrap">Em Breve</span>
+                              <span className="v-badge-dim whitespace-nowrap">Em Breve</span>
                             )}
                           </div>
-                          <p className="text-xs text-[#B3B3B3] truncate">{song.artist}</p>
+                          <p className="text-xs text-[#9a9aa6] truncate">{song.artist}</p>
                         </div>
-                        <span className="text-xs text-[#B3B3B3] hidden sm:block">{song.plays ? song.plays.toLocaleString() : '0'}</span>
-                        <span className="text-xs text-[#535353] w-10 text-right">{formatDuration(song.duration)}</span>
+                        <span className="text-xs text-[#9a9aa6] hidden sm:block">{song.plays ? song.plays.toLocaleString() : '0'}</span>
+                        <span className="text-xs text-[#62626e] w-10 text-right">{formatDuration(song.duration)}</span>
                       </motion.div>
                     )})}
                   </div>

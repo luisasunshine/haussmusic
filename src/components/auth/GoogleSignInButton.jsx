@@ -69,7 +69,7 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
 
   if (!CLIENT_ID) {
     return (
-      <div className="w-full rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-3 text-center text-xs text-zinc-500">
+      <div className="w-full rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-3 text-center text-xs text-velvet-faint">
         Login com Google não configurado. Defina VITE_GOOGLE_CLIENT_ID (veja .env.example).
       </div>
     );

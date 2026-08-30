@@ -122,17 +122,17 @@ export default function ImageCropper({ imageUrl, onSave, onCancel, aspectRatio =
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
-        className="w-full max-w-md bg-[#1a1a1a] rounded-3xl border border-white/[0.08] shadow-2xl overflow-hidden"
+        className="w-full max-w-md bg-[#0e0e12] rounded-3xl border border-white/[0.08] shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#c0c0c8]/15 flex items-center justify-center">
-              <Crop className="w-4 h-4 text-[#e5e5ea]" />
+            <div className="w-8 h-8 rounded-xl bg-[#d8d8e2]/15 flex items-center justify-center">
+              <Crop className="w-4 h-4 text-[#f4f4f7]" />
             </div>
             <h3 className="text-base font-bold text-white">{title}</h3>
           </div>
-          <button onClick={onCancel} className="p-2 rounded-xl hover:bg-white/5 text-zinc-500 hover:text-white transition-all">
+          <button onClick={onCancel} className="p-2 rounded-xl hover:bg-white/5 text-velvet-faint hover:text-white transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -164,20 +164,20 @@ export default function ImageCropper({ imageUrl, onSave, onCancel, aspectRatio =
             }} />
             {/* Corner guides */}
             {[['top-0 left-0','border-t-2 border-l-2 rounded-tl-lg'], ['top-0 right-0','border-t-2 border-r-2 rounded-tr-lg'], ['bottom-0 left-0','border-b-2 border-l-2 rounded-bl-lg'], ['bottom-0 right-0','border-b-2 border-r-2 rounded-br-lg']].map(([pos, style]) => (
-              <div key={pos} className={`absolute ${pos} w-6 h-6 border-[#c0c0c8] ${style} pointer-events-none`} />
+              <div key={pos} className={`absolute ${pos} w-6 h-6 border-[#d8d8e2] ${style} pointer-events-none`} />
             ))}
             {!imageLoaded && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-[#c0c0c8] border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-[#d8d8e2] border-t-transparent rounded-full animate-spin" />
               </div>
             )}
           </div>
 
-          <p className="text-center text-xs text-zinc-600 mt-2">Arraste para reposicionar • Scroll para dar zoom</p>
+          <p className="text-center text-xs text-velvet-faint mt-2">Arraste para reposicionar • Scroll para dar zoom</p>
 
           {/* Zoom slider */}
           <div className="mt-4 flex items-center gap-3">
-            <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all">
+            <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-velvet-dim hover:text-white transition-all">
               <ZoomOut className="w-4 h-4" />
             </button>
             <div className="flex-1 relative">
@@ -186,13 +186,13 @@ export default function ImageCropper({ imageUrl, onSave, onCancel, aspectRatio =
                 value={zoom}
                 onChange={e => setZoom(parseFloat(e.target.value))}
                 className="w-full"
-                style={{ background: `linear-gradient(to right, #c0c0c8 0%, #c0c0c8 ${((zoom - 0.5) / 3.5) * 100}%, #333 ${((zoom - 0.5) / 3.5) * 100}%, #333 100%)` }}
+                style={{ background: `linear-gradient(to right, #d8d8e2 0%, #d8d8e2 ${((zoom - 0.5) / 3.5) * 100}%, #333 ${((zoom - 0.5) / 3.5) * 100}%, #333 100%)` }}
               />
             </div>
-            <button onClick={() => setZoom(z => Math.min(4, z + 0.1))} className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all">
+            <button onClick={() => setZoom(z => Math.min(4, z + 0.1))} className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-velvet-dim hover:text-white transition-all">
               <ZoomIn className="w-4 h-4" />
             </button>
-            <button onClick={handleReset} className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-all" title="Reset">
+            <button onClick={handleReset} className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-velvet-dim hover:text-white transition-all" title="Reset">
               <RotateCcw className="w-4 h-4" />
             </button>
           </div>
@@ -209,10 +209,10 @@ export default function ImageCropper({ imageUrl, onSave, onCancel, aspectRatio =
           <button
             onClick={handleSave}
             disabled={saving || !imageLoaded}
-            className="flex-[2] py-3 rounded-2xl btn-metal text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[#c0c0c8]/25"
+            className="flex-[2] py-3 rounded-2xl btn-metal text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[#d8d8e2]/25"
           >
             {saving ? (
-              <div className="w-4 h-4 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-velvet-surface border-t-transparent rounded-full animate-spin" />
             ) : (
               <Check className="w-4 h-4" />
             )}

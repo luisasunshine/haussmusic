@@ -206,16 +206,16 @@ export default function Artists() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 rounded-full bg-gradient-to-br from-zinc-400 to-zinc-500 flex items-center justify-center"
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-velvet-steel to-velvet-ash flex items-center justify-center"
               style={{
                 boxShadow: '0 0 30px rgba(200,200,210,0.6)'
               }}
             >
               <Sparkles className="w-6 h-6 text-white" />
             </motion.div>
-            <h1 className="text-4xl font-black text-white">Lançamentos</h1>
+            <h1 className="text-4xl font-black v-chrome-text v-display">Lançamentos</h1>
           </motion.div>
-          <p className="text-zinc-400 px-6 lg:px-0">Novidades direto dos artistas</p>
+          <p className="text-velvet-dim px-6 lg:px-0">Novidades direto dos artistas</p>
         </div>
       </div>
 
@@ -223,17 +223,17 @@ export default function Artists() {
         <Tabs defaultValue="all" className="w-full">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <TabsList className="bg-white/5 border border-white/10">
-              <TabsTrigger value="all" className="data-[state=active]:bg-zinc-400/30 data-[state=active]:text-zinc-300">
+              <TabsTrigger value="all" className="data-[state=active]:bg-velvet-silver/30 data-[state=active]:text-velvet-silver">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Todos
               </TabsTrigger>
-              <TabsTrigger value="singles" className="data-[state=active]:bg-zinc-400/30 data-[state=active]:text-zinc-300">
+              <TabsTrigger value="singles" className="data-[state=active]:bg-velvet-silver/30 data-[state=active]:text-velvet-silver">
                 Singles
               </TabsTrigger>
-              <TabsTrigger value="albums" className="data-[state=active]:bg-zinc-400/30 data-[state=active]:text-zinc-300">
+              <TabsTrigger value="albums" className="data-[state=active]:bg-velvet-silver/30 data-[state=active]:text-velvet-silver">
                 Álbuns
               </TabsTrigger>
-              <TabsTrigger value="eps" className="data-[state=active]:bg-zinc-400/30 data-[state=active]:text-zinc-300">
+              <TabsTrigger value="eps" className="data-[state=active]:bg-velvet-silver/30 data-[state=active]:text-velvet-silver">
                 EPs
               </TabsTrigger>
             </TabsList>
@@ -246,35 +246,35 @@ export default function Artists() {
                     Novo Lançamento
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-velvet-surface border-white/[0.07] text-white max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-xl lg:text-2xl">Novo Lançamento</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 lg:space-y-6 mt-4">
                     {/* Informações Básicas */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-zinc-300 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-velvet-silver flex items-center gap-2">
                         <Music2 className="w-5 h-5" />
                         Informações Básicas
                       </h3>
                       
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Título *</label>
+                          <label className="text-sm text-velvet-dim mb-1 block">Título *</label>
                           <Input
                             value={newPost.title}
                             onChange={(e) => setNewPost(prev => ({ ...prev, title: e.target.value }))}
                             placeholder="Nome do lançamento"
-                            className="bg-zinc-800 border-zinc-700"
+                            className="bg-white/[0.07] border-white/[0.10]"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Tipo *</label>
+                          <label className="text-sm text-velvet-dim mb-1 block">Tipo *</label>
                           <Select value={newPost.type} onValueChange={(v) => setNewPost(prev => ({ ...prev, type: v }))}>
-                            <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                            <SelectTrigger className="bg-white/[0.07] border-white/[0.10]">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                            <SelectContent className="bg-white/[0.07] border-white/[0.10]">
                               <SelectItem value="single">Single</SelectItem>
                               <SelectItem value="album">Álbum</SelectItem>
                               <SelectItem value="ep">EP</SelectItem>
@@ -285,22 +285,22 @@ export default function Artists() {
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Artista *</label>
+                          <label className="text-sm text-velvet-dim mb-1 block">Artista *</label>
                           <Input
                             value={newPost.artist}
                             onChange={(e) => setNewPost(prev => ({ ...prev, artist: e.target.value }))}
                             placeholder="Nome do artista"
-                            className="bg-zinc-800 border-zinc-700"
+                            className="bg-white/[0.07] border-white/[0.10]"
                           />
                         </div>
                         {newPost.type === 'single' && (
                           <div>
-                            <label className="text-sm text-zinc-400 mb-1 block">Participações (feat.)</label>
+                            <label className="text-sm text-velvet-dim mb-1 block">Participações (feat.)</label>
                             <Input
                               value={newPost.featuring}
                               onChange={(e) => setNewPost(prev => ({ ...prev, featuring: e.target.value }))}
                               placeholder="Ex: Artista 1, Artista 2"
-                              className="bg-zinc-800 border-zinc-700"
+                              className="bg-white/[0.07] border-white/[0.10]"
                             />
                           </div>
                         )}
@@ -308,12 +308,12 @@ export default function Artists() {
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Gênero</label>
+                          <label className="text-sm text-velvet-dim mb-1 block">Gênero</label>
                           <Select value={newPost.genre} onValueChange={(v) => setNewPost(prev => ({ ...prev, genre: v }))}>
-                            <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                            <SelectTrigger className="bg-white/[0.07] border-white/[0.10]">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                            <SelectContent className="bg-white/[0.07] border-white/[0.10]">
                               <SelectItem value="pop">Pop</SelectItem>
                               <SelectItem value="rock">Rock</SelectItem>
                               <SelectItem value="hip-hop">Hip-Hop</SelectItem>
@@ -328,23 +328,23 @@ export default function Artists() {
                           </Select>
                         </div>
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Data de Lançamento</label>
+                          <label className="text-sm text-velvet-dim mb-1 block">Data de Lançamento</label>
                           <Input
                             type="date"
                             value={newPost.release_date}
                             onChange={(e) => setNewPost(prev => ({ ...prev, release_date: e.target.value }))}
-                            className="bg-zinc-800 border-zinc-700"
+                            className="bg-white/[0.07] border-white/[0.10]"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="text-sm text-zinc-400 mb-1 block">Descrição</label>
+                        <label className="text-sm text-velvet-dim mb-1 block">Descrição</label>
                         <Textarea
                           value={newPost.description}
                           onChange={(e) => setNewPost(prev => ({ ...prev, description: e.target.value }))}
                           placeholder="Conte sobre o lançamento, conceito, inspirações..."
-                          className="bg-zinc-800 border-zinc-700 h-24"
+                          className="bg-white/[0.07] border-white/[0.10] h-24"
                         />
                       </div>
                     </div>
@@ -352,7 +352,7 @@ export default function Artists() {
                     {/* Mídia */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-zinc-300 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-velvet-silver flex items-center gap-2">
                           <Upload className="w-5 h-5" />
                           Mídia
                         </h3>
@@ -361,7 +361,7 @@ export default function Artists() {
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowDimensions(true)}
-                          className="text-zinc-400 hover:text-zinc-300 hover:bg-zinc-500/10"
+                          className="text-velvet-dim hover:text-velvet-silver hover:bg-velvet-steel/10"
                         >
                           <Info className="w-4 h-4 mr-1" />
                           Dimensões
@@ -370,17 +370,17 @@ export default function Artists() {
                       
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Capa *</label>
-                          <label className="flex flex-col items-center justify-center gap-2 p-6 lg:p-8 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-zinc-400 transition-colors">
+                          <label className="text-sm text-velvet-dim mb-1 block">Capa *</label>
+                          <label className="flex flex-col items-center justify-center gap-2 p-6 lg:p-8 border-2 border-dashed border-white/[0.10] rounded-lg cursor-pointer hover:border-velvet-steel transition-colors">
                             {uploading ? (
-                              <Loader2 className="w-6 lg:w-8 h-6 lg:h-8 animate-spin text-zinc-300" />
+                              <Loader2 className="w-6 lg:w-8 h-6 lg:h-8 animate-spin text-velvet-silver" />
                             ) : newPost.cover_url ? (
                               <img src={newPost.cover_url} alt="Cover" className="max-h-32 lg:max-h-40 rounded-lg" />
                             ) : (
                               <>
-                                <Upload className="w-6 lg:w-8 h-6 lg:h-8 text-zinc-500" />
-                                <span className="text-xs lg:text-sm text-zinc-500 text-center">Capa do lançamento</span>
-                                <span className="text-[10px] lg:text-xs text-zinc-600 text-center">Min: 400x400px | Max: 4000x4000px | 10MB</span>
+                                <Upload className="w-6 lg:w-8 h-6 lg:h-8 text-velvet-faint" />
+                                <span className="text-xs lg:text-sm text-velvet-faint text-center">Capa do lançamento</span>
+                                <span className="text-[10px] lg:text-xs text-velvet-faint text-center">Min: 400x400px | Max: 4000x4000px | 10MB</span>
                               </>
                             )}
                             <input type="file" accept="image/*" className="hidden" onChange={handleUploadCover} />
@@ -388,10 +388,10 @@ export default function Artists() {
                         </div>
 
                         <div>
-                          <label className="text-sm text-zinc-400 mb-1 block">Vídeo ou GIF de Fundo (opcional)</label>
-                          <label className="flex flex-col items-center justify-center gap-2 p-6 lg:p-8 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-zinc-500 transition-colors">
+                          <label className="text-sm text-velvet-dim mb-1 block">Vídeo ou GIF de Fundo (opcional)</label>
+                          <label className="flex flex-col items-center justify-center gap-2 p-6 lg:p-8 border-2 border-dashed border-white/[0.10] rounded-lg cursor-pointer hover:border-velvet-ash transition-colors">
                             {uploadingVideo ? (
-                              <Loader2 className="w-6 lg:w-8 h-6 lg:h-8 animate-spin text-zinc-400" />
+                              <Loader2 className="w-6 lg:w-8 h-6 lg:h-8 animate-spin text-velvet-dim" />
                             ) : newPost.background_video_url ? (
                               <div className="flex flex-col items-center gap-2 text-green-400">
                                 <Music2 className="w-6 h-6" />
@@ -399,8 +399,8 @@ export default function Artists() {
                               </div>
                             ) : (
                               <>
-                                <Upload className="w-6 lg:w-8 h-6 lg:h-8 text-zinc-500" />
-                                <span className="text-xs lg:text-sm text-zinc-500 text-center">Vídeo ou GIF de fundo</span>
+                                <Upload className="w-6 lg:w-8 h-6 lg:h-8 text-velvet-faint" />
+                                <span className="text-xs lg:text-sm text-velvet-faint text-center">Vídeo ou GIF de fundo</span>
                               </>
                             )}
                             <input type="file" accept="video/*,image/gif" className="hidden" onChange={handleUploadVideo} />
@@ -412,7 +412,7 @@ export default function Artists() {
                     {/* Faixas */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-zinc-300 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-velvet-silver flex items-center gap-2">
                           <Music2 className="w-5 h-5" />
                           Faixas
                         </h3>
@@ -420,7 +420,7 @@ export default function Artists() {
                           type="button"
                           size="sm"
                           onClick={addTrack}
-                          className="bg-zinc-500 hover:bg-zinc-600"
+                          className="bg-velvet-steel hover:bg-velvet-ash"
                         >
                           <Plus className="w-4 h-4 mr-1" />
                           Adicionar
@@ -429,9 +429,9 @@ export default function Artists() {
 
                       <div className="space-y-3">
                         {tracks.map((track, index) => (
-                          <div key={index} className="bg-zinc-800/50 rounded-lg p-3 lg:p-4 space-y-3">
+                          <div key={index} className="bg-white/[0.07]/50 rounded-lg p-3 lg:p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-zinc-400">Faixa {index + 1}</span>
+                              <span className="text-sm text-velvet-dim">Faixa {index + 1}</span>
                               {tracks.length > 1 && (
                                 <Button
                                   type="button"
@@ -453,7 +453,7 @@ export default function Artists() {
                                 setTracks(newTracks);
                               }}
                               placeholder="Nome da faixa"
-                              className="bg-zinc-900 border-zinc-700 text-sm"
+                              className="bg-velvet-surface border-white/[0.10] text-sm"
                             />
                             
                             {(newPost.type === 'album' || newPost.type === 'ep') && (
@@ -465,13 +465,13 @@ export default function Artists() {
                                   setTracks(newTracks);
                                 }}
                                 placeholder="Participações (feat.) - opcional"
-                                className="bg-zinc-900 border-zinc-700 text-sm"
+                                className="bg-velvet-surface border-white/[0.10] text-sm"
                               />
                             )}
                             
-                            <label className="flex items-center justify-center gap-2 p-4 lg:p-6 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-zinc-500 transition-colors">
+                            <label className="flex items-center justify-center gap-2 p-4 lg:p-6 border-2 border-dashed border-white/[0.10] rounded-lg cursor-pointer hover:border-velvet-ash transition-colors">
                               {track.uploading ? (
-                                <Loader2 className="w-5 lg:w-6 h-5 lg:h-6 animate-spin text-zinc-400" />
+                                <Loader2 className="w-5 lg:w-6 h-5 lg:h-6 animate-spin text-velvet-dim" />
                               ) : track.audio_url ? (
                                 <div className="flex items-center gap-2 text-green-400">
                                   <Music2 className="w-4 lg:w-5 h-4 lg:h-5" />
@@ -479,8 +479,8 @@ export default function Artists() {
                                 </div>
                               ) : (
                                 <>
-                                  <Upload className="w-5 lg:w-6 h-5 lg:h-6 text-zinc-500" />
-                                  <span className="text-xs lg:text-sm text-zinc-500">Upload áudio</span>
+                                  <Upload className="w-5 lg:w-6 h-5 lg:h-6 text-velvet-faint" />
+                                  <span className="text-xs lg:text-sm text-velvet-faint">Upload áudio</span>
                                 </>
                               )}
                               <input type="file" accept="audio/*" className="hidden" onChange={(e) => handleUploadTrackAudio(e, index)} />
@@ -508,20 +508,20 @@ export default function Artists() {
 
           {/* Dimensions Dialog */}
           <Dialog open={showDimensions} onOpenChange={setShowDimensions}>
-            <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+            <DialogContent className="bg-velvet-surface border-white/[0.07] text-white max-w-md">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <Info className="w-5 h-5 text-zinc-400" />
+                  <Info className="w-5 h-5 text-velvet-dim" />
                   Especificações de Mídia
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <h4 className="font-semibold text-zinc-400 mb-2 flex items-center gap-2">
+                  <h4 className="font-semibold text-velvet-dim mb-2 flex items-center gap-2">
                     <Upload className="w-4 h-4" />
                     Capa do Lançamento
                   </h4>
-                  <ul className="text-sm text-zinc-400 space-y-1">
+                  <ul className="text-sm text-velvet-dim space-y-1">
                     <li>• <span className="text-white">Formato:</span> JPG, PNG, WEBP</li>
                     <li>• <span className="text-white">Dimensões mínimas:</span> 400x400 pixels</li>
                     <li>• <span className="text-white">Dimensões máximas:</span> 4000x4000 pixels</li>
@@ -531,11 +531,11 @@ export default function Artists() {
                 </div>
 
                 <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <h4 className="font-semibold text-zinc-400 mb-2 flex items-center gap-2">
+                  <h4 className="font-semibold text-velvet-dim mb-2 flex items-center gap-2">
                     <Music2 className="w-4 h-4" />
                     Vídeo ou GIF de Fundo
                   </h4>
-                  <ul className="text-sm text-zinc-400 space-y-1">
+                  <ul className="text-sm text-velvet-dim space-y-1">
                     <li>• <span className="text-white">Formato:</span> MP4, MOV, WEBM ou GIF</li>
                     <li>• <span className="text-white">Resolução máxima:</span> 1920x1080 (Full HD)</li>
                     <li>• <span className="text-white">Tamanho máximo:</span> 50MB</li>
@@ -545,11 +545,11 @@ export default function Artists() {
                 </div>
 
                 <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <h4 className="font-semibold text-zinc-400 mb-2 flex items-center gap-2">
+                  <h4 className="font-semibold text-velvet-dim mb-2 flex items-center gap-2">
                     <Music2 className="w-4 h-4" />
                     Arquivos de Áudio
                   </h4>
-                  <ul className="text-sm text-zinc-400 space-y-1">
+                  <ul className="text-sm text-velvet-dim space-y-1">
                     <li>• <span className="text-white">Formato:</span> MP3, WAV, M4A</li>
                     <li>• <span className="text-white">Tamanho máximo:</span> 20MB por faixa</li>
                     <li>• <span className="text-white">Qualidade mínima:</span> 128kbps</li>
@@ -563,8 +563,8 @@ export default function Artists() {
           <TabsContent value="all">
             {featuredPosts.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-zinc-300" />
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 v-chrome-text">
+                  <Sparkles className="w-5 h-5 text-velvet-silver" />
                   Em Destaque
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -595,9 +595,9 @@ export default function Artists() {
 
             {posts.length === 0 && (
               <div className="text-center py-20">
-                <Music2 className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
+                <Music2 className="w-16 h-16 text-velvet-faint mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">Nenhum lançamento disponível</h3>
-                <p className="text-zinc-500">Novos lançamentos aparecerão aqui</p>
+                <p className="text-velvet-faint">Novos lançamentos aparecerão aqui</p>
               </div>
             )}
           </TabsContent>
@@ -652,10 +652,10 @@ export default function Artists() {
 function PostCard({ post, index, onLike, isLiked }) {
   const typeLabels = { single: 'Single', album: 'Álbum', ep: 'EP', announcement: 'Anúncio' };
   const typeColors = {
-    single: 'from-zinc-300 to-zinc-500',
-    album: 'from-neutral-400 to-neutral-600',
+    single: 'from-velvet-silver to-velvet-ash',
+    album: 'from-velvet-steel to-velvet-ash',
     ep: 'from-slate-300 to-slate-500',
-    announcement: 'from-zinc-200 to-zinc-400'
+    announcement: 'from-velvet-text to-velvet-steel'
   };
 
   const CardContent = (
@@ -693,11 +693,11 @@ function PostCard({ post, index, onLike, isLiked }) {
       <div className="p-4">
         <h3 className="font-bold text-white text-lg mb-1 truncate">{post.title}</h3>
         {post.description && (
-          <p className="text-sm text-zinc-500 line-clamp-2 mb-3">{post.description}</p>
+          <p className="text-sm text-velvet-faint line-clamp-2 mb-3">{post.description}</p>
         )}
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
+          <div className="flex items-center gap-2 text-sm text-velvet-faint">
             <Calendar className="w-4 h-4" />
             {new Date(post.created_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
           </div>
@@ -708,7 +708,7 @@ function PostCard({ post, index, onLike, isLiked }) {
               e.preventDefault();
               onLike();
             }}
-            className={`flex items-center gap-1 transition-colors ${isLiked ? 'text-pink-500' : 'text-zinc-500 hover:text-pink-500'}`}
+            className={`flex items-center gap-1 transition-colors ${isLiked ? 'text-pink-500' : 'text-velvet-faint hover:text-pink-500'}`}
           >
             <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
             <span className="text-sm font-semibold">{post.likes || 0}</span>

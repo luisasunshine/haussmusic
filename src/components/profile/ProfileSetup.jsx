@@ -55,7 +55,7 @@ export default function ProfileSetup({ user, onComplete }) {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 rounded-3xl p-8 border border-zinc-400/30 shadow-2xl"
+        className="max-w-md w-full bg-gradient-to-br from-velvet-surface via-velvet-raised to-velvet-surface rounded-3xl p-8 border border-velvet-steel/30 shadow-2xl"
       >
         {/* Header */}
         <div className="text-center mb-8">
@@ -65,21 +65,21 @@ export default function ProfileSetup({ user, onComplete }) {
               scale: [1, 1.1, 1]
             }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-400 via-neutral-400 to-pink-500 flex items-center justify-center mx-auto mb-4"
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-velvet-steel via-velvet-steel to-pink-500 flex items-center justify-center mx-auto mb-4"
             style={{
               boxShadow: '0 10px 40px rgba(200,200,210,0.5)'
             }}
           >
             <Sparkles className="w-8 h-8 text-white" />
           </motion.div>
-          <h2 className="text-3xl font-bold text-white mb-2">Bem-vindo ao VELVET MUSIC!</h2>
-          <p className="text-zinc-400">Complete seu perfil para começar</p>
+          <h2 className="text-3xl font-bold mb-2 v-chrome-text v-display">Bem-vindo ao VELVET MUSIC!</h2>
+          <p className="text-velvet-dim">Complete seu perfil para começar</p>
         </div>
 
         {/* Profile Picture */}
         <div className="flex flex-col items-center gap-4 mb-6">
           <div className="relative group">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 bg-gradient-to-br from-zinc-500 to-neutral-500">
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 bg-gradient-to-br from-velvet-ash to-velvet-ash">
               {profileData.profile_picture ? (
                 <img src={profileData.profile_picture} alt="Profile" className="w-full h-full object-cover" />
               ) : (
@@ -98,12 +98,12 @@ export default function ProfileSetup({ user, onComplete }) {
               <input type="file" accept="image/*" className="hidden" onChange={handleUploadPhoto} disabled={uploading} />
             </label>
           </div>
-          <p className="text-sm text-zinc-500">Adicione uma foto de perfil (opcional)</p>
+          <p className="text-sm text-velvet-faint">Adicione uma foto de perfil (opcional)</p>
         </div>
 
         {/* Name Input */}
         <div className="mb-6">
-          <label className="text-sm font-medium text-zinc-400 mb-2 block">Nome *</label>
+          <label className="text-sm font-medium text-velvet-dim mb-2 block">Nome *</label>
           <Input
             value={profileData.full_name}
             onChange={(e) => setProfileData(prev => ({ ...prev, full_name: e.target.value }))}
@@ -115,11 +115,11 @@ export default function ProfileSetup({ user, onComplete }) {
 
         {/* Email (read-only) */}
         <div className="mb-6">
-          <label className="text-sm font-medium text-zinc-400 mb-2 block">Email</label>
+          <label className="text-sm font-medium text-velvet-dim mb-2 block">Email</label>
           <Input
             value={user?.email || ''}
             disabled
-            className="bg-white/5 border-white/10 text-zinc-500"
+            className="bg-white/5 border-white/10 text-velvet-faint"
           />
         </div>
 

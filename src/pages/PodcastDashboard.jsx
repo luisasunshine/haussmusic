@@ -70,7 +70,7 @@ export default function PodcastDashboard() {
       return all.filter(r => r.created_by === user?.email && r.is_podcast);
     },
     enabled: !!user,
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { data: myEpisodes = [] } = useQuery({
@@ -80,7 +80,7 @@ export default function PodcastDashboard() {
       return all.filter(s => s.created_by === user?.email && s.is_podcast);
     },
     enabled: !!user,
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const totalPlays = myEpisodes.reduce((a, s) => a + (s.plays || 0), 0);
@@ -114,35 +114,35 @@ export default function PodcastDashboard() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#c0c0c8] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#d8d8e2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   const stats = [
-    { icon: Headphones, value: myEpisodes.length, label: 'Episódios', bg: 'bg-zinc-400/10', text: 'text-zinc-300', grad: 'from-zinc-300 to-zinc-500' },
-    { icon: Eye, value: totalPlays, label: 'Reproduções', bg: 'bg-neutral-400/10', text: 'text-neutral-300', grad: 'from-neutral-400 to-neutral-600' },
+    { icon: Headphones, value: myEpisodes.length, label: 'Episódios', bg: 'bg-velvet-silver/10', text: 'text-velvet-silver', grad: 'from-velvet-silver to-velvet-ash' },
+    { icon: Eye, value: totalPlays, label: 'Reproduções', bg: 'bg-velvet-steel/10', text: 'text-velvet-silver', grad: 'from-velvet-steel to-velvet-ash' },
     { icon: Heart, value: totalLikes, label: 'Curtidas', bg: 'bg-slate-400/10', text: 'text-slate-300', grad: 'from-slate-300 to-slate-500' },
-    { icon: Radio, value: myPodcasts.length, label: 'Podcasts', bg: 'bg-zinc-300/10', text: 'text-zinc-200', grad: 'from-zinc-200 to-zinc-400' },
+    { icon: Radio, value: myPodcasts.length, label: 'Podcasts', bg: 'bg-velvet-silver/10', text: 'text-velvet-text', grad: 'from-velvet-text to-velvet-steel' },
   ];
 
   return (
     <div className="min-h-screen pb-32">
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#c0c0c8]/20 via-[#121212] to-[#e5e5ea]/10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#d8d8e2]/20 via-[#0a0a0c] to-[#f4f4f7]/10" />
         <div className="relative px-6 lg:px-8 pt-8 pb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="relative flex-shrink-0">
               <button
                 onClick={() => setShowBrand(true)}
                 title="Alterar logo e nome do podcast"
-                className="group relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-[#c0c0c8]/30 shadow-2xl shadow-[#c0c0c8]/20 block"
+                className="group relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden ring-2 ring-[#d8d8e2]/30 shadow-2xl shadow-[#d8d8e2]/20 block"
               >
                 {brandLogo ? (
                   <img src={brandLogo} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8] to-[#e5e5ea] flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2] to-[#f4f4f7] flex items-center justify-center">
                     <Mic className="w-12 h-12 text-white/60" />
                   </div>
                 )}
@@ -153,18 +153,18 @@ export default function PodcastDashboard() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }} className="flex-1 min-w-0">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#c0c0c8] bg-[#c0c0c8]/10 px-3 py-1 rounded-full">Podcast</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#d8d8e2] bg-[#d8d8e2]/10 px-3 py-1 rounded-full">Podcast</span>
               <div className="flex items-center gap-3 mt-2">
-                <h1 className="text-3xl md:text-5xl font-black text-white mb-1 truncate">{brandName}</h1>
-                <button onClick={() => setShowBrand(true)} title="Editar podcast" className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0">
+                <h1 className="text-3xl md:text-5xl font-black mb-1 truncate v-chrome-text v-display">{brandName}</h1>
+                <button onClick={() => setShowBrand(true)} title="Editar podcast" className="p-2 rounded-full text-velvet-dim hover:text-white hover:bg-white/10 transition-colors flex-shrink-0">
                   <Pencil className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-zinc-400 text-sm md:text-base">Dashboard de Podcast — Publique episódios e acompanhe suas métricas</p>
+              <p className="text-velvet-dim text-sm md:text-base">Dashboard de Podcast — Publique episódios e acompanhe suas métricas</p>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-              <Button onClick={() => { setEditing(null); setShowCreator(true); }} className="btn-metal rounded-full px-6 py-6 h-auto text-base font-bold shadow-lg shadow-[#c0c0c8]/30">
+              <Button onClick={() => { setEditing(null); setShowCreator(true); }} className="btn-metal rounded-full px-6 py-6 h-auto text-base font-bold shadow-lg shadow-[#d8d8e2]/30">
                 <Plus className="w-5 h-5 mr-2" /> Novo Podcast
               </Button>
             </motion.div>
@@ -190,10 +190,10 @@ export default function PodcastDashboard() {
       <div className="px-6 lg:px-8 pt-6">
         <Tabs defaultValue="podcasts" className="w-full">
           <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
-            <TabsTrigger value="podcasts" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="podcasts" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <Radio className="w-4 h-4 mr-2" /> Podcasts
             </TabsTrigger>
-            <TabsTrigger value="episodes" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="episodes" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <Headphones className="w-4 h-4 mr-2" /> Episódios
             </TabsTrigger>
           </TabsList>
@@ -206,20 +206,20 @@ export default function PodcastDashboard() {
                   <motion.div
                     key={show.id}
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}
-                    className="group bg-[#181818] rounded-xl overflow-hidden hover:bg-[#282828] transition-all duration-300 cursor-pointer shadow-lg"
+                    className="group bg-[#101014] rounded-xl overflow-hidden hover:bg-[#1c1c22] transition-all duration-300 cursor-pointer shadow-lg"
                     onClick={() => window.location.href = `/Release?id=${show.id}`}
                   >
                     <div className="aspect-square relative overflow-hidden">
                       {show.cover_url ? (
                         <img src={show.cover_url} alt={show.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#c0c0c8]/40 to-[#e5e5ea]/40 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-[#d8d8e2]/40 to-[#f4f4f7]/40 flex items-center justify-center">
                           <Mic className="w-16 h-16 text-white/20" />
                         </div>
                       )}
                       <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-md">Podcast</span>
                       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={(e) => { e.stopPropagation(); setEditing(show); setShowCreator(true); }} className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-[#c0c0c8] rounded-lg transition-colors">
+                        <button onClick={(e) => { e.stopPropagation(); setEditing(show); setShowCreator(true); }} className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-[#d8d8e2] rounded-lg transition-colors">
                           <Edit2 className="w-3.5 h-3.5 text-white" />
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); if (confirm('Excluir este podcast?')) deletePodcast.mutate(show.id); }} className="p-1.5 bg-black/60 backdrop-blur-sm hover:bg-red-500 rounded-lg transition-colors">
@@ -229,7 +229,7 @@ export default function PodcastDashboard() {
                     </div>
                     <div className="p-3">
                       <h3 className="font-semibold text-white text-sm truncate">{show.title}</h3>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
+                      <div className="flex items-center gap-3 mt-2 text-xs text-velvet-faint">
                         {show.release_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(show.release_date).getFullYear()}</span>}
                         <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{getReleaseMetrics(show, myEpisodes).likes}</span>
                         <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{getReleaseMetrics(show, myEpisodes).plays}</span>
@@ -239,12 +239,12 @@ export default function PodcastDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-[#181818] rounded-2xl border border-white/5">
-                <div className="w-20 h-20 rounded-full bg-[#c0c0c8]/10 flex items-center justify-center mx-auto mb-4">
-                  <Mic className="w-10 h-10 text-[#c0c0c8]" />
+              <div className="text-center py-20 bg-[#101014] rounded-2xl border border-white/5">
+                <div className="w-20 h-20 rounded-full bg-[#d8d8e2]/10 flex items-center justify-center mx-auto mb-4">
+                  <Mic className="w-10 h-10 text-[#d8d8e2]" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Nenhum podcast ainda</h3>
-                <p className="text-zinc-400 mb-6 max-w-md mx-auto">Publique seu primeiro podcast — só áudio, sem vídeo. Adicione episódios e o mundo escuta.</p>
+                <p className="text-velvet-dim mb-6 max-w-md mx-auto">Publique seu primeiro podcast — só áudio, sem vídeo. Adicione episódios e o mundo escuta.</p>
                 <Button onClick={() => { setEditing(null); setShowCreator(true); }} className="btn-metal rounded-full">
                   <Plus className="w-4 h-4 mr-2" /> Criar Primeiro Podcast
                 </Button>
@@ -255,7 +255,7 @@ export default function PodcastDashboard() {
           {/* Episodes */}
           <TabsContent value="episodes" className="mt-6">
             {myEpisodes.length > 0 ? (
-              <div className="bg-[#181818] rounded-2xl border border-white/5 overflow-hidden">
+              <div className="bg-[#101014] rounded-2xl border border-white/5 overflow-hidden">
                 {myEpisodes.map((ep, index) => (
                   <motion.div
                     key={ep.id}
@@ -263,35 +263,35 @@ export default function PodcastDashboard() {
                     className="grid grid-cols-[40px_1fr_120px] gap-4 px-4 py-2.5 hover:bg-white/5 transition-colors cursor-pointer group items-center"
                     onClick={() => window.dispatchEvent(new CustomEvent('playSong', { detail: ep }))}
                   >
-                    <span className="text-sm text-zinc-500 text-center group-hover:hidden">{index + 1}</span>
+                    <span className="text-sm text-velvet-faint text-center group-hover:hidden">{index + 1}</span>
                     <Play className="w-4 h-4 text-white hidden group-hover:block mx-auto" />
                     <div className="flex items-center gap-3 min-w-0">
                       {ep.cover_url ? (
                         <img src={ep.cover_url} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-gradient-to-br from-[#c0c0c8]/30 to-[#e5e5ea]/30 flex items-center justify-center flex-shrink-0">
-                          <Headphones className="w-4 h-4 text-[#c0c0c8]" />
+                        <div className="w-10 h-10 rounded bg-gradient-to-br from-[#d8d8e2]/30 to-[#f4f4f7]/30 flex items-center justify-center flex-shrink-0">
+                          <Headphones className="w-4 h-4 text-[#d8d8e2]" />
                         </div>
                       )}
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-white truncate">{ep.title}</p>
-                        <p className="text-xs text-zinc-500 truncate">{ep.album || ep.artist}</p>
+                        <p className="text-xs text-velvet-faint truncate">{ep.album || ep.artist}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-end gap-3">
-                      <span className="text-sm text-zinc-500">{formatDuration(ep.duration)}</span>
-                      <span className="text-xs text-zinc-600 flex items-center gap-2"><span>{ep.plays || 0} plays</span><span className="flex items-center gap-1"><Heart className="w-3 h-3" />{ep.likes || 0}</span></span>
+                      <span className="text-sm text-velvet-faint">{formatDuration(ep.duration)}</span>
+                      <span className="text-xs text-velvet-faint flex items-center gap-2"><span>{ep.plays || 0} plays</span><span className="flex items-center gap-1"><Heart className="w-3 h-3" />{ep.likes || 0}</span></span>
                     </div>
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-[#181818] rounded-2xl border border-white/5">
-                <div className="w-20 h-20 rounded-full bg-[#c0c0c8]/10 flex items-center justify-center mx-auto mb-4">
-                  <Headphones className="w-10 h-10 text-[#c0c0c8]" />
+              <div className="text-center py-20 bg-[#101014] rounded-2xl border border-white/5">
+                <div className="w-20 h-20 rounded-full bg-[#d8d8e2]/10 flex items-center justify-center mx-auto mb-4">
+                  <Headphones className="w-10 h-10 text-[#d8d8e2]" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Nenhum episódio ainda</h3>
-                <p className="text-zinc-400">Seus episódios aparecerão aqui depois de publicar um podcast.</p>
+                <p className="text-velvet-dim">Seus episódios aparecerão aqui depois de publicar um podcast.</p>
               </div>
             )}
           </TabsContent>
@@ -312,14 +312,14 @@ export default function PodcastDashboard() {
 
       {/* Podcast brand (logo + name) editor */}
       <Dialog open={showBrand} onOpenChange={setShowBrand}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+        <DialogContent className="bg-velvet-surface border-white/[0.07] text-white">
           <DialogHeader>
             <DialogTitle>Editar podcast</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-zinc-400 -mt-2">Defina a logo e o nome do seu podcast — é o que aparece aqui no seu painel.</p>
+          <p className="text-sm text-velvet-dim -mt-2">Defina a logo e o nome do seu podcast — é o que aparece aqui no seu painel.</p>
           <div className="flex items-center gap-4 py-2">
             <label className="relative group cursor-pointer flex-shrink-0">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden ring-2 ring-[#c0c0c8]/30 bg-white/5 flex items-center justify-center">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden ring-2 ring-[#d8d8e2]/30 bg-white/5 flex items-center justify-center">
                 {brandForm.podcast_logo ? (
                   <img src={brandForm.podcast_logo} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -332,14 +332,14 @@ export default function PodcastDashboard() {
               <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
             </label>
             <div className="flex-1">
-              <label className="text-sm text-zinc-400 mb-1 block">Nome do podcast</label>
+              <label className="text-sm text-velvet-dim mb-1 block">Nome do podcast</label>
               <Input
                 value={brandForm.podcast_name}
                 onChange={(e) => setBrandForm(f => ({ ...f, podcast_name: e.target.value }))}
                 placeholder="Ex: Papo Reto"
                 className="bg-white/5 border-white/10 text-white"
               />
-              <p className="text-xs text-zinc-600 mt-2">Clique na imagem pra enviar a logo.</p>
+              <p className="text-xs text-velvet-faint mt-2">Clique na imagem pra enviar a logo.</p>
             </div>
           </div>
           <DialogFooter>

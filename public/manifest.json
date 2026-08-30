@@ -1,12 +1,16 @@
 {
   "name": "VELVET MUSIC",
   "short_name": "VELVET",
-  "description": "VELVET MUSIC - streaming e lançamentos musicais",
+  "description": "VELVET MUSIC — streaming, lançamentos e rankings dos artistas do selo.",
   "icons": [
-    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/logo.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/logo2.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a"
+  "orientation": "portrait-primary",
+  "background_color": "#050506",
+  "theme_color": "#050506",
+  "lang": "pt-BR"
 }

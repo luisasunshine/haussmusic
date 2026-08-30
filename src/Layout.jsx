@@ -14,6 +14,9 @@ import { Home, Search, Library, Music2, Star, Award, LogIn, ChevronLeft, Mic } f
 import { useAuth } from '@/lib/AuthContext';
 import { hasUserType } from '@/lib/utils';
 import { useSongLikes } from '@/lib/songLikes';
+import VelvetBackdrop from '@/components/fx/VelvetBackdrop';
+import { attachAudioElement, setPlaying as setAudioBusPlaying, resumeAudioContext, armAudioContextUnlock } from '@/lib/audioBus';
+import { initSpecularTracker } from '@/lib/specular';
 
 export default function Layout({ children, currentPageName }) {
   const queryClient = useQueryClient();
@@ -42,6 +45,14 @@ export default function Layout({ children, currentPageName }) {
   const [crossfadeEnabled, setCrossfadeEnabled] = useState(false);
 
   const needsProfile = !!user && !user.profile_completed && !user.display_name && !user.full_name;
+
+  // Um único rastreador serve o reflexo e a inclinação 3D de TODOS os cards
+  // do app — nenhum componente precisa de listener próprio.
+  useEffect(() => initSpecularTracker(), []);
+
+  // Garante que o contexto de áudio esteja acordado antes de qualquer
+  // reprodução, aproveitando o primeiro gesto do usuário na página.
+  useEffect(() => armAudioContextUnlock(), []);
   
   // ===== CROSSFADE CONFIG =====
   const CROSSFADE_DURATION = 5; // 5 seconds
@@ -65,7 +76,7 @@ export default function Layout({ children, currentPageName }) {
   const { data: songs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   // ===== PLAY COUNTING =====
@@ -97,6 +108,14 @@ export default function Layout({ children, currentPageName }) {
     if (audioA.current && audioB.current) {
       currentAudioRef.current = audioA.current;
       nextAudioRef.current = audioB.current;
+
+      // Roteia os dois canais do crossfade pelo analisador compartilhado.
+      // A partir daqui o visualizador, o vinil 3D e todo brilho da
+      // interface leem o MESMO quadro de áudio — é o que os mantém em
+      // fase. Se o navegador recusar, o audioBus cai para o modo simulado
+      // sozinho e o som nunca é afetado.
+      attachAudioElement(audioA.current);
+      attachAudioElement(audioB.current);
     }
 
     return () => {
@@ -438,7 +457,10 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handlePrevious = () => {
-    const playList = shuffleEnabled && shuffledSongs.length > 0 ? shuffledSongs : songs;
+    // Usa a mesma lista que o "próxima" usa. Antes esta função ignorava
+    // playQueue, então dentro de uma playlist o botão de voltar pulava
+    // para uma faixa qualquer do acervo geral.
+    const playList = getPlaylist();
     if (playList.length === 0) return;
 
     const current = currentAudioRef.current;
@@ -460,8 +482,14 @@ export default function Layout({ children, currentPageName }) {
   };
 
   // ===== HANDLE PLAY/PAUSE =====
+  // O barramento precisa saber se há som para decidir entre analisar de
+  // verdade e simular o pulso.
+  useEffect(() => { setAudioBusPlaying(isPlaying); }, [isPlaying]);
+
   useEffect(() => {
     if (isPlaying) {
+      // Um AudioContext nasce suspenso; só um gesto do usuário o acorda.
+      resumeAudioContext();
       currentAudioRef.current?.play().catch(() => {});
       // Mid-crossfade both channels are audibly playing — pausing only the
       // "current" one used to leave the incoming track playing on its own.
@@ -528,8 +556,26 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white">
-      <Toaster position="top-center" theme="dark" />
+    <div className="min-h-screen text-velvet-text" style={{ background: 'var(--v-abyss)' }}>
+      {/* Atalho de teclado: primeira parada do Tab em qualquer página. */}
+      <a href="#velvet-main" className="v-skip-link">Ir para o conteúdo</a>
+
+      {/* Poeira de prata em profundidade, atrás de tudo. */}
+      <VelvetBackdrop />
+
+      <Toaster
+        position="top-center"
+        theme="dark"
+        toastOptions={{
+          style: {
+            background: 'rgba(16,16,20,0.92)',
+            backdropFilter: 'blur(18px)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            color: '#f4f4f7',
+            boxShadow: '0 20px 50px -24px rgba(0,0,0,1)',
+          },
+        }}
+      />
       
       {/* Profile Setup Modal */}
       {needsProfile && user && (
@@ -550,14 +596,21 @@ export default function Layout({ children, currentPageName }) {
         <Sidebar currentPage={currentPageName} />
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto pb-32 lg:pb-24 bg-[#121212]">
+        <main
+          id="velvet-main"
+          className="flex-1 overflow-y-auto overflow-x-hidden pb-36 lg:pb-28"
+          style={{ perspective: '1400px' }}
+        >
+          {/* Troca de página com profundidade: a saída afunda e desfoca, a
+              entrada vem de trás — o corte fica contínuo em vez de piscar. */}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPageName}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              initial={{ opacity: 0, y: 18, scale: 0.985, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -12, scale: 0.99, filter: 'blur(4px)' }}
+              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+              style={{ transformOrigin: '50% 0%' }}
             >
               {children}
             </motion.div>
@@ -604,9 +657,10 @@ export default function Layout({ children, currentPageName }) {
             whileTap={{ scale: 0.92 }}
             onClick={() => setShowRightSidebar(true)}
             title="Mostrar tocando agora"
-            className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 items-center justify-center w-8 h-14 bg-[#181818] hover:bg-[#282828] border border-r-0 border-white/10 rounded-l-xl shadow-lg transition-colors"
+            aria-label="Mostrar tocando agora"
+            className="v-glass hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-30 items-center justify-center w-9 h-16 border-r-0 rounded-l-2xl transition-colors hover:bg-white/[0.08]"
           >
-            <ChevronLeft className="w-4 h-4 text-[#B3B3B3]" />
+            <ChevronLeft className="w-4 h-4 text-velvet-dim" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -668,22 +722,44 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Mobile navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 lg:hidden z-50 bg-[#181818]/95 backdrop-blur-md border-t border-[#282828]">
-        {currentSong && currentPageName !== 'ArtistDashboard' && <div className="h-[88px]" />}
-        <div className="flex items-center justify-around py-2 px-1 pb-[env(safe-area-inset-bottom,8px)]">
+      <nav
+        className="fixed bottom-0 left-0 right-0 lg:hidden z-50 v-glass-strong border-t"
+        aria-label="Navegação"
+      >
+        {currentSong && currentPageName !== 'ArtistDashboard' && <div className="h-[132px]" />}
+        <div className="flex items-stretch justify-around py-1.5 px-1 pb-[max(env(safe-area-inset-bottom),8px)]">
           {navItems.map((item) => {
             const isActive = currentPageName === item.page;
             return (
-              <Link key={item.page} to={createPageUrl(item.page)} className="flex-1">
+              <Link
+                key={item.page}
+                to={createPageUrl(item.page)}
+                className="flex-1 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-velvet-silver/60"
+                aria-current={isActive ? 'page' : undefined}
+              >
                 <motion.div
                   whileTap={{ scale: 0.9 }}
-                  className={`flex flex-col items-center gap-1 py-2 rounded-xl transition-colors ${
-                    isActive ? 'text-[#c0c0c8]' : 'text-[#B3B3B3]'
+                  className={`relative flex flex-col items-center gap-1 py-2 rounded-2xl transition-colors ${
+                    isActive ? 'text-velvet-text' : 'text-velvet-dim'
                   }`}
                 >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                  <span className={`text-[10px] font-medium ${isActive ? 'text-[#c0c0c8]' : 'text-[#B3B3B3]'}`}>{item.label}</span>
-                  {isActive && <div className="w-1 h-1 rounded-full bg-[#c0c0c8]" />}
+                  {isActive && (
+                    <motion.span
+                      layoutId="velvet-mobile-active"
+                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                      className="absolute inset-0 rounded-2xl"
+                      style={{
+                        background: 'linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03))',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                      }}
+                    />
+                  )}
+                  <item.icon
+                    className="relative z-10 w-5 h-5"
+                    strokeWidth={isActive ? 2.4 : 1.6}
+                    style={isActive ? { filter: 'drop-shadow(0 0 7px rgba(216,216,226,0.8))' } : undefined}
+                  />
+                  <span className="relative z-10 text-[10px] font-medium leading-none">{item.label}</span>
                 </motion.div>
               </Link>
             );

@@ -12,7 +12,7 @@ export default function CreditsView({ song, credits, onClose }) {
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Award className="w-4 h-4 text-[#c0c0c8] flex-shrink-0" />
+          <Award className="w-4 h-4 text-[#d8d8e2] flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-sm font-bold text-white truncate">{song?.title}</p>
             <p className="text-xs text-white/50 truncate">{song?.artist}</p>
@@ -31,7 +31,7 @@ export default function CreditsView({ song, credits, onClose }) {
         {credits.map((c, i) => (
           <div key={i} className="pb-4 border-b border-white/[0.06] last:border-0">
             <p className="text-base font-semibold text-white leading-tight">{c.title || '—'}</p>
-            {c.description && <p className="text-sm text-[#B3B3B3] mt-1">{c.description}</p>}
+            {c.description && <p className="text-sm text-[#9a9aa6] mt-1">{c.description}</p>}
           </div>
         ))}
       </div>

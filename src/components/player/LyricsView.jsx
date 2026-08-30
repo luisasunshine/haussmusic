@@ -85,7 +85,7 @@ export default function LyricsView({ song, currentTime = 0, duration = 0, onSeek
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Mic className="w-4 h-4 text-[#c0c0c8] flex-shrink-0" />
+          <Mic className="w-4 h-4 text-[#d8d8e2] flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-sm font-bold text-white truncate">{song?.title}</p>
             <p className="text-xs text-white/50 truncate">{song?.artist}</p>

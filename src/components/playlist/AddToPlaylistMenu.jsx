@@ -121,7 +121,7 @@ export default function AddToPlaylistMenu({ songId, buttonClassName, iconClassNa
         ref={triggerRef}
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
-        className={buttonClassName || 'p-1.5 rounded-lg text-[#696969] hover:text-white hover:bg-[#333] transition-colors'}
+        className={buttonClassName || 'p-1.5 rounded-lg text-[#62626e] hover:text-white hover:bg-[#26262e] transition-colors'}
         title="Adicionar à playlist"
       >
         <ListPlus className={iconClassName} />
@@ -137,16 +137,16 @@ export default function AddToPlaylistMenu({ songId, buttonClassName, iconClassNa
             transition={{ duration: 0.12 }}
             onClick={(e) => e.stopPropagation()}
             style={{ position: 'fixed', left: coords.left, top: coords.top, bottom: coords.bottom, width: PANEL_WIDTH }}
-            className="z-[999] bg-[#282828] border border-[#383838] rounded-xl shadow-2xl overflow-hidden"
+            className="z-[999] bg-[#1c1c22] border border-[#26262e] rounded-xl shadow-2xl overflow-hidden"
           >
-            <div className="px-3 py-2 border-b border-[#383838]">
-              <span className="text-[11px] text-[#B3B3B3] font-medium uppercase tracking-wider">Adicionar à playlist</span>
+            <div className="px-3 py-2 border-b border-[#26262e]">
+              <span className="text-[11px] text-[#9a9aa6] font-medium uppercase tracking-wider">Adicionar à playlist</span>
             </div>
 
             <div className="max-h-52 overflow-y-auto">
               {isLoading ? (
                 <div className="px-3 py-4 flex justify-center">
-                  <Loader2 className="w-4 h-4 animate-spin text-[#696969]" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#62626e]" />
                 </div>
               ) : playlists.length > 0 ? playlists.map((pl) => {
                 const inPlaylist = (pl.song_ids || []).includes(songId);
@@ -155,20 +155,20 @@ export default function AddToPlaylistMenu({ songId, buttonClassName, iconClassNa
                     key={pl.id}
                     onClick={() => toggleSongMutation.mutate({ playlist: pl, add: !inPlaylist })}
                     disabled={toggleSongMutation.isPending}
-                    className="w-full px-3 py-2 flex items-center gap-2 text-left text-xs text-white hover:bg-[#383838] transition-colors disabled:opacity-50"
+                    className="w-full px-3 py-2 flex items-center gap-2 text-left text-xs text-white hover:bg-[#26262e] transition-colors disabled:opacity-50"
                   >
-                    <span className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border ${inPlaylist ? 'bg-[#c0c0c8] border-[#c0c0c8]' : 'border-[#535353]'}`}>
+                    <span className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border ${inPlaylist ? 'bg-[#d8d8e2] border-[#d8d8e2]' : 'border-[#62626e]'}`}>
                       {inPlaylist && <Check className="w-3 h-3 text-black" />}
                     </span>
                     <span className="truncate">{pl.name}</span>
                   </button>
                 );
               }) : (
-                <p className="px-3 py-3 text-xs text-[#696969] text-center">Nenhuma playlist ainda</p>
+                <p className="px-3 py-3 text-xs text-[#62626e] text-center">Nenhuma playlist ainda</p>
               )}
             </div>
 
-            <div className="border-t border-[#383838] p-2">
+            <div className="border-t border-[#26262e] p-2">
               {creating ? (
                 <div className="flex items-center gap-1.5">
                   <input
@@ -180,12 +180,12 @@ export default function AddToPlaylistMenu({ songId, buttonClassName, iconClassNa
                       if (e.key === 'Escape') setCreating(false);
                     }}
                     placeholder="Nome da playlist"
-                    className="flex-1 min-w-0 bg-[#181818] border border-[#383838] rounded-lg px-2 py-1.5 text-xs text-white placeholder:text-[#535353] outline-none focus:border-[#c0c0c8]/50"
+                    className="flex-1 min-w-0 bg-[#101014] border border-[#26262e] rounded-lg px-2 py-1.5 text-xs text-white placeholder:text-[#62626e] outline-none focus:border-[#d8d8e2]/50"
                   />
                   <button
                     onClick={handleCreate}
                     disabled={!newName.trim() || createPlaylistMutation.isPending}
-                    className="p-1.5 rounded-lg bg-[#c0c0c8] text-black disabled:opacity-40 flex-shrink-0"
+                    className="p-1.5 rounded-lg bg-[#d8d8e2] text-black disabled:opacity-40 flex-shrink-0"
                   >
                     {createPlaylistMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   </button>
@@ -193,7 +193,7 @@ export default function AddToPlaylistMenu({ songId, buttonClassName, iconClassNa
               ) : (
                 <button
                   onClick={() => setCreating(true)}
-                  className="w-full flex items-center gap-2 px-1.5 py-1.5 text-xs text-[#c0c0c8] hover:bg-[#383838] rounded-lg transition-colors"
+                  className="w-full flex items-center gap-2 px-1.5 py-1.5 text-xs text-[#d8d8e2] hover:bg-[#26262e] rounded-lg transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Nova playlist

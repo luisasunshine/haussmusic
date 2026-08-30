@@ -86,7 +86,7 @@ export default function LabelManagement() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#c0c0c8] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#d8d8e2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -98,8 +98,8 @@ export default function LabelManagement() {
           <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <Music2 className="w-10 h-10 text-red-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Acesso Negado</h2>
-          <p className="text-zinc-400">Apenas staffs e admins podem acessar esta área.</p>
+          <h2 className="text-2xl font-bold mb-2 v-chrome-text">Acesso Negado</h2>
+          <p className="text-velvet-dim">Apenas staffs e admins podem acessar esta área.</p>
         </div>
       </div>
     );
@@ -114,12 +114,12 @@ export default function LabelManagement() {
             <Music2 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white">Gerenciar Gravadoras</h1>
-            <p className="text-zinc-400 text-sm">Acesse e edite as gravadoras do sistema</p>
+            <h1 className="text-3xl font-black v-chrome-text v-display">Gerenciar Gravadoras</h1>
+            <p className="text-velvet-dim text-sm">Acesse e edite as gravadoras do sistema</p>
           </div>
         </div>
         <div className="bg-white/5 rounded-xl border border-white/10 px-4 py-3 inline-block mt-4">
-          <p className="text-sm text-zinc-300">Total de gravadoras: <span className="font-bold text-[#c0c0c8]">{labels.length}</span></p>
+          <p className="text-sm text-velvet-silver">Total de gravadoras: <span className="font-bold text-[#d8d8e2]">{labels.length}</span></p>
         </div>
       </motion.div>
 
@@ -130,7 +130,7 @@ export default function LabelManagement() {
             key={label.id}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#181818] rounded-xl border border-white/5 p-4 hover:border-white/10 transition-all group cursor-pointer"
+            className="bg-[#101014] rounded-xl border border-white/5 p-4 hover:border-white/10 transition-all group cursor-pointer"
             onClick={() => setEditingLabel({ ...label })}
           >
             <div className="flex items-center gap-3 mb-3">
@@ -144,14 +144,14 @@ export default function LabelManagement() {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-white truncate text-sm">{label.name || 'Sem nome'}</h3>
                 {label.representatives && label.representatives.length > 0 && (
-                  <p className="text-xs text-[#c0c0c8]">{label.representatives.length} representante(s)</p>
+                  <p className="text-xs text-[#d8d8e2]">{label.representatives.length} representante(s)</p>
                 )}
               </div>
             </div>
 
             {label.managed_artists && label.managed_artists.length > 0 && (
               <div className="bg-white/5 rounded-lg p-2 mb-3">
-                <p className="text-xs text-[#c0c0c8] font-medium">{label.managed_artists.length} artista(s) associado(s)</p>
+                <p className="text-xs text-[#d8d8e2] font-medium">{label.managed_artists.length} artista(s) associado(s)</p>
               </div>
             )}
 
@@ -176,8 +176,8 @@ export default function LabelManagement() {
 
         {labels.length === 0 && (
           <div className="col-span-full text-center py-16">
-            <Music2 className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-            <p className="text-zinc-500">Nenhuma gravadora criada ainda</p>
+            <Music2 className="w-12 h-12 text-velvet-faint mx-auto mb-3" />
+            <p className="text-velvet-faint">Nenhuma gravadora criada ainda</p>
           </div>
         )}
       </div>
@@ -188,28 +188,28 @@ export default function LabelManagement() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#181818] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-[#101014] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-[#181818]">
-              <h2 className="text-lg font-bold text-white">Gerenciar Gravadora</h2>
-              <button onClick={() => setEditingLabel(null)} className="text-zinc-400 hover:text-white text-2xl">✕</button>
+            <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-[#101014]">
+              <h2 className="text-lg font-bold v-chrome-text">Gerenciar Gravadora</h2>
+              <button onClick={() => setEditingLabel(null)} className="text-velvet-dim hover:text-white text-2xl">✕</button>
             </div>
 
             <Tabs defaultValue="dados" className="w-full">
               <TabsList className="bg-white/5 border-b border-white/10 p-0 rounded-none m-0 w-full justify-start">
-                <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0c0c8] data-[state=active]:bg-transparent">Dados</TabsTrigger>
-                <TabsTrigger value="artistas" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0c0c8] data-[state=active]:bg-transparent">Artistas Associados</TabsTrigger>
-                <TabsTrigger value="representantes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0c0c8] data-[state=active]:bg-transparent">Representantes</TabsTrigger>
+                <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#d8d8e2] data-[state=active]:bg-transparent">Dados</TabsTrigger>
+                <TabsTrigger value="artistas" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#d8d8e2] data-[state=active]:bg-transparent">Artistas Associados</TabsTrigger>
+                <TabsTrigger value="representantes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#d8d8e2] data-[state=active]:bg-transparent">Representantes</TabsTrigger>
               </TabsList>
 
               {/* Dados Tab */}
               <TabsContent value="dados" className="space-y-4 p-6">
                 <div>
-                   <label className="text-xs font-medium text-[#B3B3B3] mb-1.5 block">Nome da Gravadora</label>
+                   <label className="text-xs font-medium text-[#9a9aa6] mb-1.5 block">Nome da Gravadora</label>
                    <Input
                      value={editingLabel.name || ''}
                      onChange={(e) => setEditingLabel(prev => ({ ...prev, name: e.target.value }))}
-                     className="bg-[#282828] border-[#383838] text-white placeholder-[#535353] h-9"
+                     className="bg-[#1c1c22] border-[#26262e] text-white placeholder-[#62626e] h-9"
                    />
                  </div>
 
@@ -232,7 +232,7 @@ export default function LabelManagement() {
               {/* Representantes Tab */}
               <TabsContent value="representantes" className="space-y-4 p-6">
                 <div>
-                  <label className="text-xs font-medium text-[#B3B3B3] mb-2 block">Associar Representante</label>
+                  <label className="text-xs font-medium text-[#9a9aa6] mb-2 block">Associar Representante</label>
                   <Select value="" onValueChange={(repId) => {
                     if (repId && !editingLabel.representatives?.includes(repId)) {
                       setEditingLabel(prev => ({
@@ -241,12 +241,12 @@ export default function LabelManagement() {
                       }));
                     }
                   }}>
-                    <SelectTrigger className="h-9 bg-[#282828] border-[#383838] text-white text-xs">
+                    <SelectTrigger className="h-9 bg-[#1c1c22] border-[#26262e] text-white text-xs">
                       <SelectValue placeholder="Selecione um representante" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a1a] border-white/10">
+                    <SelectContent className="bg-[#0e0e12] border-white/10">
                        {users.filter(u => !editingLabel.representatives?.includes(u.id)).length === 0 ? (
-                         <div className="text-xs text-zinc-500 p-2">Nenhum usuário disponível</div>
+                         <div className="text-xs text-velvet-faint p-2">Nenhum usuário disponível</div>
                        ) : (
                          users.filter(u => !editingLabel.representatives?.includes(u.id)).map(u => (
                            <SelectItem key={u.id} value={u.id} className="text-white text-xs">
@@ -260,7 +260,7 @@ export default function LabelManagement() {
 
                 {editingLabel.representatives && editingLabel.representatives.length > 0 ? (
                   <div className="space-y-2">
-                    <p className="text-xs text-[#B3B3B3]">Representantes:</p>
+                    <p className="text-xs text-[#9a9aa6]">Representantes:</p>
                     {editingLabel.representatives.map(repId => {
                       const rep = users.find(u => u.id === repId);
                       if (!rep) return null;
@@ -281,14 +281,14 @@ export default function LabelManagement() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-zinc-500 text-center py-4">Nenhum representante associado</p>
+                  <p className="text-sm text-velvet-faint text-center py-4">Nenhum representante associado</p>
                 )}
               </TabsContent>
 
               {/* Artistas Tab */}
               <TabsContent value="artistas" className="space-y-4 p-6">
                  <div>
-                   <label className="text-xs font-medium text-[#B3B3B3] mb-2 block">Associar Artista</label>
+                   <label className="text-xs font-medium text-[#9a9aa6] mb-2 block">Associar Artista</label>
                    <Select value="" onValueChange={(artistId) => {
                      if (artistId && !editingLabel.managed_artists?.includes(artistId)) {
                        setEditingLabel(prev => ({
@@ -297,12 +297,12 @@ export default function LabelManagement() {
                        }));
                      }
                    }}>
-                     <SelectTrigger className="h-9 bg-[#282828] border-[#383838] text-white text-xs">
+                     <SelectTrigger className="h-9 bg-[#1c1c22] border-[#26262e] text-white text-xs">
                        <SelectValue placeholder="Selecione um representante" />
                      </SelectTrigger>
-                     <SelectContent className="bg-[#1a1a1a] border-white/10">
+                     <SelectContent className="bg-[#0e0e12] border-white/10">
                        {users.filter(u => hasUserType(u, 'artista') && !editingLabel.managed_artists?.includes(u.id)).length === 0 ? (
-                         <div className="text-xs text-zinc-500 p-2">Nenhum artista disponível</div>
+                         <div className="text-xs text-velvet-faint p-2">Nenhum artista disponível</div>
                        ) : (
                          users.filter(u => hasUserType(u, 'artista') && !editingLabel.managed_artists?.includes(u.id)).map(u => (
                            <SelectItem key={u.id} value={u.id} className="text-white text-xs">
@@ -316,7 +316,7 @@ export default function LabelManagement() {
 
                 {editingLabel.managed_artists && editingLabel.managed_artists.length > 0 ? (
                    <div className="space-y-2">
-                     <p className="text-xs text-[#B3B3B3]">Artistas associados:</p>
+                     <p className="text-xs text-[#9a9aa6]">Artistas associados:</p>
                      {editingLabel.managed_artists.map(artistId => {
                        const artist = users.find(u => u.id === artistId);
                        if (!artist || !hasUserType(artist, 'artista')) return null;
@@ -337,12 +337,12 @@ export default function LabelManagement() {
                      })}
                    </div>
                  ) : (
-                   <p className="text-sm text-zinc-500 text-center py-4">Nenhum artista associado</p>
+                   <p className="text-sm text-velvet-faint text-center py-4">Nenhum artista associado</p>
                  )}
               </TabsContent>
             </Tabs>
 
-            <div className="flex gap-2 p-6 border-t border-white/10 sticky bottom-0 bg-[#181818]">
+            <div className="flex gap-2 p-6 border-t border-white/10 sticky bottom-0 bg-[#101014]">
               <Button
                 onClick={() => {
                   updateLabelMutation.mutate({

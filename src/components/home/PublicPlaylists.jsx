@@ -22,8 +22,8 @@ function PlaylistCover({ playlist, songs }) {
   }
   if (covers.length === 0) {
     return (
-      <div className="absolute inset-0 bg-gradient-to-br from-[#c0c0c8]/30 via-zinc-800/50 to-[#18181b] flex items-center justify-center">
-        <ListMusic className="w-10 h-10 text-[#535353]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#d8d8e2]/30 via-velvet-raised/50 to-[#101014] flex items-center justify-center">
+        <ListMusic className="w-10 h-10 text-[#62626e]" />
       </div>
     );
   }
@@ -126,8 +126,8 @@ export default function PublicPlaylists({ songs = [] }) {
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl lg:text-2xl font-bold text-white">Playlists Públicas</h2>
-          <p className="text-xs text-[#B3B3B3] mt-0.5">Criadas pela comunidade VELVET</p>
+          <h2 className="text-xl lg:text-2xl font-bold v-chrome-text">Playlists Públicas</h2>
+          <p className="text-xs text-[#9a9aa6] mt-0.5">Criadas pela comunidade VELVET</p>
         </div>
         {hasOverflow && <div className="hidden sm:flex items-center gap-1.5">
           <button onClick={() => nudge(-1)} className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center text-white/70 hover:text-white transition-colors">
@@ -152,7 +152,7 @@ export default function PublicPlaylists({ songs = [] }) {
               transition={{ delay: Math.min(i, 6) * 0.05, type: 'spring', damping: 20, stiffness: 220 }}
               whileHover={{ y: -6, scale: 1.03, transition: { type: 'spring', damping: 18, stiffness: 260 } }}
               whileTap={{ scale: 0.98 }}
-              className="group relative w-40 sm:w-44 lg:w-52 aspect-square rounded-[20px] overflow-hidden ring-1 ring-white/[0.08] transition-shadow duration-300 hover:ring-white/20 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] bg-[#18181b]"
+              className="group relative w-40 sm:w-44 lg:w-52 aspect-square rounded-[20px] overflow-hidden ring-1 ring-white/[0.08] transition-shadow duration-300 hover:ring-white/20 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] bg-[#101014]"
             >
               <PlaylistCover playlist={pl} songs={songs} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/5" />
@@ -162,7 +162,7 @@ export default function PublicPlaylists({ songs = [] }) {
                 <p className="text-white/70 text-[11px] leading-snug mt-0.5 truncate">{(pl.song_ids || []).length} {(pl.song_ids || []).length === 1 ? 'música' : 'músicas'}</p>
               </div>
               <div
-                className="absolute bottom-3.5 right-3.5 w-11 h-11 rounded-full bg-[#c0c0c8] flex items-center justify-center shadow-xl shadow-black/40 opacity-0 translate-y-3 scale-90 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out hover:bg-[#d4d4dc]"
+                className="absolute bottom-3.5 right-3.5 w-11 h-11 btn-green flex items-center justify-center opacity-0 translate-y-3 scale-90 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-300 ease-out"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); playPlaylist(pl); }}
                 role="button"
               >

@@ -1,8 +1,49 @@
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Heart, Volume2, VolumeX, Repeat, Maximize2, Music2, GitMerge, Shuffle } from 'lucide-react';
+import {
+  Play, Pause, SkipForward, SkipBack, Heart, Volume2, Volume1, VolumeX,
+  Repeat, Maximize2, Music2, GitMerge, Shuffle,
+} from 'lucide-react';
 import AddToPlaylistMenu from '@/components/playlist/AddToPlaylistMenu';
 import ActiveGlow from '@/components/player/ActiveGlow';
+
+/**
+ * Barra do player.
+ *
+ * Melhorias sobre a versão anterior:
+ *  - a barra de progresso agora é um slider de verdade: arrasta (não só
+ *    clica), aceita teclado (setas, Home/End) e anuncia posição para
+ *    leitores de tela;
+ *  - passar o mouse mostra o tempo exato daquele ponto antes de soltar;
+ *  - a capa reage ao som e ganha reflexo;
+ *  - todo botão tem rótulo acessível — antes eram ícones mudos.
+ */
+
+function formatTime(t) {
+  if (!t || Number.isNaN(t)) return '0:00';
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/** Botão de alternância do player, com halo quando ligado. */
+function ToggleButton({ on, onClick, label, children, className = '' }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      aria-pressed={on}
+      className={`relative p-2 rounded-xl transition-all duration-200 ${
+        on ? 'text-velvet-silver' : 'text-velvet-dim hover:text-velvet-text hover:bg-white/[0.07]'
+      } ${className}`}
+    >
+      {on && <ActiveGlow rounded="rounded-xl" />}
+      <span className="relative z-10 block">{children}</span>
+    </button>
+  );
+}
 
 export default function MiniPlayer({
   currentSong, isPlaying, onPlayPause, onNext, onPrevious,
@@ -12,192 +53,332 @@ export default function MiniPlayer({
   repeatMode, onToggleRepeat,
   crossfadeEnabled, onToggleCrossfade,
   shuffleEnabled, onToggleShuffle,
-  onExpandMobile
+  onExpandMobile,
 }) {
-  const formatTime = (t) => {
-    if (!t || isNaN(t)) return '0:00';
-    const m = Math.floor(t / 60);
-    const s = Math.floor(t % 60);
-    return `${m}:${String(s).padStart(2, '0')}`;
+  const barRef = useRef(null);
+  const [hoverPct, setHoverPct] = useState(null);
+  const [dragging, setDragging] = useState(false);
+
+  const pctFromEvent = useCallback((clientX) => {
+    const el = barRef.current;
+    if (!el) return 0;
+    const rect = el.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  }, []);
+
+  const seekTo = useCallback((pct) => {
+    if (!duration) return;
+    onSeek(pct * duration);
+  }, [duration, onSeek]);
+
+  // Arrastar: captura o ponteiro para o gesto não se perder se o cursor
+  // sair da barra no meio do movimento.
+  const onPointerDown = (e) => {
+    if (!duration) return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setDragging(true);
+    const p = pctFromEvent(e.clientX);
+    setHoverPct(p);
+    seekTo(p);
   };
 
-  const handleProgressClick = (e) => {
+  const onPointerMove = (e) => {
     if (!duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    onSeek(pct * duration);
+    const p = pctFromEvent(e.clientX);
+    setHoverPct(p);
+    if (dragging) seekTo(p);
+  };
+
+  const onPointerUp = (e) => {
+    if (dragging) {
+      e.currentTarget.releasePointerCapture?.(e.pointerId);
+      setDragging(false);
+    }
+  };
+
+  const onKeyDown = (e) => {
+    if (!duration) return;
+    const step = e.shiftKey ? 30 : 5;
+    switch (e.key) {
+      case 'ArrowRight': e.preventDefault(); onSeek(Math.min(duration, currentTime + step)); break;
+      case 'ArrowLeft':  e.preventDefault(); onSeek(Math.max(0, currentTime - step)); break;
+      case 'Home':       e.preventDefault(); onSeek(0); break;
+      case 'End':        e.preventDefault(); onSeek(Math.max(0, duration - 1)); break;
+      default: break;
+    }
   };
 
   if (!currentSong) return null;
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const shownPct = hoverPct != null ? hoverPct * 100 : progressPct;
+  const VolumeIcon = isMuted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
+
+  const cover = currentSong.cover_url;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 lg:px-2 lg:pb-2 lg:pl-[80px]">
-      <div className="bg-[#181818] border-t border-[#282828] lg:border lg:rounded-2xl mx-auto lg:max-w-5xl overflow-hidden">
-        {/* Progress bar */}
-        <div className="relative h-1 bg-[#282828] group/progress cursor-pointer" onClick={handleProgressClick}>
+    <div className="fixed bottom-0 left-0 right-0 z-50 lg:px-3 lg:pb-3 lg:pl-[88px] pointer-events-none">
+      <motion.div
+        initial={{ y: 32, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+        className="v-glass-strong v-chrome-edge pointer-events-auto mx-auto lg:max-w-6xl overflow-hidden lg:rounded-3xl border-t lg:border"
+      >
+        {/* ---------- Barra de progresso ---------- */}
+        <div
+          ref={barRef}
+          role="slider"
+          tabIndex={0}
+          aria-label="Posição da faixa"
+          aria-valuemin={0}
+          aria-valuemax={Math.floor(duration) || 0}
+          aria-valuenow={Math.floor(currentTime) || 0}
+          aria-valuetext={`${formatTime(currentTime)} de ${formatTime(duration)}`}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerLeave={() => !dragging && setHoverPct(null)}
+          onKeyDown={onKeyDown}
+          className="group/progress relative h-2 cursor-pointer touch-none select-none focus:outline-none"
+        >
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[3px] bg-white/[0.10]" />
+
+          {/* Prévia até onde o cursor está */}
+          {hoverPct != null && (
+            <div
+              className="absolute top-1/2 -translate-y-1/2 left-0 h-[3px] bg-white/[0.18]"
+              style={{ width: `${hoverPct * 100}%` }}
+            />
+          )}
+
           <div
-            className="absolute inset-y-0 left-0 bg-[#c0c0c8] rounded-full transition-all duration-100 group-hover/progress:h-1.5 group-hover/progress:-top-[1px]"
-            style={{ width: `${progressPct}%` }}
-          >
-            <div className="absolute -right-[6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow-md" />
-          </div>
+            className="absolute top-1/2 -translate-y-1/2 left-0 h-[3px] group-hover/progress:h-[5px] transition-[height]"
+            style={{
+              width: `${progressPct}%`,
+              background: 'linear-gradient(90deg, #8f8f9d 0%, #d8d8e2 60%, #ffffff 100%)',
+              boxShadow: '0 0 12px rgba(216,216,226,0.55)',
+            }}
+          />
+
+          <div
+            className="absolute top-1/2 w-3.5 h-3.5 -translate-y-1/2 -translate-x-1/2 rounded-full opacity-0 group-hover/progress:opacity-100 group-focus-visible/progress:opacity-100 transition-opacity"
+            style={{
+              left: `${progressPct}%`,
+              background: 'linear-gradient(180deg,#ffffff,#c2c2d0)',
+              boxShadow: '0 0 0 1px rgba(0,0,0,0.55), 0 2px 10px rgba(0,0,0,0.7)',
+              opacity: dragging ? 1 : undefined,
+            }}
+          />
+
+          {/* Tempo do ponto sob o cursor */}
+          {hoverPct != null && duration > 0 && (
+            <div
+              className="absolute -top-8 -translate-x-1/2 px-2 py-0.5 rounded-md text-[11px] font-medium tabular-nums text-velvet-text v-glass pointer-events-none whitespace-nowrap"
+              style={{ left: `${shownPct}%` }}
+            >
+              {formatTime(hoverPct * duration)}
+            </div>
+          )}
         </div>
 
-        {/* Mobile layout */}
+        {/* ---------- Mobile ---------- */}
         <div className="flex lg:hidden flex-col gap-2 px-3 py-2.5">
-          {/* Song info - compact */}
-          <div className="flex items-center gap-2.5 min-w-0 cursor-pointer active:opacity-60" onClick={onExpandMobile}>
-            {currentSong.cover_url ? (
-              <img src={currentSong.cover_url} alt="" className="w-12 h-12 rounded-md object-cover flex-shrink-0" />
-            ) : (
-              <div className="w-12 h-12 rounded-md bg-[#282828] flex-shrink-0" />
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-white text-sm font-semibold truncate leading-tight">{currentSong.title}</p>
-              <p className="text-[#B3B3B3] text-xs truncate">{currentSong.artist}</p>
-            </div>
-          </div>
-
-          {/* Progress - compact */}
-          <div
-            className="relative h-1 bg-[#282828] rounded-full cursor-pointer group/prog"
-            onClick={handleProgressClick}
+          <button
+            type="button"
+            onClick={onExpandMobile}
+            className="flex items-center gap-3 min-w-0 text-left active:opacity-60"
+            aria-label={`Abrir player — ${currentSong.title}`}
           >
-            <div
-              className="absolute inset-y-0 left-0 bg-[#c0c0c8] rounded-full"
-              style={{ width: `${progressPct}%` }}
-            />
-            <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-active/prog:opacity-100"
-              style={{ left: `${progressPct}%`, marginLeft: '-6px' }}
-            />
-          </div>
+            <div className="relative w-12 h-12 shrink-0">
+              {cover ? (
+                <img
+                  src={cover}
+                  alt=""
+                  className="w-12 h-12 rounded-xl object-cover v-audio-glow"
+                  style={{ border: '1px solid rgba(255,255,255,0.14)' }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-white/[0.06] flex items-center justify-center">
+                  <Music2 className="w-5 h-5 text-velvet-faint" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-velvet-text text-sm font-semibold truncate leading-tight">{currentSong.title}</p>
+              <p className="text-velvet-dim text-xs truncate">{currentSong.artist}</p>
+            </div>
+            <span className="text-[11px] text-velvet-faint tabular-nums shrink-0">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          </button>
 
-          {/* Time - minimal */}
-          <div className="flex items-center justify-between text-[11px] text-[#696969]">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
+          <div className="flex items-center justify-center gap-3">
+            <ToggleButton on={shuffleEnabled} onClick={onToggleShuffle} label="Modo aleatório">
+              <Shuffle className="w-4 h-4" />
+            </ToggleButton>
 
-          {/* Controls - only essentials */}
-          <div className="flex items-center justify-center gap-2.5 pt-0.5">
-            <motion.button
-              whileTap={{ scale: 0.88 }}
+            <button
+              type="button"
               onClick={onPrevious}
-              className="p-2 rounded-lg text-[#B3B3B3] active:bg-[#282828]"
+              aria-label="Faixa anterior"
+              className="p-2 rounded-xl text-velvet-dim active:bg-white/10"
             >
               <SkipBack className="w-5 h-5" />
-            </motion.button>
+            </button>
 
             <motion.button
-              whileTap={{ scale: 0.90 }}
+              type="button"
+              whileTap={{ scale: 0.9 }}
               onClick={onPlayPause}
-              className="w-12 h-12 rounded-full bg-[#c0c0c8] flex items-center justify-center shadow-md flex-shrink-0"
+              aria-label={isPlaying ? 'Pausar' : 'Tocar'}
+              className="btn-green w-14 h-14 flex items-center justify-center shrink-0"
             >
-              {isPlaying ? (
-                <Pause className="w-5 h-5 text-black fill-black" />
-              ) : (
-                <Play className="w-5 h-5 text-black fill-black ml-0.5" />
-              )}
+              {isPlaying
+                ? <Pause className="w-5 h-5 fill-current" />
+                : <Play className="w-5 h-5 fill-current ml-0.5" />}
             </motion.button>
 
-            <motion.button
-              whileTap={{ scale: 0.88 }}
+            <button
+              type="button"
               onClick={onNext}
-              className="p-2 rounded-lg text-[#B3B3B3] active:bg-[#282828]"
+              aria-label="Próxima faixa"
+              className="p-2 rounded-xl text-velvet-dim active:bg-white/10"
             >
               <SkipForward className="w-5 h-5" />
-            </motion.button>
+            </button>
 
-            <motion.button
-              whileTap={{ scale: 0.88 }}
-              onClick={onFavoriteToggle}
-              className={`relative p-2 rounded-lg ml-auto transition-colors ${isFavorite ? 'text-[#c0c0c8]' : 'text-[#B3B3B3] active:bg-[#282828]'}`}
-            >
-              {isFavorite && <ActiveGlow />}
-              <Heart className={`relative z-10 w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
-            </motion.button>
+            <ToggleButton on={isFavorite} onClick={onFavoriteToggle} label={isFavorite ? 'Remover dos curtidos' : 'Curtir'}>
+              <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+            </ToggleButton>
           </div>
         </div>
 
-        {/* Desktop layout */}
-        <div className="hidden lg:flex items-center gap-3 px-4 py-2.5">
-          {/* Song info */}
+        {/* ---------- Desktop ---------- */}
+        <div className="hidden lg:flex items-center gap-4 px-4 py-3">
+          {/* Faixa atual */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="relative flex-shrink-0 group/cover">
-              {currentSong.cover_url ? (
-                <img src={currentSong.cover_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+            <div className="relative shrink-0 group/cover v-scene-tight">
+              {cover ? (
+                <motion.img
+                  src={cover}
+                  alt=""
+                  whileHover={{ rotateY: -14, rotateX: 6, scale: 1.06 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                  className="w-14 h-14 rounded-xl object-cover v-audio-glow"
+                  style={{ border: '1px solid rgba(255,255,255,0.16)', transformStyle: 'preserve-3d' }}
+                />
               ) : (
-                <div className="w-12 h-12 rounded-lg bg-[#282828] flex items-center justify-center">
-                  <Music2 className="w-5 h-5 text-[#535353]" />
+                <div className="w-14 h-14 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center">
+                  <Music2 className="w-5 h-5 text-velvet-faint" />
                 </div>
               )}
               <motion.button
+                type="button"
                 whileTap={{ scale: 0.9 }}
                 onClick={onExpand}
-                className="absolute inset-0 rounded-lg bg-black/70 flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition-opacity"
+                aria-label="Abrir tocando agora"
+                className="absolute inset-0 rounded-xl bg-black/70 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover/cover:opacity-100 focus:opacity-100 transition-opacity"
               >
                 <Maximize2 className="w-4 h-4 text-white" />
               </motion.button>
             </div>
+
             <div className="min-w-0">
-              <p className="text-white text-sm font-medium truncate">{currentSong.title}</p>
-              <p className="text-[#B3B3B3] text-xs truncate">{currentSong.artist}</p>
+              <p className="text-velvet-text text-sm font-semibold truncate">{currentSong.title}</p>
+              <p className="text-velvet-dim text-xs truncate">
+                {currentSong.artist}
+                {currentSong.featuring && (
+                  <span className="text-velvet-faint"> feat. {currentSong.featuring}</span>
+                )}
+              </p>
             </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex-1 flex items-center justify-center gap-1">
-            <button onClick={onToggleShuffle} className={`relative p-2 rounded-lg transition-colors ${shuffleEnabled ? 'text-[#c0c0c8]' : 'text-[#B3B3B3] hover:text-white'}`} title="Modo aleatório">
-              {shuffleEnabled && <ActiveGlow />}
-              <Shuffle className="relative z-10 w-4 h-4" />
+          {/* Transporte */}
+          <div className="flex items-center justify-center gap-1">
+            <ToggleButton on={shuffleEnabled} onClick={onToggleShuffle} label="Modo aleatório">
+              <Shuffle className="w-4 h-4" />
+            </ToggleButton>
+            <ToggleButton on={repeatMode} onClick={onToggleRepeat} label="Repetir faixa">
+              <Repeat className="w-4 h-4" />
+            </ToggleButton>
+
+            <button
+              type="button"
+              onClick={onPrevious}
+              aria-label="Faixa anterior"
+              className="p-2 rounded-xl text-velvet-dim hover:text-velvet-text hover:bg-white/[0.07] transition-all"
+            >
+              <SkipBack className="w-[18px] h-[18px]" />
             </button>
-            <button onClick={onToggleRepeat} className={`relative p-2 rounded-lg transition-colors ${repeatMode ? 'text-[#c0c0c8]' : 'text-[#B3B3B3] hover:text-white'}`}>
-              {repeatMode && <ActiveGlow />}
-              <Repeat className="relative z-10 w-4 h-4" />
-            </button>
-            <button onClick={onPrevious} className="p-2 rounded-lg text-[#B3B3B3] hover:text-white transition-colors">
-              <SkipBack className="w-4 h-4" />
-            </button>
-            <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }} onClick={onPlayPause} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-md">
-              {isPlaying ? <Pause className="w-4 h-4 text-black fill-black" /> : <Play className="w-4 h-4 text-black fill-black ml-0.5" />}
+
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.07 }}
+              whileTap={{ scale: 0.93 }}
+              onClick={onPlayPause}
+              aria-label={isPlaying ? 'Pausar' : 'Tocar'}
+              className="btn-green w-11 h-11 mx-1 flex items-center justify-center"
+            >
+              {isPlaying
+                ? <Pause className="w-[18px] h-[18px] fill-current" />
+                : <Play className="w-[18px] h-[18px] fill-current ml-0.5" />}
             </motion.button>
-            <button onClick={onNext} className="p-2 rounded-lg text-[#B3B3B3] hover:text-white transition-colors">
-              <SkipForward className="w-4 h-4" />
+
+            <button
+              type="button"
+              onClick={onNext}
+              aria-label="Próxima faixa"
+              className="p-2 rounded-xl text-velvet-dim hover:text-velvet-text hover:bg-white/[0.07] transition-all"
+            >
+              <SkipForward className="w-[18px] h-[18px]" />
             </button>
-            <button onClick={onFavoriteToggle} className={`relative p-2 rounded-lg transition-colors ${isFavorite ? 'text-[#c0c0c8]' : 'text-[#B3B3B3] hover:text-white'}`}>
-              {isFavorite && <ActiveGlow />}
-              <Heart className={`relative z-10 w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-            </button>
-            <button onClick={onToggleCrossfade} className={`relative p-2 rounded-lg transition-colors ${crossfadeEnabled ? 'text-[#c0c0c8]' : 'text-[#B3B3B3] hover:text-white'}`} title="Crossfade entre faixas">
-              {crossfadeEnabled && <ActiveGlow />}
-              <GitMerge className="relative z-10 w-4 h-4" />
-            </button>
+
+            <ToggleButton on={isFavorite} onClick={onFavoriteToggle} label={isFavorite ? 'Remover dos curtidos' : 'Curtir'}>
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+            </ToggleButton>
+            <ToggleButton on={crossfadeEnabled} onClick={onToggleCrossfade} label="Crossfade entre faixas">
+              <GitMerge className="w-4 h-4" />
+            </ToggleButton>
+
             <AddToPlaylistMenu
               songId={currentSong.id}
-              buttonClassName="p-2 rounded-lg text-[#B3B3B3] hover:text-white transition-colors"
+              buttonClassName="p-2 rounded-xl text-velvet-dim hover:text-velvet-text hover:bg-white/[0.07] transition-all"
               iconClassName="w-4 h-4"
             />
           </div>
 
-          {/* Time + Volume */}
-          <div className="flex items-center gap-2 flex-1 justify-end text-xs text-[#B3B3B3]">
+          {/* Tempo + volume */}
+          <div className="flex items-center gap-2 flex-1 justify-end text-xs text-velvet-dim">
             <span className="tabular-nums w-10 text-right">{formatTime(currentTime)}</span>
-            <span className="text-[#535353]">/</span>
+            <span className="text-velvet-faint">/</span>
             <span className="tabular-nums w-10">{formatTime(duration)}</span>
-            <div className="flex items-center gap-1 ml-3 max-w-[120px]">
-              <button onClick={onToggleMute} className="p-1 text-[#B3B3B3] hover:text-white transition-colors">
-                {isMuted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+
+            <div className="flex items-center gap-1.5 ml-3 w-[124px]">
+              <button
+                type="button"
+                onClick={onToggleMute}
+                aria-label={isMuted ? 'Reativar som' : 'Silenciar'}
+                aria-pressed={isMuted}
+                className="p-1.5 rounded-lg text-velvet-dim hover:text-velvet-text hover:bg-white/[0.07] transition-all shrink-0"
+              >
+                <VolumeIcon className="w-4 h-4" />
               </button>
-              <input type="range" min="0" max="1" step="0.01" value={isMuted ? 0 : volume} onChange={onVolumeChange} className="w-full"
-                style={{ background: `linear-gradient(to right, #c0c0c8 0%, #c0c0c8 ${(isMuted ? 0 : volume) * 100}%, #535353 ${(isMuted ? 0 : volume) * 100}%, #535353 100%)` }}
+              <input
+                type="range"
+                min="0" max="1" step="0.01"
+                value={isMuted ? 0 : volume}
+                onChange={onVolumeChange}
+                aria-label="Volume"
+                className="w-full"
+                style={{
+                  background: `linear-gradient(to right, #ffffff 0%, #d8d8e2 ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.14) ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.14) 100%)`,
+                }}
               />
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

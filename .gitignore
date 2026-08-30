@@ -31,3 +31,8 @@ dist-ssr
 
 .env
 base44/.app.jsonc
+
+# Arquivos temporários da sessão de redesign (podem ser apagados)
+.velvet-verify/
+velvet-preview.css
+backup-velvet-code-*.zip

@@ -68,7 +68,7 @@ export default function AdminDashboard() {
   const { data: songs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const matchesSongSearch = (song) => !songSearchTerm.trim() ||
@@ -416,7 +416,7 @@ export default function AdminDashboard() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#c0c0c8] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#d8d8e2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -428,17 +428,17 @@ export default function AdminDashboard() {
           <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <Shield className="w-10 h-10 text-red-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Acesso Negado</h2>
-          <p className="text-zinc-400">Apenas administradores podem acessar esta área.</p>
+          <h2 className="text-2xl font-bold mb-2 v-chrome-text">Acesso Negado</h2>
+          <p className="text-velvet-dim">Apenas administradores podem acessar esta área.</p>
         </div>
       </div>
     );
   }
 
   const adminStats = [
-    { icon: Music, value: musicSongs.length, label: 'Músicas', color: 'from-zinc-300 to-zinc-500' },
+    { icon: Music, value: musicSongs.length, label: 'Músicas', color: 'from-velvet-silver to-velvet-ash' },
     { icon: Mic, value: podcastEpisodes.length, label: 'Podcasts', color: 'from-violet-300 to-violet-500' },
-    { icon: Users, value: users.length, label: 'Usuários', color: 'from-neutral-400 to-neutral-600' },
+    { icon: Users, value: users.length, label: 'Usuários', color: 'from-velvet-steel to-velvet-ash' },
     { icon: ImageIcon, value: banners.length, label: 'Banners', color: 'from-slate-300 to-slate-500' },
   ];
 
@@ -446,7 +446,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen pb-32">
       {/* Header */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-400/15 via-[#121212] to-slate-600/10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-400/15 via-[#0a0a0c] to-slate-600/10" />
         <div className="relative px-6 lg:px-8 pt-8 pb-6">
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
             <motion.div
@@ -457,8 +457,8 @@ export default function AdminDashboard() {
               <Shield className="w-8 h-8 text-white" />
             </motion.div>
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-              <h1 className="text-3xl md:text-4xl font-black text-white">Painel Administrativo</h1>
-              <p className="text-zinc-400 text-sm md:text-base mt-1">Gerencie banners, músicas, usuários e ferramentas do sistema</p>
+              <h1 className="text-3xl md:text-4xl font-black v-chrome-text v-display">Painel Administrativo</h1>
+              <p className="text-velvet-dim text-sm md:text-base mt-1">Gerencie banners, músicas, usuários e ferramentas do sistema</p>
             </motion.div>
             {/* Quick Stats */}
             <motion.div
@@ -470,7 +470,7 @@ export default function AdminDashboard() {
               {adminStats.map(s => (
                 <div key={s.label} className="bg-white/5 rounded-xl border border-white/5 px-4 py-3 text-center min-w-[80px]">
                   <p className="text-xl font-bold text-white">{s.value}</p>
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{s.label}</p>
+                  <p className="text-[10px] text-velvet-faint uppercase tracking-wider">{s.label}</p>
                 </div>
               ))}
             </motion.div>
@@ -482,22 +482,22 @@ export default function AdminDashboard() {
        <div className="px-6 lg:px-8 pt-6">
          <Tabs defaultValue={initialTab} className="w-full">
           <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl inline-flex">
-            <TabsTrigger value="banners" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="banners" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <ImageIcon className="w-4 h-4 mr-2" />Banners
             </TabsTrigger>
-            <TabsTrigger value="songs" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="songs" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <Music className="w-4 h-4 mr-2" />Músicas
             </TabsTrigger>
-            <TabsTrigger value="podcasts" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="podcasts" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <Mic className="w-4 h-4 mr-2" />Podcasts
             </TabsTrigger>
-            <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="users" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <Users className="w-4 h-4 mr-2" />Usuários
             </TabsTrigger>
-            <TabsTrigger value="labels" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="labels" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <Music2 className="w-4 h-4 mr-2" />Gravadoras
             </TabsTrigger>
-            <TabsTrigger value="links" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-zinc-200 data-[state=active]:to-zinc-400 data-[state=active]:text-zinc-900">
+            <TabsTrigger value="links" className="rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-velvet-text data-[state=active]:to-velvet-steel data-[state=active]:text-velvet-void">
               <LinkIcon className="w-4 h-4 mr-2" />Links
             </TabsTrigger>
           </TabsList>
@@ -506,41 +506,41 @@ export default function AdminDashboard() {
           <TabsContent value="banners" className="mt-6">
             <div className="grid lg:grid-cols-5 gap-6">
               {/* Creator Panel */}
-              <div className="lg:col-span-2 bg-[#181818] rounded-2xl border border-white/5 p-6">
-                <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  {editingBannerId ? <Edit2 className="w-5 h-5 text-[#c0c0c8]" /> : <Plus className="w-5 h-5 text-[#c0c0c8]" />}
+              <div className="lg:col-span-2 bg-[#101014] rounded-2xl border border-white/5 p-6">
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2 v-chrome-text">
+                  {editingBannerId ? <Edit2 className="w-5 h-5 text-[#d8d8e2]" /> : <Plus className="w-5 h-5 text-[#d8d8e2]" />}
                   {editingBannerId ? 'Editar Banner' : 'Criar Banner'}
                 </h2>
                 <div className="space-y-3">
                   <Input placeholder="Título do banner" value={newBanner.title}
                     onChange={(e) => setNewBanner(prev => ({ ...prev, title: e.target.value }))}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600" />
+                    className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint" />
                   <Input placeholder="Categoria (ex: Destaque, Novidade...)" value={newBanner.category}
                     onChange={(e) => setNewBanner(prev => ({ ...prev, category: e.target.value }))}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600" />
+                    className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint" />
                   <Input placeholder="Nome do Artista" value={newBanner.artist_name}
                     onChange={(e) => setNewBanner(prev => ({ ...prev, artist_name: e.target.value }))}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600" />
+                    className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint" />
                   <Textarea placeholder="Descrição do lançamento" value={newBanner.description}
                     onChange={(e) => setNewBanner(prev => ({ ...prev, description: e.target.value }))}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 min-h-[80px]" />
+                    className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint min-h-[80px]" />
                   <div className="grid grid-cols-2 gap-3">
                     <Input placeholder="Link (URL)" value={newBanner.link_url}
                       onChange={(e) => setNewBanner(prev => ({ ...prev, link_url: e.target.value }))}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600" />
+                      className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint" />
                     <Input placeholder="Texto do botão" value={newBanner.button_text}
                       onChange={(e) => setNewBanner(prev => ({ ...prev, button_text: e.target.value }))}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600" />
+                      className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint" />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-500 mb-1 block">Duração na rotação (segundos)</label>
+                    <label className="text-xs text-velvet-faint mb-1 block">Duração na rotação (segundos)</label>
                     <Input type="number" min="3" max="60" placeholder="Segundos" value={newBanner.duration_seconds}
                       onChange={(e) => setNewBanner(prev => ({ ...prev, duration_seconds: parseInt(e.target.value) || 7 }))}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600" />
+                      className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint" />
                   </div>
-                  <label className="block p-6 border-2 border-dashed border-white/10 rounded-xl hover:border-[#c0c0c8]/50 transition-colors cursor-pointer text-center">
+                  <label className="block p-6 border-2 border-dashed border-white/10 rounded-xl hover:border-[#d8d8e2]/50 transition-colors cursor-pointer text-center">
                     {uploading ? (
-                      <div className="flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-[#c0c0c8]" /><span className="text-zinc-400 text-sm">Enviando...</span></div>
+                      <div className="flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-[#d8d8e2]" /><span className="text-velvet-dim text-sm">Enviando...</span></div>
                     ) : newBanner.image_url ? (
                       /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(newBanner.image_url) ? (
                         <video src={newBanner.image_url} className="w-full h-28 object-cover rounded-lg" muted loop autoPlay playsInline />
@@ -549,9 +549,9 @@ export default function AdminDashboard() {
                       )
                     ) : (
                       <div className="flex flex-col items-center gap-2">
-                        <Upload className="w-8 h-8 text-zinc-600" />
-                        <span className="text-zinc-500 text-sm">Clique para enviar imagem, GIF ou vídeo</span>
-                        <span className="text-zinc-600 text-xs">Vídeos: até 30 segundos</span>
+                        <Upload className="w-8 h-8 text-velvet-faint" />
+                        <span className="text-velvet-faint text-sm">Clique para enviar imagem, GIF ou vídeo</span>
+                        <span className="text-velvet-faint text-xs">Vídeos: até 30 segundos</span>
                       </div>
                     )}
                     <input type="file" accept="image/*,video/*" className="hidden" onChange={handleUploadImage} />
@@ -561,7 +561,7 @@ export default function AdminDashboard() {
                       <Button
                         onClick={() => { setEditingBannerId(null); setNewBanner({ title: '', description: '', artist_name: '', image_url: '', link_url: '', button_text: '', category: '', duration_seconds: 7 }); }}
                         variant="ghost"
-                        className="rounded-xl h-11 bg-white/5 hover:bg-white/10 text-zinc-300"
+                        className="rounded-xl h-11 bg-white/5 hover:bg-white/10 text-velvet-silver"
                       >
                         Cancelar
                       </Button>
@@ -584,14 +584,14 @@ export default function AdminDashboard() {
 
               {/* Banners List */}
               <div className="lg:col-span-3">
-                <h2 className="text-lg font-bold text-white mb-4">Banners Ativos ({banners.length})</h2>
+                <h2 className="text-lg font-bold mb-4 v-chrome-text">Banners Ativos ({banners.length})</h2>
                 <div className="space-y-3">
                   {banners.map(banner => (
                     <motion.div
                       key={banner.id}
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="bg-[#181818] rounded-xl border border-white/5 p-3 flex items-center gap-4 group hover:border-white/10 transition-colors"
+                      className="bg-[#101014] rounded-xl border border-white/5 p-3 flex items-center gap-4 group hover:border-white/10 transition-colors"
                     >
                       {/\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(banner.image_url || '') ? (
                         <video src={banner.image_url} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" muted loop autoPlay playsInline />
@@ -600,11 +600,11 @@ export default function AdminDashboard() {
                       )}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-white text-sm truncate">{banner.title}</h3>
-                        <p className="text-xs text-zinc-400 truncate">{banner.artist_name}</p>
+                        <p className="text-xs text-velvet-dim truncate">{banner.artist_name}</p>
                         <div className="flex items-center gap-3 mt-1">
-                          {banner.category && <span className="text-[10px] text-[#c0c0c8] bg-[#c0c0c8]/10 px-2 py-0.5 rounded-full truncate max-w-[100px]">{banner.category}</span>}
-                          <span className="text-[10px] text-zinc-500">{banner.duration_seconds || 7}s</span>
-                          {banner.link_url && <span className="text-[10px] text-zinc-500 truncate">{banner.link_url}</span>}
+                          {banner.category && <span className="text-[10px] text-[#d8d8e2] bg-[#d8d8e2]/10 px-2 py-0.5 rounded-full truncate max-w-[100px]">{banner.category}</span>}
+                          <span className="text-[10px] text-velvet-faint">{banner.duration_seconds || 7}s</span>
+                          {banner.link_url && <span className="text-[10px] text-velvet-faint truncate">{banner.link_url}</span>}
                         </div>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
@@ -622,7 +622,7 @@ export default function AdminDashboard() {
                               duration_seconds: banner.duration_seconds || 7,
                             });
                           }}
-                          className="text-zinc-600 hover:text-[#c0c0c8] hover:bg-[#c0c0c8]/10">
+                          className="text-velvet-faint hover:text-[#d8d8e2] hover:bg-[#d8d8e2]/10">
                           <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="icon"
@@ -630,16 +630,16 @@ export default function AdminDashboard() {
                             if (editingBannerId === banner.id) { setEditingBannerId(null); setNewBanner({ title: '', description: '', artist_name: '', image_url: '', link_url: '', button_text: '', category: '', duration_seconds: 7 }); }
                             deleteBannerMutation.mutate(banner.id);
                           }}
-                          className="text-zinc-600 hover:text-red-400 hover:bg-red-500/10">
+                          className="text-velvet-faint hover:text-red-400 hover:bg-red-500/10">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </motion.div>
                   ))}
                   {banners.length === 0 && (
-                    <div className="text-center py-16 bg-[#181818] rounded-2xl border border-white/5">
-                      <ImageIcon className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-                      <p className="text-zinc-500">Nenhum banner criado ainda</p>
+                    <div className="text-center py-16 bg-[#101014] rounded-2xl border border-white/5">
+                      <ImageIcon className="w-12 h-12 text-velvet-faint mx-auto mb-3" />
+                      <p className="text-velvet-faint">Nenhum banner criado ainda</p>
                     </div>
                   )}
                 </div>
@@ -649,23 +649,23 @@ export default function AdminDashboard() {
 
           {/* Songs Tab */}
           <TabsContent value="songs" className="mt-6 space-y-4">
-            <div className="bg-[#181818] rounded-2xl border border-white/5 overflow-hidden">
+            <div className="bg-[#101014] rounded-2xl border border-white/5 overflow-hidden">
               <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between gap-4 flex-wrap">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Music className="w-5 h-5 text-[#c0c0c8]" /> Músicas ({filteredSongs.length})
+                <h2 className="text-lg font-bold flex items-center gap-2 v-chrome-text">
+                  <Music className="w-5 h-5 text-[#d8d8e2]" /> Músicas ({filteredSongs.length})
                 </h2>
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-velvet-faint" />
                   <Input
                     placeholder="Buscar por título ou artista..."
                     value={songSearchTerm}
                     onChange={(e) => setSongSearchTerm(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 pl-9 h-9 text-sm"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint pl-9 h-9 text-sm"
                   />
                 </div>
               </div>
               {filteredSongs.length === 0 && (
-                <p className="text-center text-zinc-500 text-sm py-10">Nenhuma música encontrada</p>
+                <p className="text-center text-velvet-faint text-sm py-10">Nenhuma música encontrada</p>
               )}
               <div className="divide-y divide-white/5">
                 {filteredSongs.map((song, i) => (
@@ -685,15 +685,15 @@ export default function AdminDashboard() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{song.title}</p>
-                      <p className="text-xs text-zinc-500 truncate">{song.artist}{song.featuring ? ` feat. ${song.featuring}` : ''}</p>
+                      <p className="text-xs text-velvet-faint truncate">{song.artist}{song.featuring ? ` feat. ${song.featuring}` : ''}</p>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-zinc-500 flex-shrink-0">
+                    <div className="flex items-center gap-4 text-xs text-velvet-faint flex-shrink-0">
                       <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{song.plays || 0}</span>
                       <span className="bg-white/5 px-2 py-0.5 rounded">{song.type || 'single'}</span>
                     </div>
                     <Button variant="ghost" size="icon"
                       onClick={() => { if (confirm(`Excluir "${song.title}"?`)) deleteSongMutation.mutate(song.id); }}
-                      className="flex-shrink-0 text-zinc-600 hover:text-red-400 hover:bg-red-500/10">
+                      className="flex-shrink-0 text-velvet-faint hover:text-red-400 hover:bg-red-500/10">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </motion.div>
@@ -704,23 +704,23 @@ export default function AdminDashboard() {
 
           {/* Podcasts Tab */}
           <TabsContent value="podcasts" className="mt-6 space-y-4">
-            <div className="bg-[#181818] rounded-2xl border border-white/5 overflow-hidden">
+            <div className="bg-[#101014] rounded-2xl border border-white/5 overflow-hidden">
               <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between gap-4 flex-wrap">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Mic className="w-5 h-5 text-[#c0c0c8]" /> Episódios de Podcast ({filteredPodcastEpisodes.length})
+                <h2 className="text-lg font-bold flex items-center gap-2 v-chrome-text">
+                  <Mic className="w-5 h-5 text-[#d8d8e2]" /> Episódios de Podcast ({filteredPodcastEpisodes.length})
                 </h2>
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-velvet-faint" />
                   <Input
                     placeholder="Buscar por título ou artista..."
                     value={songSearchTerm}
                     onChange={(e) => setSongSearchTerm(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 pl-9 h-9 text-sm"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint pl-9 h-9 text-sm"
                   />
                 </div>
               </div>
               {filteredPodcastEpisodes.length === 0 && (
-                <p className="text-center text-zinc-500 text-sm py-10">Nenhum episódio publicado</p>
+                <p className="text-center text-velvet-faint text-sm py-10">Nenhum episódio publicado</p>
               )}
               <div className="divide-y divide-white/5">
                 {filteredPodcastEpisodes.map((episode, i) => (
@@ -740,15 +740,15 @@ export default function AdminDashboard() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{episode.title}</p>
-                      <p className="text-xs text-zinc-500 truncate">{episode.artist}{episode.album ? ` · ${episode.album}` : ''}</p>
+                      <p className="text-xs text-velvet-faint truncate">{episode.artist}{episode.album ? ` · ${episode.album}` : ''}</p>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-zinc-500 flex-shrink-0">
+                    <div className="flex items-center gap-4 text-xs text-velvet-faint flex-shrink-0">
                       <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{episode.plays || 0}</span>
                       <span className="bg-violet-400/10 text-violet-200 px-2 py-0.5 rounded">episódio</span>
                     </div>
                     <Button variant="ghost" size="icon"
                       onClick={() => { if (confirm(`Excluir "${episode.title}"?`)) deleteSongMutation.mutate(episode.id); }}
-                      className="flex-shrink-0 text-zinc-600 hover:text-red-400 hover:bg-red-500/10">
+                      className="flex-shrink-0 text-velvet-faint hover:text-red-400 hover:bg-red-500/10">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </motion.div>
@@ -759,23 +759,23 @@ export default function AdminDashboard() {
 
           {/* Users Tab */}
           <TabsContent value="users" className="mt-6">
-            <div className="bg-[#181818] rounded-2xl border border-white/5 overflow-hidden">
+            <div className="bg-[#101014] rounded-2xl border border-white/5 overflow-hidden">
               <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between gap-4 flex-wrap">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#c0c0c8]" /> Gerenciar Usuários ({filteredUsers.length})
+                <h2 className="text-lg font-bold flex items-center gap-2 v-chrome-text">
+                  <Users className="w-5 h-5 text-[#d8d8e2]" /> Gerenciar Usuários ({filteredUsers.length})
                 </h2>
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-velvet-faint" />
                   <Input
                     placeholder="Buscar por nome ou email..."
                     value={userSearchTerm}
                     onChange={(e) => setUserSearchTerm(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 pl-9 h-9 text-sm"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint pl-9 h-9 text-sm"
                   />
                 </div>
               </div>
               {filteredUsers.length === 0 && (
-                <p className="text-center text-zinc-500 text-sm py-10">Nenhum usuário encontrado</p>
+                <p className="text-center text-velvet-faint text-sm py-10">Nenhum usuário encontrado</p>
               )}
               <div className="divide-y divide-white/5">
                 {filteredUsers.map((u) => (
@@ -784,7 +784,7 @@ export default function AdminDashboard() {
                     {u.profile_picture ? (
                       <img src={u.profile_picture} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0 ring-1 ring-white/10" />
                     ) : (
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#c0c0c8]/40 to-[#e5e5ea]/40 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#d8d8e2]/40 to-[#f4f4f7]/40 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         {(u.display_name || u.full_name)?.[0]?.toUpperCase() || 'U'}
                       </div>
                     )}
@@ -798,7 +798,7 @@ export default function AdminDashboard() {
                           </svg>
                         )}
                       </div>
-                      <p className="text-xs text-zinc-500 truncate">{u.email}</p>
+                      <p className="text-xs text-velvet-faint truncate">{u.email}</p>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                         {u.role === 'admin' && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-red-500/15 text-red-400">Admin</span>
@@ -806,15 +806,15 @@ export default function AdminDashboard() {
                         {userTypeList(u).length > 0 ? (
                           userTypeList(u).map((t) => (
                             <span key={t} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                              t === 'artista' ? 'bg-[#c0c0c8]/15 text-[#e5e5ea]' :
+                              t === 'artista' ? 'bg-[#d8d8e2]/15 text-[#f4f4f7]' :
                               t === 'gravadora' ? 'bg-slate-400/15 text-slate-300' :
-                              t === 'podcast' ? 'bg-[#c0c0c8]/15 text-[#e5e5ea]' :
+                              t === 'podcast' ? 'bg-[#d8d8e2]/15 text-[#f4f4f7]' :
                               t === 'staff' ? 'bg-amber-500/15 text-amber-400' :
-                              'bg-zinc-800 text-zinc-500'
+                              'bg-white/[0.07] text-velvet-faint'
                             }`}>{t}</span>
                           ))
                         ) : (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-zinc-800 text-zinc-500">ouvinte</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-white/[0.07] text-velvet-faint">ouvinte</span>
                         )}
                       </div>
                     </div>
@@ -826,8 +826,8 @@ export default function AdminDashboard() {
                             Cargos
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-[#1a1a1a] border-white/10">
-                          <DropdownMenuLabel className="text-zinc-400 text-xs">Cargos (pode marcar mais de um)</DropdownMenuLabel>
+                        <DropdownMenuContent className="bg-[#0e0e12] border-white/10">
+                          <DropdownMenuLabel className="text-velvet-dim text-xs">Cargos (pode marcar mais de um)</DropdownMenuLabel>
                           <DropdownMenuSeparator className="bg-white/10" />
                           {CARGO_OPTIONS.map((opt) => (
                             <DropdownMenuCheckboxItem
@@ -858,13 +858,13 @@ export default function AdminDashboard() {
                       <Button variant="ghost" size="sm"
                         onClick={() => toggleVerifiedMutation.mutate({ userId: u.id, verified: !u.verified })}
                         className={`h-8 px-2.5 text-xs rounded-lg transition-all ${
-                          u.verified ? 'bg-slate-600/20 text-blue-400 hover:bg-slate-600/30' : 'bg-white/5 text-zinc-500 hover:bg-white/10'
+                          u.verified ? 'bg-slate-600/20 text-blue-400 hover:bg-slate-600/30' : 'bg-white/5 text-velvet-faint hover:bg-white/10'
                         }`}>
                         {u.verified ? '✓ Verificado' : 'Verificar'}
                       </Button>
                       <Button variant="ghost" size="icon"
                         onClick={() => setEditingUser({ ...u })}
-                        className="h-8 w-8 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg">
+                        className="h-8 w-8 text-velvet-faint hover:text-white hover:bg-white/10 rounded-lg">
                         <Edit2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -875,7 +875,7 @@ export default function AdminDashboard() {
 
             {/* Edit User Dialog */}
             <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-              <DialogContent className="bg-[#1a1a1a] border-white/10 text-white max-w-md">
+              <DialogContent className="bg-[#0e0e12] border-white/10 text-white max-w-md">
                 <DialogHeader>
                   <DialogTitle className="text-lg font-bold">Editar Usuário</DialogTitle>
                 </DialogHeader>
@@ -883,7 +883,7 @@ export default function AdminDashboard() {
                   <div className="space-y-4 mt-2">
                     <div className="flex flex-col items-center gap-3">
                       <div className="relative group">
-                        <div className="w-24 h-24 rounded-2xl overflow-hidden ring-2 ring-white/10 bg-gradient-to-br from-[#c0c0c8] to-[#e5e5ea]">
+                        <div className="w-24 h-24 rounded-2xl overflow-hidden ring-2 ring-white/10 bg-gradient-to-br from-[#d8d8e2] to-[#f4f4f7]">
                           {editingUser.profile_picture ? (
                             <img src={editingUser.profile_picture} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -897,18 +897,18 @@ export default function AdminDashboard() {
                           <input type="file" accept="image/*" className="hidden" onChange={handleUploadUserPhoto} disabled={uploadingUserPhoto} />
                         </label>
                       </div>
-                      <p className="text-xs text-zinc-500">Clique na foto para alterar</p>
+                      <p className="text-xs text-velvet-faint">Clique na foto para alterar</p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Nome Customizado</label>
+                      <label className="text-xs font-medium text-velvet-dim mb-1.5 block">Nome Customizado</label>
                       <Input value={editingUser.display_name || ''}
                         onChange={(e) => setEditingUser(prev => ({ ...prev, display_name: e.target.value }))}
                         className="bg-white/5 border-white/10 text-white rounded-xl h-10" />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Email</label>
+                      <label className="text-xs font-medium text-velvet-dim mb-1.5 block">Email</label>
                       <Input value={editingUser.email || ''} disabled
-                        className="bg-white/5 border-white/10 text-zinc-500 rounded-xl h-10" />
+                        className="bg-white/5 border-white/10 text-velvet-faint rounded-xl h-10" />
                     </div>
                     <Button
                       onClick={() => updateUserMutation.mutate({ userId: editingUser.id, data: { display_name: editingUser.display_name, profile_picture: editingUser.profile_picture } })}
@@ -926,28 +926,28 @@ export default function AdminDashboard() {
           <TabsContent value="labels" className="mt-6">
             <div className="grid lg:grid-cols-5 gap-6">
               {/* Create Label Panel */}
-              <div className="lg:col-span-2 bg-[#181818] rounded-2xl border border-white/5 p-6">
-                <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-[#c0c0c8]" /> Criar Gravadora
+              <div className="lg:col-span-2 bg-[#101014] rounded-2xl border border-white/5 p-6">
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2 v-chrome-text">
+                  <Plus className="w-5 h-5 text-[#d8d8e2]" /> Criar Gravadora
                 </h2>
                 <div className="space-y-3">
-                  <Input placeholder="Nome da gravadora" value={newLabelForm.name} onChange={(e) => setNewLabelForm(prev => ({ ...prev, name: e.target.value }))} className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600" />
-                  <label className="block p-4 border-2 border-dashed border-white/10 rounded-xl hover:border-[#c0c0c8]/50 transition-colors cursor-pointer text-center">
-                    {uploadingLabelLogo ? (<div className="flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-[#c0c0c8]" /><span className="text-zinc-400 text-sm">Enviando...</span></div>) : newLabelForm.logo_url ? (<img src={newLabelForm.logo_url} alt="Preview" className="w-full h-20 object-cover rounded-lg" />) : (<div className="flex flex-col items-center gap-2"><Upload className="w-6 h-6 text-zinc-600" /><span className="text-zinc-500 text-xs">Clique para enviar logo</span></div>)}
+                  <Input placeholder="Nome da gravadora" value={newLabelForm.name} onChange={(e) => setNewLabelForm(prev => ({ ...prev, name: e.target.value }))} className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint" />
+                  <label className="block p-4 border-2 border-dashed border-white/10 rounded-xl hover:border-[#d8d8e2]/50 transition-colors cursor-pointer text-center">
+                    {uploadingLabelLogo ? (<div className="flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin text-[#d8d8e2]" /><span className="text-velvet-dim text-sm">Enviando...</span></div>) : newLabelForm.logo_url ? (<img src={newLabelForm.logo_url} alt="Preview" className="w-full h-20 object-cover rounded-lg" />) : (<div className="flex flex-col items-center gap-2"><Upload className="w-6 h-6 text-velvet-faint" /><span className="text-velvet-faint text-xs">Clique para enviar logo</span></div>)}
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { setCropperImage(ev.target.result); setCropperTarget('labelLogo'); }; reader.readAsDataURL(file); }} />
                   </label>
                   <div>
-                    <label className="text-xs font-medium text-zinc-400 mb-2 block">Representantes</label>
+                    <label className="text-xs font-medium text-velvet-dim mb-2 block">Representantes</label>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#535353]" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#62626e]" />
                       <Input
                         placeholder="Buscar pessoa..."
                         value={newLabelRepSearch}
                         onChange={(e) => setNewLabelRepSearch(e.target.value)}
-                        className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 h-8 pl-9 text-xs"
+                        className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint h-8 pl-9 text-xs"
                       />
                     </div>
-                    <div className="mt-2 max-h-40 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-lg">
+                    <div className="mt-2 max-h-40 overflow-y-auto bg-[#0e0e12] border border-white/10 rounded-lg">
                       {(() => {
                         const results = users.filter(u =>
                           !hasUserType(u, 'gravadora') &&
@@ -955,7 +955,7 @@ export default function AdminDashboard() {
                           (u.display_name?.toLowerCase().includes(newLabelRepSearch.toLowerCase()) || u.full_name?.toLowerCase().includes(newLabelRepSearch.toLowerCase()))
                         );
                         return results.length === 0 ? (
-                          <div className="text-xs text-zinc-500 p-3">Nenhuma pessoa encontrada</div>
+                          <div className="text-xs text-velvet-faint p-3">Nenhuma pessoa encontrada</div>
                         ) : results.map(u => (
                           <button
                             key={u.id}
@@ -972,7 +972,7 @@ export default function AdminDashboard() {
                                 toast.error('Erro ao atualizar tipo do representante');
                               }
                             }}
-                            className="w-full text-left px-3 py-2 text-xs text-white hover:bg-[#282828] transition-colors border-b border-white/5 last:border-0"
+                            className="w-full text-left px-3 py-2 text-xs text-white hover:bg-[#1c1c22] transition-colors border-b border-white/5 last:border-0"
                           >
                             {u.display_name || u.full_name || 'Sem nome'}
                           </button>
@@ -991,10 +991,10 @@ export default function AdminDashboard() {
                 </div>
               </div>
               {/* Labels List */}
-              <div className="lg:col-span-3 bg-[#181818] rounded-2xl border border-white/5 overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/5"><h2 className="text-lg font-bold text-white flex items-center gap-2"><Music2 className="w-5 h-5 text-[#c0c0c8]" /> Gerenciar Gravadoras</h2></div>
+              <div className="lg:col-span-3 bg-[#101014] rounded-2xl border border-white/5 overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/5"><h2 className="text-lg font-bold flex items-center gap-2 v-chrome-text"><Music2 className="w-5 h-5 text-[#d8d8e2]" /> Gerenciar Gravadoras</h2></div>
                 <div className="divide-y divide-white/5">
-                  {labels.map((label) => (<div key={label.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">{label.profile_picture ? (<img src={label.profile_picture} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0 ring-1 ring-white/10" />) : (<div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-400/40 to-slate-600/40 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">{label.name?.[0]?.toUpperCase() || 'G'}</div>)}<div className="flex-1 min-w-0"><p className="text-sm font-semibold text-white truncate">{label.name}</p>{label.managed_artists && label.managed_artists.length > 0 && (<p className="text-xs text-[#c0c0c8] mt-1">{label.managed_artists.length} artista(s)</p>)}</div><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setEditingUser({ ...label, isLabel: true })} className="h-8 px-2.5 text-xs rounded-lg bg-white/5 hover:bg-white/10"><Edit2 className="w-3.5 h-3.5 mr-1" /> Gerenciar</Button><Button variant="ghost" size="sm" onClick={() => { if (confirm('Excluir esta gravadora?')) deleteLabelMutation.mutate(label.id); }} className="h-8 px-2.5 text-xs rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300"><Trash2 className="w-3.5 h-3.5" /></Button></div></div>))}{labels.length === 0 && (<div className="text-center py-16"><Music2 className="w-12 h-12 text-zinc-700 mx-auto mb-3" /><p className="text-zinc-500">Nenhuma gravadora criada</p></div>)}
+                  {labels.map((label) => (<div key={label.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">{label.profile_picture ? (<img src={label.profile_picture} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0 ring-1 ring-white/10" />) : (<div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-400/40 to-slate-600/40 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">{label.name?.[0]?.toUpperCase() || 'G'}</div>)}<div className="flex-1 min-w-0"><p className="text-sm font-semibold text-white truncate">{label.name}</p>{label.managed_artists && label.managed_artists.length > 0 && (<p className="text-xs text-[#d8d8e2] mt-1">{label.managed_artists.length} artista(s)</p>)}</div><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setEditingUser({ ...label, isLabel: true })} className="h-8 px-2.5 text-xs rounded-lg bg-white/5 hover:bg-white/10"><Edit2 className="w-3.5 h-3.5 mr-1" /> Gerenciar</Button><Button variant="ghost" size="sm" onClick={() => { if (confirm('Excluir esta gravadora?')) deleteLabelMutation.mutate(label.id); }} className="h-8 px-2.5 text-xs rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300"><Trash2 className="w-3.5 h-3.5" /></Button></div></div>))}{labels.length === 0 && (<div className="text-center py-16"><Music2 className="w-12 h-12 text-velvet-faint mx-auto mb-3" /><p className="text-velvet-faint">Nenhuma gravadora criada</p></div>)}
                 </div>
               </div>
             </div>
@@ -1003,14 +1003,14 @@ export default function AdminDashboard() {
           {/* Links Tab */}
           <TabsContent value="links" className="mt-6">
             <div className="max-w-md space-y-4">
-              <div className="bg-[#181818] rounded-2xl border border-white/5 p-6">
+              <div className="bg-[#101014] rounded-2xl border border-white/5 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-[#5865F2]/15 flex items-center justify-center flex-shrink-0">
                     <DiscordIcon className="w-5 h-5 text-[#5865F2]" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-white">Servidor do Discord</h2>
-                    <p className="text-xs text-zinc-500">Link do convite, mostrado na Home</p>
+                    <h2 className="text-sm font-bold v-chrome-text">Servidor do Discord</h2>
+                    <p className="text-xs text-velvet-faint">Link do convite, mostrado na Home</p>
                   </div>
                 </div>
                 <Input
@@ -1019,18 +1019,18 @@ export default function AdminDashboard() {
                   onBlur={(e) => {
                     if (e.target.value !== discordUrl) updateAppSettingMutation.mutate({ key: 'discord_url', value: e.target.value });
                   }}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint"
                 />
               </div>
 
-              <div className="bg-[#181818] rounded-2xl border border-white/5 p-6">
+              <div className="bg-[#101014] rounded-2xl border border-white/5 p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#c0c0c8]/10 flex items-center justify-center flex-shrink-0">
-                    <Newspaper className="w-5 h-5 text-[#c0c0c8]" />
+                  <div className="w-10 h-10 rounded-xl bg-[#d8d8e2]/10 flex items-center justify-center flex-shrink-0">
+                    <Newspaper className="w-5 h-5 text-[#d8d8e2]" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-white">Revista</h2>
-                    <p className="text-xs text-zinc-500">Link do site da revista, mostrado na Home</p>
+                    <h2 className="text-sm font-bold v-chrome-text">Revista</h2>
+                    <p className="text-xs text-velvet-faint">Link do site da revista, mostrado na Home</p>
                   </div>
                 </div>
                 <Input
@@ -1039,7 +1039,7 @@ export default function AdminDashboard() {
                   onBlur={(e) => {
                     if (e.target.value !== revistaUrl) updateAppSettingMutation.mutate({ key: 'revista_url', value: e.target.value });
                   }}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-velvet-faint"
                 />
               </div>
             </div>
@@ -1054,18 +1054,18 @@ export default function AdminDashboard() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#181818] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-[#101014] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-[#181818]">
-              <h2 className="text-lg font-bold text-white">Gerenciar Gravadora</h2>
-              <button onClick={() => setEditingUser(null)} className="text-zinc-400 hover:text-white text-2xl">✕</button>
+            <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-[#101014]">
+              <h2 className="text-lg font-bold v-chrome-text">Gerenciar Gravadora</h2>
+              <button onClick={() => setEditingUser(null)} className="text-velvet-dim hover:text-white text-2xl">✕</button>
             </div>
             
             <Tabs defaultValue="dados" className="w-full">
               <TabsList className="bg-white/5 border-b border-white/10 p-0 rounded-none m-0 w-full justify-start">
-                <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0c0c8] data-[state=active]:bg-transparent">Dados da Gravadora</TabsTrigger>
-                <TabsTrigger value="representantes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0c0c8] data-[state=active]:bg-transparent">Representantes</TabsTrigger>
-                <TabsTrigger value="artistas" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0c0c8] data-[state=active]:bg-transparent">Artistas Associados</TabsTrigger>
+                <TabsTrigger value="dados" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#d8d8e2] data-[state=active]:bg-transparent">Dados da Gravadora</TabsTrigger>
+                <TabsTrigger value="representantes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#d8d8e2] data-[state=active]:bg-transparent">Representantes</TabsTrigger>
+                <TabsTrigger value="artistas" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#d8d8e2] data-[state=active]:bg-transparent">Artistas Associados</TabsTrigger>
               </TabsList>
 
               {/* Dados Tab */}
@@ -1086,15 +1086,15 @@ export default function AdminDashboard() {
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { setCropperImage(ev.target.result); setCropperTarget('labelLogoEdit'); }; reader.readAsDataURL(file); }} />
                     </label>
                   </div>
-                  <p className="text-xs text-zinc-500">Clique na logo para alterar</p>
+                  <p className="text-xs text-velvet-faint">Clique na logo para alterar</p>
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-[#B3B3B3] mb-1.5 block">Nome da Gravadora</label>
+                  <label className="text-xs font-medium text-[#9a9aa6] mb-1.5 block">Nome da Gravadora</label>
                   <Input
                     value={editingUser.name || ''}
                     onChange={(e) => setEditingUser(prev => ({ ...prev, name: e.target.value }))}
-                    className="bg-[#282828] border-[#383838] text-white placeholder-[#535353] h-9"
+                    className="bg-[#1c1c22] border-[#26262e] text-white placeholder-[#62626e] h-9"
                   />
                 </div>
 
@@ -1117,19 +1117,19 @@ export default function AdminDashboard() {
               {/* Representantes Tab */}
               <TabsContent value="representantes" className="space-y-4 p-6">
                 <div>
-                  <label className="text-xs font-medium text-[#B3B3B3] mb-2 block">Adicionar Representante</label>
+                  <label className="text-xs font-medium text-[#9a9aa6] mb-2 block">Adicionar Representante</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#535353]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#62626e]" />
                     <Input
                       placeholder="Buscar usuário..."
                       value={repSearchTerm}
                       onChange={(e) => setRepSearchTerm(e.target.value)}
-                      className="bg-[#282828] border-[#383838] text-white placeholder-[#535353] h-9 pl-9 text-xs"
+                      className="bg-[#1c1c22] border-[#26262e] text-white placeholder-[#62626e] h-9 pl-9 text-xs"
                     />
                   </div>
-                  <div className="mt-2 max-h-48 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-lg">
+                  <div className="mt-2 max-h-48 overflow-y-auto bg-[#0e0e12] border border-white/10 rounded-lg">
                     {users.filter(u => !editingUser.representatives?.includes(u.id) && (u.display_name?.toLowerCase().includes(repSearchTerm.toLowerCase()) || u.full_name?.toLowerCase().includes(repSearchTerm.toLowerCase()))).length === 0 ? (
-                      <div className="text-xs text-zinc-500 p-3">Nenhum usuário encontrado</div>
+                      <div className="text-xs text-velvet-faint p-3">Nenhum usuário encontrado</div>
                     ) : (
                       users.filter(u => !editingUser.representatives?.includes(u.id) && (u.display_name?.toLowerCase().includes(repSearchTerm.toLowerCase()) || u.full_name?.toLowerCase().includes(repSearchTerm.toLowerCase()))).map(u => (
                         <button
@@ -1147,7 +1147,7 @@ export default function AdminDashboard() {
                               toast.error('Erro ao atualizar representante');
                             }
                           }}
-                          className="w-full text-left px-3 py-2 text-xs text-white hover:bg-[#282828] transition-colors border-b border-white/5 last:border-0"
+                          className="w-full text-left px-3 py-2 text-xs text-white hover:bg-[#1c1c22] transition-colors border-b border-white/5 last:border-0"
                         >
                           {u.display_name || u.full_name || 'Sem nome'}
                         </button>
@@ -1158,7 +1158,7 @@ export default function AdminDashboard() {
 
                 {editingUser.representatives && editingUser.representatives.length > 0 ? (
                   <div className="space-y-2">
-                    <p className="text-xs text-[#B3B3B3]">Representantes atuais:</p>
+                    <p className="text-xs text-[#9a9aa6]">Representantes atuais:</p>
                     {editingUser.representatives.map(repId => {
                       const rep = users.find(u => u.id === repId);
                       return (
@@ -1178,26 +1178,26 @@ export default function AdminDashboard() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-zinc-500 text-center py-4">Nenhum representante adicionado</p>
+                  <p className="text-sm text-velvet-faint text-center py-4">Nenhum representante adicionado</p>
                 )}
               </TabsContent>
 
               {/* Artistas Tab */}
               <TabsContent value="artistas" className="space-y-4 p-6">
                 <div>
-                  <label className="text-xs font-medium text-[#B3B3B3] mb-2 block">Associar Artista</label>
+                  <label className="text-xs font-medium text-[#9a9aa6] mb-2 block">Associar Artista</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#535353]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#62626e]" />
                     <Input
                       placeholder="Buscar artista..."
                       value={artistSearchTerm}
                       onChange={(e) => setArtistSearchTerm(e.target.value)}
-                      className="bg-[#282828] border-[#383838] text-white placeholder-[#535353] h-9 pl-9 text-xs"
+                      className="bg-[#1c1c22] border-[#26262e] text-white placeholder-[#62626e] h-9 pl-9 text-xs"
                     />
                   </div>
-                  <div className="mt-2 max-h-48 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-lg">
+                  <div className="mt-2 max-h-48 overflow-y-auto bg-[#0e0e12] border border-white/10 rounded-lg">
                     {users.filter(u => hasUserType(u, 'artista') && !editingUser.managed_artists?.includes(u.id) && (u.display_name?.toLowerCase().includes(artistSearchTerm.toLowerCase()) || u.full_name?.toLowerCase().includes(artistSearchTerm.toLowerCase()))).length === 0 ? (
-                      <div className="text-xs text-zinc-500 p-3">Nenhum artista encontrado</div>
+                      <div className="text-xs text-velvet-faint p-3">Nenhum artista encontrado</div>
                     ) : (
                       users.filter(u => hasUserType(u, 'artista') && !editingUser.managed_artists?.includes(u.id) && (u.display_name?.toLowerCase().includes(artistSearchTerm.toLowerCase()) || u.full_name?.toLowerCase().includes(artistSearchTerm.toLowerCase()))).map(u => (
                         <button
@@ -1209,7 +1209,7 @@ export default function AdminDashboard() {
                             }));
                             setArtistSearchTerm('');
                           }}
-                          className="w-full text-left px-3 py-2 text-xs text-white hover:bg-[#282828] transition-colors border-b border-white/5 last:border-0"
+                          className="w-full text-left px-3 py-2 text-xs text-white hover:bg-[#1c1c22] transition-colors border-b border-white/5 last:border-0"
                         >
                           {u.display_name || u.full_name || 'Sem nome'}
                         </button>
@@ -1220,7 +1220,7 @@ export default function AdminDashboard() {
 
                 {editingUser.managed_artists && editingUser.managed_artists.length > 0 ? (
                   <div className="space-y-2">
-                    <p className="text-xs text-[#B3B3B3]">Artistas associados:</p>
+                    <p className="text-xs text-[#9a9aa6]">Artistas associados:</p>
                     {editingUser.managed_artists.map(artistId => {
                       const artist = users.find(u => u.id === artistId);
                       if (!artist || !hasUserType(artist, 'artista')) return null;
@@ -1241,12 +1241,12 @@ export default function AdminDashboard() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-zinc-500 text-center py-4">Nenhum artista associado</p>
+                  <p className="text-sm text-velvet-faint text-center py-4">Nenhum artista associado</p>
                 )}
               </TabsContent>
             </Tabs>
 
-            <div className="flex gap-2 p-6 border-t border-white/10 sticky bottom-0 bg-[#181818]">
+            <div className="flex gap-2 p-6 border-t border-white/10 sticky bottom-0 bg-[#101014]">
                <Button
                  onClick={() => {
                    updateLabelDetailsMutation.mutate({

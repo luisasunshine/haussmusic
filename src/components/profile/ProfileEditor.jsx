@@ -106,7 +106,7 @@ export default function ProfileEditor({ user, onUpdate }) {
       <div className="space-y-6">
       {/* Profile Banner */}
       <div className="relative group">
-        <div className="w-full h-32 sm:h-40 rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-br from-zinc-800 to-zinc-900">
+        <div className="w-full h-32 sm:h-40 rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-br from-velvet-raised to-velvet-surface">
           {profileData.profile_banner ? (
             <img src={profileData.profile_banner} alt="Banner" className="w-full h-full object-cover" />
           ) : (
@@ -121,14 +121,14 @@ export default function ProfileEditor({ user, onUpdate }) {
           <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadPhoto(e, 'banner')} />
         </label>
       </div>
-      <p className="text-xs text-zinc-500 -mt-4 text-center">
+      <p className="text-xs text-velvet-faint -mt-4 text-center">
         Esse banner aparece no seu perfil e no destaque de "Mais Ouvidas" quando sua música estiver em alta. Aceita GIF animado.
       </p>
 
       {/* Profile Picture */}
       <div className="flex flex-col items-center gap-4">
         <div className="relative group">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 bg-gradient-to-br from-zinc-500 to-neutral-500">
+          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 bg-gradient-to-br from-velvet-ash to-velvet-ash">
             {profileData.profile_picture ? (
               <img src={profileData.profile_picture} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -147,12 +147,12 @@ export default function ProfileEditor({ user, onUpdate }) {
             <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadPhoto(e, 'photo')} disabled={uploading} />
           </label>
         </div>
-        <p className="text-sm text-zinc-500">Clique para alterar foto</p>
+        <p className="text-sm text-velvet-faint">Clique para alterar foto</p>
       </div>
 
       {/* Name */}
       <div>
-        <label className="text-sm font-medium text-zinc-400 mb-2 block">Nome</label>
+        <label className="text-sm font-medium text-velvet-dim mb-2 block">Nome</label>
         <Input
           value={profileData.display_name}
           onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
@@ -163,11 +163,11 @@ export default function ProfileEditor({ user, onUpdate }) {
 
       {/* Email (read-only) */}
       <div>
-        <label className="text-sm font-medium text-zinc-400 mb-2 block">Email</label>
+        <label className="text-sm font-medium text-velvet-dim mb-2 block">Email</label>
         <Input
           value={user?.email || ''}
           disabled
-          className="bg-white/5 border-white/10 text-zinc-500"
+          className="bg-white/5 border-white/10 text-velvet-faint"
         />
       </div>
 

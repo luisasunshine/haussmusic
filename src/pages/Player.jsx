@@ -5,7 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ListMusic, Share2, MoreHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import GlowingOrb from '@/components/player/GlowingOrb';
+// O antigo GlowingOrb registrava um mousemove global que chamava setState
+// a cada pixel — a página inteira re-renderizava ao mexer o mouse. O vinil
+// de cromo faz o mesmo papel visual (e mais) escrevendo direto no canvas,
+// sem tocar no estado do React.
+import ChromeVinyl from '@/components/fx/ChromeVinyl';
 import AudioVisualizer from '@/components/player/AudioVisualizer';
 import PlayerControls from '@/components/player/PlayerControls';
 import SongCard from '@/components/ui/SongCard';
@@ -26,7 +30,7 @@ export default function Player() {
   const { data: songs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: () => base44.entities.Song.list('-created_date'),
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { isLiked, toggle } = useSongLikes(user?.email);
@@ -178,7 +182,7 @@ export default function Player() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowQueue(!showQueue)}
-            className={`p-2 rounded-full transition-colors ${showQueue ? 'bg-zinc-400/30 text-zinc-300' : 'bg-white/5 hover:bg-white/10 text-white'}`}
+            className={`p-2 rounded-full transition-colors ${showQueue ? 'bg-velvet-silver/30 text-velvet-silver' : 'bg-white/5 hover:bg-white/10 text-white'}`}
           >
             <ListMusic className="w-5 h-5" />
           </motion.button>
@@ -204,12 +208,12 @@ export default function Player() {
         <div className={`flex-1 flex flex-col items-center ${showQueue ? 'lg:w-1/2' : 'w-full'}`}>
           {/* Album art orb */}
           <div className="mb-8">
-            <GlowingOrb isPlaying={isPlaying} coverUrl={currentSong?.cover_url} />
+            <ChromeVinyl coverUrl={currentSong?.cover_url} isPlaying={isPlaying} size={340} />
           </div>
 
           {/* Audio visualizer */}
           <div className="w-full max-w-xl mb-8">
-            <AudioVisualizer isPlaying={isPlaying} />
+            <AudioVisualizer isPlaying={isPlaying} bars={64} height={96} />
           </div>
 
           {/* Song info */}
@@ -219,14 +223,14 @@ export default function Player() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+            <h1 className="text-3xl lg:text-4xl font-bold mb-2 v-chrome-text v-display">
               {currentSong?.title || 'Selecione uma música'}
             </h1>
-            <p className="text-lg text-zinc-400">
+            <p className="text-lg text-velvet-dim">
               {currentSong?.artist || 'Artista desconhecido'}
             </p>
             {currentSong?.album && (
-              <p className="text-sm text-zinc-500 mt-1">{currentSong.album}</p>
+              <p className="text-sm text-velvet-faint mt-1">{currentSong.album}</p>
             )}
           </motion.div>
 
@@ -262,8 +266,8 @@ export default function Player() {
               className="w-full lg:w-1/2 bg-white/5 rounded-2xl backdrop-blur-xl border border-white/10 overflow-hidden"
             >
               <div className="p-4 border-b border-white/10">
-                <h2 className="text-lg font-semibold text-white">Fila de reprodução</h2>
-                <p className="text-sm text-zinc-500">{songs.length} músicas</p>
+                <h2 className="text-lg font-semibold v-chrome-text">Fila de reprodução</h2>
+                <p className="text-sm text-velvet-faint">{songs.length} músicas</p>
               </div>
               <div className="max-h-[500px] overflow-y-auto">
                 {songs.map((song, index) => (
