@@ -7,20 +7,14 @@ const DEFAULT_ROTATE_MS = 7000;
 /**
  * Carrossel do topo da Home.
  *
- * Além do que já fazia, três coisas que faltavam para ele parecer acabado:
- *
- *  - uma barra de progresso mostrando quanto falta para o próximo slide,
- *    em vez de a troca simplesmente acontecer sem aviso;
- *  - navegação por seta do teclado e setas de avançar/voltar no hover, para
- *    quem quiser adiantar.
- *
- * A rotação é automática e não para no hover — a única coisa que a
- * interrompe é a aba sair de foco, porque não faz sentido gastar animação
- * para ninguém.
+ * Gira sozinho entre a faixa em destaque e os banners ativos do admin, cada
+ * slide com a sua própria duração. Setas no hover, setas do teclado e
+ * pontinhos para quem quiser adiantar — mas nada interrompe a rotação
+ * exceto a aba sair de foco, porque não faz sentido gastar animação para
+ * ninguém.
  */
 export default function HomeHeroCarousel({ slides }) {
   const [index, setIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
   const wrapRef = useRef(null);
 
   const count = slides.length;
@@ -33,40 +27,28 @@ export default function HomeHeroCarousel({ slides }) {
 
   const go = useCallback((next) => {
     setIndex((i) => ((next % count) + count) % count);
-    setProgress(0);
   }, [count]);
 
-  // Um único rAF controla avanço e barra: dois timers separados sairiam de
-  // sincronia e a barra terminaria antes (ou depois) da troca.
+  // Avanço automático. Pausa com a aba em segundo plano — não faz sentido
+  // gastar animação para ninguém — e retoma o ciclo inteiro ao voltar.
   useEffect(() => {
     if (count < 2) return undefined;
 
-    let raf = null;
-    let start = performance.now();
-    let stopped = false;
-
-    const tick = (now) => {
-      if (stopped) return;
-      const p = Math.min(1, (now - start) / durationMs);
-      setProgress(p);
-      if (p >= 1) {
-        setIndex((i) => (i + 1) % count);
-        start = now;
-        setProgress(0);
-      }
-      raf = requestAnimationFrame(tick);
+    let timer = null;
+    const agendar = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => setIndex((i) => (i + 1) % count), durationMs);
     };
-    raf = requestAnimationFrame(tick);
+    agendar();
 
     const onVisibility = () => {
-      if (document.hidden) { stopped = true; if (raf) cancelAnimationFrame(raf); }
-      else { stopped = false; start = performance.now(); raf = requestAnimationFrame(tick); }
+      if (document.hidden) clearTimeout(timer);
+      else agendar();
     };
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      stopped = true;
-      if (raf) cancelAnimationFrame(raf);
+      clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [count, index, durationMs]);
@@ -140,18 +122,6 @@ export default function HomeHeroCarousel({ slides }) {
             </div>
           </div>
 
-          {/* Barra de progresso rente à borda de baixo */}
-          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10 z-40">
-            <div
-              className="h-full"
-              style={{
-                width: `${progress * 100}%`,
-                background: 'linear-gradient(90deg, #8f8f9d, #d8d8e2 60%, #ffffff)',
-                boxShadow: '0 0 10px rgba(216,216,226,0.6)',
-                transition: progress === 0 ? 'none' : 'width 80ms linear',
-              }}
-            />
-          </div>
         </>
       )}
     </div>
