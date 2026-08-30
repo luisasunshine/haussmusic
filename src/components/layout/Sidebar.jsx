@@ -103,12 +103,11 @@ export default function Sidebar({ currentPage }) {
 
   const discover = [
     { icon: Star, label: 'VELVET HITS', short: 'Hits', page: 'Rankings' },
-    { icon: Music2, label: 'Artistas', page: 'Artists' },
   ];
 
   const studio = [
     ...(hasUserType(user, 'artista') || hasUserType(user, 'staff') || user?.role === 'admin'
-      ? [{ icon: Award, label: 'Painel do artista', short: 'Painel', page: 'ArtistDashboard' }] : []),
+      ? [{ icon: Award, label: 'Artistas', page: 'ArtistDashboard' }] : []),
     ...(hasUserType(user, 'gravadora') || user?.role === 'admin'
       ? [{ icon: Music2, label: 'Gravadora', short: 'Selo', page: 'LabelDashboard' }] : []),
     ...(hasUserType(user, 'podcast') || user?.role === 'admin'

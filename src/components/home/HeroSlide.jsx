@@ -36,7 +36,7 @@ export default function HeroSlide({
     if (isVideo) {
       return <BackgroundMedia src={media} alt="" className={`w-full h-full object-contain ${className}`} />;
     }
-    return <img src={media} alt="" className={`w-full h-full object-contain ${className}`} />;
+    return <img src={media} alt="" className={`w-full h-full object-contain ${className}`} decoding="async" />;
   };
 
   return (

@@ -544,7 +544,7 @@ export default function Layout({ children, currentPageName }) {
     { icon: Search, label: 'Buscar', page: 'Search' },
     { icon: Library, label: 'Biblioteca', page: 'Library' },
     ...(hasUserType(user, 'artista') || hasUserType(user, 'staff')
-      ? [{ icon: Award, label: 'Artista', page: 'ArtistDashboard' }]
+      ? [{ icon: Award, label: 'Artistas', page: 'ArtistDashboard' }]
       : [{ icon: Music2, label: 'Artistas', page: 'Artists' }]
     ),
     ...(hasUserType(user, 'podcast')

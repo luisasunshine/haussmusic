@@ -4,6 +4,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DEFAULT_ROTATE_MS = 7000;
 
+// Limites da altura do bloco. Sem o teto, um banner quadrado esticaria o
+// hero para a largura inteira e empurraria a página toda para baixo.
+const ALTURA_MIN = 260;
+const ALTURA_MAX = 560;
+
 /**
  * Carrossel do topo da Home.
  *
@@ -12,9 +17,17 @@ const DEFAULT_ROTATE_MS = 7000;
  * pontinhos para quem quiser adiantar — mas nada interrompe a rotação
  * exceto a aba sair de foco, porque não faz sentido gastar animação para
  * ninguém.
+ *
+ * A altura do bloco acompanha a proporção da arte do slide atual. Com
+ * altura fixa, uma imagem panorâmica aparecia inteira mas encolhida, entre
+ * duas faixas pretas — e cortá-la para preencher não era opção. Medindo a
+ * proporção real da mídia e ajustando a altura, a arte ocupa a largura toda
+ * sem perder um pixel. Fica limitada por ALTURA_MIN/ALTURA_MAX: arte muito
+ * quadrada ainda sobra espaço nas laterais, o que é geometria, não bug.
  */
 export default function HomeHeroCarousel({ slides }) {
   const [index, setIndex] = useState(0);
+  const [altura, setAltura] = useState(ALTURA_MAX);
   const wrapRef = useRef(null);
 
   const count = slides.length;
@@ -53,6 +66,49 @@ export default function HomeHeroCarousel({ slides }) {
     };
   }, [count, index, durationMs]);
 
+  // Mede a arte do slide atual e ajusta a altura do bloco para ela caber
+  // inteira ocupando a largura. Roda a cada troca de slide e a cada
+  // mudança de largura da janela.
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return undefined;
+
+    let cancelado = false;
+
+    const ajustar = () => {
+      if (cancelado) return;
+      const midia = wrap.querySelector('img, video');
+      if (!midia) return;
+
+      const w = midia.naturalWidth || midia.videoWidth;
+      const h = midia.naturalHeight || midia.videoHeight;
+      if (!w || !h) return;
+
+      const largura = wrap.clientWidth;
+      if (!largura) return;
+
+      const ideal = largura * (h / w);
+      setAltura(Math.round(Math.max(ALTURA_MIN, Math.min(ALTURA_MAX, ideal))));
+    };
+
+    ajustar();
+
+    // A imagem do slide pode ainda não ter carregado quando o efeito roda.
+    const midia = wrap.querySelector('img, video');
+    midia?.addEventListener('load', ajustar);
+    midia?.addEventListener('loadedmetadata', ajustar);
+
+    const ro = new ResizeObserver(ajustar);
+    ro.observe(wrap);
+
+    return () => {
+      cancelado = true;
+      midia?.removeEventListener('load', ajustar);
+      midia?.removeEventListener('loadedmetadata', ajustar);
+      ro.disconnect();
+    };
+  }, [index, count]);
+
   if (count === 0) return null;
 
   const multi = count > 1;
@@ -60,8 +116,12 @@ export default function HomeHeroCarousel({ slides }) {
   return (
     <div
       ref={wrapRef}
-      className="group relative rounded-3xl overflow-hidden mb-8 v-chrome-edge h-[300px] sm:h-[340px] lg:h-[380px]"
-      style={{ border: '1px solid rgba(255,255,255,0.07)' }}
+      className="group relative rounded-3xl overflow-hidden mb-8 v-chrome-edge"
+      style={{
+        border: '1px solid rgba(255,255,255,0.07)',
+        height: altura,
+        transition: 'height 480ms cubic-bezier(0.22, 1, 0.36, 1)',
+      }}
       onKeyDown={(e) => {
         if (!multi) return;
         if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
