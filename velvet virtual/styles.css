@@ -16,7 +16,16 @@ html { scroll-behavior:smooth; background:var(--bg);
 .vv-starfield { position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.75; }
 body { margin:0; overflow-x:hidden; color:var(--text); background:transparent; font-family:Manrope,Arial,sans-serif; }
 button,input { font:inherit; } button { cursor:pointer; } a { color:inherit; text-decoration:none; }
-.vv-noise { position:fixed; inset:0; pointer-events:none; opacity:.07; z-index:20; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E"); }
+/* Granulado de filme, desligado.
+   Ele cobria a página inteira a 7% de opacidade e fazia sentido enquanto o
+   fundo era uma foto: dava textura. Sobre o preto liso do campo de estrelas
+   ele não lê como grão, lê como imagem pixelada — e ainda compete com as
+   próprias partículas, que são pontos claros do mesmo tamanho.
+   (Ficou invisível por um tempo sem querer: uma regra minha sobrescrevia o
+   position:fixed dele. Ao corrigir aquilo, o granulado voltou.)
+   Para trazê-lo de volta, basta remover o display:none — a 2%~3% ele
+   convive bem com as estrelas. */
+.vv-noise { display:none; position:fixed; inset:0; pointer-events:none; opacity:.07; z-index:20; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E"); }
 .vv-topline { min-height:32px; padding:8px clamp(18px,3vw,54px); display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; color:#bab6c5; border-bottom:1px solid var(--line); font:500 9px/1 'DM Mono',monospace; letter-spacing:.12em; }
 .vv-topline p { margin:0; }.vv-topline-center{text-align:center}.vv-topline a{text-align:right;color:var(--lime)}
 .vv-header { height:89px; padding:0 clamp(18px,3vw,54px); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; background:rgba(9,9,12,.89); backdrop-filter:blur(18px); }
