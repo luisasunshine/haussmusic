@@ -13,12 +13,17 @@ const DEFAULT_ROTATE_MS = 7000;
  * exceto a aba sair de foco, porque não faz sentido gastar animação para
  * ninguém.
  *
- * O bloco tem altura fixa e a arte entra inteira dentro dele
- * (object-contain): nada é cortado, em nenhum lado. Quando a proporção da
- * imagem não bate com a do bloco, sobra fundo — é o preço de não recortar,
- * e é uma escolha deliberada. Já houve aqui uma altura que se ajustava à
- * proporção de cada arte; ela preenchia melhor, mas fazia o bloco (e toda a
- * página abaixo) pular de tamanho a cada troca de slide.
+ * A altura sai de uma proporção fixa (aspect-ratio), não de um número de
+ * pixels — e a proporção escolhida é a da arte que realmente se envia aqui.
+ *
+ * O bloco tinha 320px de altura numa largura de ~1460px, ou seja 4,56:1:
+ * mais panorâmico que qualquer banner de verdade. Os banners enviados são
+ * 2,83:1 (1810x640). Nessa diferença toda, ou sobravam 277px de preto de
+ * cada lado, ou o topo e a base da arte iam embora no corte.
+ *
+ * Com o bloco em 2,8:1 a arte enviada preenche de ponta a ponta com ~1% de
+ * corte — invisível. E como a proporção é fixa, o bloco não muda de tamanho
+ * entre um slide e outro; só acompanha a largura da janela.
  */
 export default function HomeHeroCarousel({ slides }) {
   const [index, setIndex] = useState(0);
@@ -67,8 +72,13 @@ export default function HomeHeroCarousel({ slides }) {
   return (
     <div
       ref={wrapRef}
-      className="group relative rounded-3xl overflow-hidden mb-8 v-chrome-edge h-[280px] sm:h-[300px] lg:h-[320px]"
-      style={{ border: '1px solid rgba(255,255,255,0.07)' }}
+      className="group relative rounded-3xl overflow-hidden mb-8 v-chrome-edge"
+      style={{
+        border: '1px solid rgba(255,255,255,0.07)',
+        aspectRatio: '2.8 / 1',
+        minHeight: 240,
+        maxHeight: 560,
+      }}
       onKeyDown={(e) => {
         if (!multi) return;
         if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }

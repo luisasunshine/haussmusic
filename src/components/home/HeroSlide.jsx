@@ -21,6 +21,7 @@ import ArtistNameBanner from '@/components/home/ArtistNameBanner';
  */
 export default function HeroSlide({
   fit = 'contain',  // 'cover' preenche e corta as bordas | 'contain' mostra inteira
+  preservarBrilho = false, // arte de banner não leva o escurecimento da foto
   media,            // url da imagem/vídeo
   isVideo = false,
   fallbackName,     // usado quando não há mídia
@@ -38,7 +39,12 @@ export default function HeroSlide({
   const objeto = cobre ? 'object-cover' : 'object-contain';
   // A foto de fundo precisa perder brilho para o título ler por cima; a
   // arte fechada do banner, não — ela é para ser vista como foi entregue.
-  const tratamento = cobre ? { filter: 'saturate(1.15) brightness(0.62)' } : undefined;
+  // Peso do escurecimento: a foto de fundo da faixa em destaque aguenta
+  // (e precisa) perder brilho; a arte de um banner, não — ali o degradê do
+  // pé já dá contraste ao texto sem apagar o desenho.
+  const tratamento = cobre && !preservarBrilho
+    ? { filter: 'saturate(1.15) brightness(0.62)' }
+    : undefined;
 
   const Art = ({ className = '' }) => {
     if (!hasMedia) return <ArtistNameBanner name={fallbackName || title} className={className} />;
@@ -85,7 +91,7 @@ export default function HeroSlide({
       />
 
       {/* Brilho frio do backup, só sobre a foto de fundo. */}
-      {cobre && hasMedia && (
+      {cobre && hasMedia && !preservarBrilho && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse at 62% 38%, rgba(216,216,226,0.18) 0%, transparent 70%)' }}

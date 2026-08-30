@@ -284,6 +284,8 @@ export default function Home() {
       durationSeconds: banner.duration_seconds || 7,
       render: () => (
         <HeroSlide
+          fit="cover"
+          preservarBrilho
           media={banner.image_url}
           isVideo={/\.(mp4|webm|mov)(\?|$)/i.test(banner.image_url || '')}
           fallbackName={banner.title}
