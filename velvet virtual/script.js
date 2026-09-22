@@ -1447,9 +1447,19 @@ document.querySelector('.vv-admin-header .vv-admin-add').addEventListener('click
   openPostEditor(null, document.querySelector('[data-admin-section="posts"]'));
 });
 adminButtons.forEach((button) => button.addEventListener('click', () => {
-  setTimeout(() => {
+  setTimeout(async () => {
     if (!session.user) { adminPanel.hidden = true; openAuth('Entre com a conta administrativa para abrir o painel.'); return; }
-    if (!session.user.isAdmin && session.user.role !== 'admin') { adminPanel.hidden = true; alert('Esta conta não tem acesso administrativo.'); return; }
+    // Confere o cargo no servidor na hora: a conta salva no navegador pode
+    // ser de antes da pessoa ganhar o cargo de admin.
+    if (session.token) {
+      try {
+        session.user = (await requestApi('/api/auth/me')).user;
+        localStorage.setItem('vv_auth_user', JSON.stringify(session.user));
+        updateProfileView();
+      } catch { /* Usa os dados já salvos; a API continua protegendo o painel. */ }
+    }
+    const adminRole = String(session.user.role || '').split(',').map((value) => value.trim()).includes('admin');
+    if (!session.user.isAdmin && !adminRole) { adminPanel.hidden = true; alert('Esta conta não tem acesso administrativo.'); return; }
     renderAdmin('overview');
   }, 0);
 }));
