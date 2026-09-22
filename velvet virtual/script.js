@@ -1768,13 +1768,13 @@ profileEditForm.addEventListener('submit', async (event) => {
 });
 
 
-// Anúncios da revista: dois espaços fixos no topo da página HIGH,
+// Anúncios da revista: quatro espaços fixos no topo da página HIGH,
 // editados no admin (aba da revista) e guardados nas configurações.
 function renderMagazineAds(settings = {}) {
   const wrap = document.querySelector('[data-mag-ads]');
   if (!wrap) return;
   let shown = 0;
-  [1, 2].forEach((n) => {
+  [1, 2, 3, 4].forEach((n) => {
     const card = wrap.querySelector(`[data-mag-ad="${n}"]`);
     if (!card) return;
     const image = String(settings[`ad${n}Image`] || '');
@@ -1792,6 +1792,7 @@ function renderMagazineAds(settings = {}) {
     if (link) card.href = link; else card.removeAttribute('href');
   });
   wrap.hidden = !shown;
+  wrap.style.setProperty('--ad-count', String(shown || 1));
   wrap.classList.toggle('is-single', shown === 1);
 }
 
@@ -1809,7 +1810,7 @@ function magazineAdsPanelHtml(settings = {}) {
       <label class="vv-ad-toggle"><input type="checkbox" name="ad${n}Active" ${String(settings[`ad${n}Active`] ?? '1') !== '0' ? 'checked' : ''}> Mostrar na revista</label>
     </fieldset>`;
   };
-  return `<form class="vv-settings vv-magazine-copy-settings vv-magazine-ads-settings" data-magazine-ads-settings><div><p class="vv-eyebrow">ANÚNCIOS DA REVISTA</p><h3>Dois espaços no topo da página HIGH</h3></div>${block(1)}${block(2)}<button class="vv-admin-add" type="submit">SALVAR ANÚNCIOS</button></form>`;
+  return `<form class="vv-settings vv-magazine-copy-settings vv-magazine-ads-settings" data-magazine-ads-settings><div><p class="vv-eyebrow">ANÚNCIOS DA REVISTA</p><h3>Quatro espaços no topo da página HIGH</h3></div>${[1, 2, 3, 4].map(block).join('')}<button class="vv-admin-add" type="submit">SALVAR ANÚNCIOS</button></form>`;
 }
 
 function bindMagazineAds(section) {
@@ -1835,7 +1836,7 @@ function bindMagazineAds(section) {
     submit.textContent = 'SALVANDO...';
     try {
       const values = {};
-      for (const n of [1, 2]) {
+      for (const n of [1, 2, 3, 4]) {
         const file = form.querySelector(`[data-ad-file="${n}"]`).files[0];
         if (file) form.elements[`ad${n}Image`].value = await uploadFile(file, (progress) => { submit.textContent = `ENVIANDO ${progress}%`; });
         ['Image', 'Title', 'Text', 'Link'].forEach((key) => { values[`ad${n}${key}`] = form.elements[`ad${n}${key}`].value.trim(); });
