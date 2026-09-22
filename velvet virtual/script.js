@@ -674,6 +674,7 @@ async function loadMagazine() {
       '[data-magazine-description]': copy.magazineDescription || 'Clique à direita para avançar, à esquerda para voltar, ou arraste os cards.',
     };
     Object.entries(magazineCopy).forEach(([selector, value]) => { const element = document.querySelector(selector); if (element) element.textContent = value; });
+    renderMagazineAds(copy);
     if (homeCover && pages[0]?.imageUrl) {
       homeCover.style.backgroundImage = `linear-gradient(0deg,rgba(0,0,0,.4),rgba(0,0,0,.03)),url("${pages[0].imageUrl}")`;
       homeCover.classList.add('has-cover');
@@ -1338,7 +1339,9 @@ async function renderAdmin(resource) {
     const items = await requestApi(`/api/admin/${resource}`);
     const magazineSettings = resource === 'magazine-pages' ? await requestApi('/api/admin/settings') : null;
     const magazineCopyPanel = magazineSettings ? `<form class="vv-settings vv-magazine-copy-settings" data-magazine-copy-settings><div><p class="vv-eyebrow">TEXTOS DA REVISTA</p><h3>Conteúdo lateral</h3></div><label>Selo da edição<input name="magazineEdition" value="${escapeHtml(magazineSettings.magazineEdition || 'VELVET / 01')}" required></label><label>Linha superior<input name="magazineLabel" value="${escapeHtml(magazineSettings.magazineLabel || 'EDIÇÃO DIGITAL · HIGH')}" required></label><label>Título principal<input name="magazineTitle" value="${escapeHtml(magazineSettings.magazineTitle || 'Uma revista para')}" required></label><label>Trecho em destaque<input name="magazineAccent" value="${escapeHtml(magazineSettings.magazineAccent || 'sentir agora.')}" required></label><label class="vv-magazine-copy-wide">Texto de apoio<textarea name="magazineDescription" required>${escapeHtml(magazineSettings.magazineDescription || 'Clique à direita para avançar, à esquerda para voltar, ou arraste os cards.')}</textarea></label><button class="vv-admin-add" type="submit">SALVAR TEXTOS</button></form>` : '';
+    const magazineAdsPanel = magazineSettings ? magazineAdsPanelHtml(magazineSettings) : '';
     const bindMagazineCopy = () => {
+      bindMagazineAds(section);
       const form = section.querySelector('[data-magazine-copy-settings]');
       if (!form) return;
       form.addEventListener('submit', async (event) => {
@@ -1353,9 +1356,9 @@ async function renderAdmin(resource) {
       });
     };
     const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'magazine-pages' ? 'Monte a edição com páginas verticais na ordem desejada.' : resource === 'vimos-voce' ? 'Fotos e momentos da comunidade Velvet.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p>${resource === 'users' ? '' : `<button class="vv-admin-add" data-live-create="${resource}">+ ${resource === 'vimos-voce' ? 'ADICIONAR FOTO' : resource === 'magazine-pages' ? 'NOVA PÁGINA' : 'CRIAR'}</button>`}</div>`;
-    if (!items.length) { section.innerHTML = magazineCopyPanel + toolbar + adminEmpty(resource === 'banners' ? '▧' : resource === 'vimos-voce' ? '◉' : resource === 'categories' ? '◇' : '♙', 'Nada por aqui ainda.', 'Crie o primeiro item usando o botão acima.'); bindMagazineCopy(); return; }
+    if (!items.length) { section.innerHTML = magazineCopyPanel + magazineAdsPanel + toolbar + adminEmpty(resource === 'banners' ? '▧' : resource === 'vimos-voce' ? '◉' : resource === 'categories' ? '◇' : '♙', 'Nada por aqui ainda.', 'Crie o primeiro item usando o botão acima.'); bindMagazineCopy(); return; }
     if (resource === 'banners') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'ATIVO' : 'INATIVO'}</span> · ORDEM ${item.position || 0}</p></div><button data-live-edit="banners" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
-    if (resource === 'magazine-pages') section.innerHTML = magazineCopyPanel + toolbar + `<div class="vv-banner-list">${items.sort((a, b) => Number(a.position) - Number(b.position)).map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover;background-position:center` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'PUBLICADA' : 'OCULTA'}</span> · PÁGINA ${item.position || 0}</p></div><button data-live-edit="magazine-pages" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
+    if (resource === 'magazine-pages') section.innerHTML = magazineCopyPanel + magazineAdsPanel + toolbar + `<div class="vv-banner-list">${items.sort((a, b) => Number(a.position) - Number(b.position)).map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover;background-position:center` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'PUBLICADA' : 'OCULTA'}</span> · PÁGINA ${item.position || 0}</p></div><button data-live-edit="magazine-pages" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'vimos-voce') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.description || 'Sem descrição')} · ORDEM ${item.position || 0}</p></div><button data-live-edit="vimos-voce" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'categories') section.innerHTML = toolbar + `<div class="vv-category-admin">${items.map((item) => `<div><b>${escapeHtml(item.name)}</b><span>${escapeHtml(item.description || item.slug)}</span><button data-live-edit="categories" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
     if (resource === 'users') section.innerHTML = toolbar + `<div class="vv-admin-table"><div class="vv-admin-row is-head"><span>USUÁRIO</span><span>E-MAIL</span><span>CARGOS</span><span></span></div>${items.map((item) => `<div class="vv-admin-row"><b>${escapeHtml(item.displayName)}</b><span>${escapeHtml(item.email)}</span><i>${escapeHtml(formatCargos(item.role))}</i><button data-live-edit="users" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
@@ -1763,3 +1766,89 @@ profileEditForm.addEventListener('submit', async (event) => {
   } catch (error) { profileEditMessage.textContent = error.message; }
   finally { submit.disabled = false; }
 });
+
+
+// Anúncios da revista: dois espaços fixos no topo da página HIGH,
+// editados no admin (aba da revista) e guardados nas configurações.
+function renderMagazineAds(settings = {}) {
+  const wrap = document.querySelector('[data-mag-ads]');
+  if (!wrap) return;
+  let shown = 0;
+  [1, 2].forEach((n) => {
+    const card = wrap.querySelector(`[data-mag-ad="${n}"]`);
+    if (!card) return;
+    const image = String(settings[`ad${n}Image`] || '');
+    const title = String(settings[`ad${n}Title`] || '');
+    const text = String(settings[`ad${n}Text`] || '');
+    const link = String(settings[`ad${n}Link`] || '');
+    const active = String(settings[`ad${n}Active`] ?? '1') !== '0' && Boolean(image || title);
+    card.hidden = !active;
+    if (!active) return;
+    shown += 1;
+    card.querySelector('.vv-mag-ad-img').style.backgroundImage = image ? `url("${image.replace(/"/g, '%22')}")` : '';
+    card.querySelector('.vv-mag-ad-img').hidden = !image;
+    card.querySelector('b').textContent = title;
+    card.querySelector('span').textContent = text;
+    if (link) card.href = link; else card.removeAttribute('href');
+  });
+  wrap.hidden = !shown;
+  wrap.classList.toggle('is-single', shown === 1);
+}
+
+function magazineAdsPanelHtml(settings = {}) {
+  const block = (n) => {
+    const image = String(settings[`ad${n}Image`] || '');
+    return `<fieldset class="vv-ad-edit"><legend>ANÚNCIO ${n}</legend>
+      <div class="vv-ad-edit-preview" data-ad-preview="${n}" style="${image ? `background-image:url('${escapeHtml(image)}')` : ''}"></div>
+      <input type="hidden" name="ad${n}Image" value="${escapeHtml(image)}">
+      <label>Imagem<input type="file" accept="image/*" data-ad-file="${n}"></label>
+      <button type="button" class="vv-ad-clear" data-ad-clear="${n}">REMOVER IMAGEM</button>
+      <label>Título<input name="ad${n}Title" maxlength="80" value="${escapeHtml(settings[`ad${n}Title`] || '')}"></label>
+      <label>Texto<input name="ad${n}Text" maxlength="140" value="${escapeHtml(settings[`ad${n}Text`] || '')}"></label>
+      <label>Link (opcional)<input name="ad${n}Link" type="url" placeholder="https://" value="${escapeHtml(settings[`ad${n}Link`] || '')}"></label>
+      <label class="vv-ad-toggle"><input type="checkbox" name="ad${n}Active" ${String(settings[`ad${n}Active`] ?? '1') !== '0' ? 'checked' : ''}> Mostrar na revista</label>
+    </fieldset>`;
+  };
+  return `<form class="vv-settings vv-magazine-copy-settings vv-magazine-ads-settings" data-magazine-ads-settings><div><p class="vv-eyebrow">ANÚNCIOS DA REVISTA</p><h3>Dois espaços no topo da página HIGH</h3></div>${block(1)}${block(2)}<button class="vv-admin-add" type="submit">SALVAR ANÚNCIOS</button></form>`;
+}
+
+function bindMagazineAds(section) {
+  const form = section.querySelector('[data-magazine-ads-settings]');
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = '1';
+  form.querySelectorAll('[data-ad-file]').forEach((input) => input.addEventListener('change', () => {
+    const file = input.files[0];
+    const preview = form.querySelector(`[data-ad-preview="${input.dataset.adFile}"]`);
+    if (file && preview) preview.style.backgroundImage = `url("${URL.createObjectURL(file)}")`;
+  }));
+  form.querySelectorAll('[data-ad-clear]').forEach((button) => button.addEventListener('click', () => {
+    const n = button.dataset.adClear;
+    form.elements[`ad${n}Image`].value = '';
+    form.querySelector(`[data-ad-file="${n}"]`).value = '';
+    form.querySelector(`[data-ad-preview="${n}"]`).style.backgroundImage = '';
+  }));
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submit = form.querySelector('button[type="submit"]');
+    const label = submit.textContent;
+    submit.disabled = true;
+    submit.textContent = 'SALVANDO...';
+    try {
+      const values = {};
+      for (const n of [1, 2]) {
+        const file = form.querySelector(`[data-ad-file="${n}"]`).files[0];
+        if (file) form.elements[`ad${n}Image`].value = await uploadFile(file, (progress) => { submit.textContent = `ENVIANDO ${progress}%`; });
+        ['Image', 'Title', 'Text', 'Link'].forEach((key) => { values[`ad${n}${key}`] = form.elements[`ad${n}${key}`].value.trim(); });
+        values[`ad${n}Active`] = form.elements[`ad${n}Active`].checked ? '1' : '0';
+      }
+      await requestApi('/api/admin/settings', { method: 'PUT', body: JSON.stringify(values) });
+      renderMagazineAds(values);
+      notify('Anúncios salvos.');
+    } catch (error) {
+      notify(error.message || 'Não foi possível salvar os anúncios.', 'error');
+    } finally {
+      submit.disabled = false;
+      submit.textContent = label;
+    }
+  });
+}
