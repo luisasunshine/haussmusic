@@ -1432,12 +1432,20 @@ function initializeGoogleLogin() {
   button.dataset.ready = 'true';
 }
 initializeGoogleLogin();
+// Login salvo no navegador que o servidor não reconhece mais (conta recriada,
+// chave do servidor trocada, sessão vencida): limpa e pede para entrar de novo.
+function dropInvalidSession() {
+  session.token = null; session.user = null;
+  localStorage.removeItem('vv_auth_token');
+  localStorage.removeItem('vv_auth_user');
+}
 async function restoreSession(attempt = 0) {
   if (!session.token) return;
   try {
     session.user = (await requestApi('/api/auth/me')).user;
     localStorage.setItem('vv_auth_user', JSON.stringify(session.user));
-  } catch {
+  } catch (error) {
+    if (error.status === 401) { dropInvalidSession(); return; }
     if (attempt < 4) window.setTimeout(() => restoreSession(attempt + 1), 1500 * (attempt + 1));
   }
 }
@@ -1456,7 +1464,9 @@ adminButtons.forEach((button) => button.addEventListener('click', () => {
         session.user = (await requestApi('/api/auth/me')).user;
         localStorage.setItem('vv_auth_user', JSON.stringify(session.user));
         updateProfileView();
-      } catch { /* Usa os dados já salvos; a API continua protegendo o painel. */ }
+      } catch (error) {
+        if (error.status === 401) { dropInvalidSession(); adminPanel.hidden = true; openAuth('Sua sessão expirou. Entre de novo para abrir o painel.'); return; }
+      }
     }
     const adminRole = String(session.user.role || '').split(',').map((value) => value.trim()).includes('admin');
     if (!session.user.isAdmin && !adminRole) { adminPanel.hidden = true; alert('Esta conta não tem acesso administrativo.'); return; }
