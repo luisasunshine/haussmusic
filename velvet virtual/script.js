@@ -1789,6 +1789,7 @@ function renderMagazineAds(settings = {}) {
     card.querySelector('.vv-mag-ad-img').hidden = !image;
     card.querySelector('b').textContent = title;
     card.querySelector('span').textContent = text;
+    card.querySelector('.vv-mag-ad-text').hidden = !title && !text;
     if (link) card.href = link; else card.removeAttribute('href');
   });
   wrap.hidden = !shown;
