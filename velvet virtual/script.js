@@ -668,7 +668,7 @@ async function loadMagazine() {
     const copy = data.settings || {};
     const magazineCopy = {
       '[data-magazine-edition]': copy.magazineEdition || 'VELVET / 01',
-      '[data-magazine-label]': copy.magazineLabel || 'EDIÇÃO DIGITAL · REVISTA VELVET',
+      '[data-magazine-label]': copy.magazineLabel || 'EDIÇÃO DIGITAL · HIGH',
       '[data-magazine-title]': copy.magazineTitle || 'Uma revista para',
       '[data-magazine-accent]': copy.magazineAccent || 'sentir agora.',
       '[data-magazine-description]': copy.magazineDescription || 'Clique à direita para avançar, à esquerda para voltar, ou arraste os cards.',
@@ -1337,7 +1337,7 @@ async function renderAdmin(resource) {
     }
     const items = await requestApi(`/api/admin/${resource}`);
     const magazineSettings = resource === 'magazine-pages' ? await requestApi('/api/admin/settings') : null;
-    const magazineCopyPanel = magazineSettings ? `<form class="vv-settings vv-magazine-copy-settings" data-magazine-copy-settings><div><p class="vv-eyebrow">TEXTOS DA REVISTA</p><h3>Conteúdo lateral</h3></div><label>Selo da edição<input name="magazineEdition" value="${escapeHtml(magazineSettings.magazineEdition || 'VELVET / 01')}" required></label><label>Linha superior<input name="magazineLabel" value="${escapeHtml(magazineSettings.magazineLabel || 'EDIÇÃO DIGITAL · REVISTA VELVET')}" required></label><label>Título principal<input name="magazineTitle" value="${escapeHtml(magazineSettings.magazineTitle || 'Uma revista para')}" required></label><label>Trecho em destaque<input name="magazineAccent" value="${escapeHtml(magazineSettings.magazineAccent || 'sentir agora.')}" required></label><label class="vv-magazine-copy-wide">Texto de apoio<textarea name="magazineDescription" required>${escapeHtml(magazineSettings.magazineDescription || 'Clique à direita para avançar, à esquerda para voltar, ou arraste os cards.')}</textarea></label><button class="vv-admin-add" type="submit">SALVAR TEXTOS</button></form>` : '';
+    const magazineCopyPanel = magazineSettings ? `<form class="vv-settings vv-magazine-copy-settings" data-magazine-copy-settings><div><p class="vv-eyebrow">TEXTOS DA REVISTA</p><h3>Conteúdo lateral</h3></div><label>Selo da edição<input name="magazineEdition" value="${escapeHtml(magazineSettings.magazineEdition || 'VELVET / 01')}" required></label><label>Linha superior<input name="magazineLabel" value="${escapeHtml(magazineSettings.magazineLabel || 'EDIÇÃO DIGITAL · HIGH')}" required></label><label>Título principal<input name="magazineTitle" value="${escapeHtml(magazineSettings.magazineTitle || 'Uma revista para')}" required></label><label>Trecho em destaque<input name="magazineAccent" value="${escapeHtml(magazineSettings.magazineAccent || 'sentir agora.')}" required></label><label class="vv-magazine-copy-wide">Texto de apoio<textarea name="magazineDescription" required>${escapeHtml(magazineSettings.magazineDescription || 'Clique à direita para avançar, à esquerda para voltar, ou arraste os cards.')}</textarea></label><button class="vv-admin-add" type="submit">SALVAR TEXTOS</button></form>` : '';
     const bindMagazineCopy = () => {
       const form = section.querySelector('[data-magazine-copy-settings]');
       if (!form) return;
