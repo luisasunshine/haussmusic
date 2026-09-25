@@ -399,6 +399,8 @@ app.delete('/api/admin/velvet-posts/:id', requireAdmin, (req, _res, next) => { d
 crud('velvet-stories', 'velvet_stories', ['title', 'cover_url', 'image_url', 'link_url', 'position', 'is_active']);
 crud('velvet-posts', 'velvet_posts', ['caption', 'images', 'is_active']);
 
+// Confere qual versão do servidor está no ar: abra /api/health no navegador.
+app.get('/api/health', (_req, res) => res.json({ ok: true, build: '2026-09-25-velvet-roles', features: ['velvet-stories', 'velvet-posts', 'section-roles', 'media-crop'] }));
 app.get('/api/public/velvet', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const stories = db.prepare('SELECT * FROM velvet_stories WHERE is_active = 1 ORDER BY position, created_at LIMIT ?').all(MAX_VELVET_STORIES).map(toCamel);
