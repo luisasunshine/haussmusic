@@ -371,7 +371,7 @@ function crud(resource, table, fields) {
 const MAX_VELVET_STORIES = 10;
 const MAX_VELVET_IMAGES = 15;
 app.post('/api/admin/velvet-stories', requireAdmin, (req, res, next) => {
-  if (db.prepare('SELECT COUNT(*) AS total FROM velvet_stories').get().total >= MAX_VELVET_STORIES) return res.status(400).json({ error: `O limite é de ${MAX_VELVET_STORIES} bolinhas. Apague uma para criar outra.` });
+  if (db.prepare('SELECT COUNT(*) AS total FROM velvet_stories').get().total >= MAX_VELVET_STORIES) return res.status(400).json({ error: `O limite é de ${MAX_VELVET_STORIES} anúncios. Apague um para criar outro.` });
   if (!String(req.body.title || '').trim() || !req.body.image_url) return res.status(400).json({ error: 'Informe o nome da bolinha e o anúncio.' });
   next();
 });

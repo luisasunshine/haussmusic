@@ -340,3 +340,5 @@ video.vv-inline-image{background:#000}
 .vv-gallery-cell button{width:26px;height:26px;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .vv-gallery-add{width:100%;padding:13px;border:1.5px dashed #3a3a3a;border-radius:10px;background:none;color:#c0c0c8;font:700 10px 'DM Mono',monospace;letter-spacing:.06em;cursor:pointer}
 .vv-gallery-add:disabled{opacity:.55;cursor:default}
+
+.vv-admin-add[hidden]{display:none}

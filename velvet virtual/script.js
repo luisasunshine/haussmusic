@@ -212,6 +212,10 @@ document.querySelectorAll('[data-admin-tab]').forEach((tab) => tab.addEventListe
   document.querySelectorAll('[data-admin-tab]').forEach((item) => item.classList.toggle('is-active', item === tab));
   document.querySelectorAll('[data-admin-section]').forEach((section) => section.classList.toggle('is-visible', section.dataset.adminSection === target));
   document.querySelector('[data-admin-title]').textContent = tab.textContent.replace(/^[^A-Za-zÀ-ÿ]+\s*/, '');
+  const naAbaVelvet = target === 'velvet';
+  document.querySelectorAll('[data-velvet-only]').forEach((button) => { button.hidden = !naAbaVelvet; });
+  const novaPostagem = document.querySelector('.vv-admin-header .vv-admin-add:not([data-live-create])');
+  if (novaPostagem) novaPostagem.hidden = naAbaVelvet;
 }));
 
 function viewsLabel(post) { return `${Number(post.views || 0).toLocaleString('pt-BR')} visualizações`; }
@@ -749,13 +753,16 @@ async function renderVelvetAdmin() {
     const badge = (on) => `<span class="vv-badge ${Number(on) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(on) ? 'ATIVO' : 'OCULTO'}</span>`;
     const storyRows = [...stories].sort((a, b) => Number(a.position) - Number(b.position)).map((item) => `<article>${thumb(item.coverUrl || item.imageUrl)}<div><b>${escapeHtml(item.title)}</b><p>${badge(item.isActive)} · ORDEM ${item.position || 0}</p></div><button data-live-edit="velvet-stories" data-id="${item.id}">EDITAR</button></article>`).join('');
     const postRows = posts.map((item) => { let images = []; try { images = JSON.parse(item.images || '[]'); } catch { /* vazio */ } return `<article>${thumb(images[0])}<div><b>${escapeHtml((item.caption || 'Sem legenda').slice(0, 70))}</b><p>${badge(item.isActive)} · ${images.length} ${images.length === 1 ? 'MÍDIA' : 'MÍDIAS'}</p></div><button data-live-edit="velvet-posts" data-id="${item.id}">EDITAR</button></article>`; }).join('');
-    root.innerHTML = `<div class="vv-admin-toolbar"><p>Bolinhas do topo da aba (até 10). Cada uma abre um anúncio em tela cheia.</p><button class="vv-admin-add" data-live-create="velvet-stories" ${stories.length >= 10 ? 'disabled' : ''}>+ NOVA BOLINHA (${stories.length}/10)</button></div>
-      <div class="vv-banner-list" data-admin-section="velvet-stories">${storyRows || adminEmpty('◎', 'Nenhuma bolinha ainda.', 'Crie a primeira com o botão acima.')}</div>
-      <div class="vv-admin-toolbar vv-velvet-admin-gap"><p>Posts do feed, com legenda e até 15 imagens, GIFs ou vídeos cada.</p><button class="vv-admin-add" data-live-create="velvet-posts">+ NOVO POST</button></div>
+    root.innerHTML = `<div class="vv-admin-toolbar"><p>Anúncios: cada um vira uma bolinha no topo da aba e abre em tela cheia (até 10).</p><button class="vv-admin-add" data-live-create="velvet-stories" ${stories.length >= 10 ? 'disabled' : ''}>+ ANÚNCIO (${stories.length}/10)</button></div>
+      <div class="vv-banner-list" data-admin-section="velvet-stories">${storyRows || adminEmpty('◎', 'Nenhum anúncio ainda.', 'Crie o primeiro com o botão acima.')}</div>
+      <div class="vv-admin-toolbar vv-velvet-admin-gap"><p>Posts do feed, com descrição e até 15 imagens, GIFs ou vídeos cada.</p><button class="vv-admin-add" data-live-create="velvet-posts">+ NOVO POST</button></div>
       <div class="vv-banner-list" data-admin-section="velvet-posts">${postRows || adminEmpty('▦', 'Nenhum post ainda.', 'Crie o primeiro com o botão acima.')}</div>`;
     root.querySelector('[data-admin-section="velvet-stories"]').dataset.items = JSON.stringify(stories);
     root.querySelector('[data-admin-section="velvet-posts"]').dataset.items = JSON.stringify(posts);
-  } catch (error) { root.innerHTML = adminEmpty('!', 'Não foi possível carregar.', error.message); }
+  } catch (error) {
+    const semRota = error.status === 404 || error.status === 405;
+    root.innerHTML = adminEmpty('!', 'Não foi possível carregar.', semRota ? 'O servidor ainda não tem a aba Velvet. Espere o deploy do Railway terminar e recarregue a página.' : error.message);
+  }
 }
 
 function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; velvetPage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; syncActiveNav('[data-magazine-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
@@ -1353,14 +1360,14 @@ function openEditor(resource, item = null) {
     banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem, GIF ou vídeo do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
     'magazine-pages': [['title', 'Título da página', 'text'], ['image_url', 'Arte da página', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Página publicada', 'checkbox']],
     'vimos-voce': [['title', 'Título', 'text'], ['description', 'Descrição', 'textarea'], ['image_url', 'Foto', 'url'], ['instagram_url', 'Link do Instagram', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Publicação ativa', 'checkbox']],
-    'velvet-stories': [['title', 'Nome da bolinha', 'text'], ['cover_url', 'Foto da bolinha (redonda)', 'url'], ['image_url', 'Anúncio (imagem, GIF ou vídeo)', 'url'], ['link_url', 'Link do anúncio (opcional)', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Bolinha ativa', 'checkbox']],
-    'velvet-posts': [['caption', 'Legenda', 'textarea'], ['images', 'Imagens, GIFs ou vídeos (até 15)', 'gallery'], ['is_active', 'Post publicado', 'checkbox']],
+    'velvet-stories': [['title', 'Nome do anúncio', 'text'], ['image_url', 'Imagem, GIF ou vídeo do anúncio', 'url'], ['cover_url', 'Foto da bolinha (opcional, senão usa o anúncio)', 'url'], ['link_url', 'Link do anúncio (opcional)', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Anúncio ativo', 'checkbox']],
+    'velvet-posts': [['caption', 'Descrição', 'textarea'], ['images', 'Imagens, GIFs ou vídeos (até 15)', 'gallery'], ['is_active', 'Post publicado', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
     users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargos (pode marcar mais de um)', 'checkboxes', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
   };
   const fields = item && resource === 'users' ? [schemas.users[3]] : schemas[resource]; if (!fields) return;
   session.editor = { resource, item };
-  document.querySelector('[data-editor-kicker]').textContent = resource.toUpperCase();
+  document.querySelector('[data-editor-kicker]').textContent = ({ 'velvet-stories': 'ANÚNCIO', 'velvet-posts': 'POST' })[resource] || resource.toUpperCase();
   document.querySelector('[data-editor-title]').textContent = item ? 'Editar' : 'Criar';
   const area = document.querySelector('[data-editor-fields]'); area.replaceChildren();
   fields.forEach(([name, label, type, choices]) => {
@@ -1635,7 +1642,7 @@ async function renderAdmin(resource) {
 document.querySelectorAll('[data-admin-tab]').forEach((tab) => tab.addEventListener('click', () => renderAdmin(tab.dataset.adminTab)));
 // Delegação em captura: mantém os atalhos de postagem ativos mesmo após a lista ser redesenhada.
 document.addEventListener('click', (event) => {
-  const newPost = event.target.closest('[data-post-new], .vv-admin-header .vv-admin-add, [data-admin-section="posts"] .vv-admin-toolbar .vv-admin-add');
+  const newPost = event.target.closest('[data-post-new], .vv-admin-header .vv-admin-add:not([data-live-create]), [data-admin-section="posts"] .vv-admin-toolbar .vv-admin-add');
   if (newPost) {
     event.preventDefault();
     event.stopImmediatePropagation();
