@@ -506,6 +506,9 @@ async function loadVimosVoce() {
 function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; syncActiveNav('[data-vimos-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
 function closeVimos() { vimosPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-vimos-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openVimos(); }));
+document.querySelectorAll('[data-ticker-podcast]').forEach((button) => button.addEventListener('click', () => { document.querySelector('#podcast')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+// VELVET: aba nova, conteúdo ainda a definir.
+document.querySelectorAll('[data-velvet-open]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); event.stopImmediatePropagation(); }));
 function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; syncActiveNav('[data-magazine-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
 document.querySelectorAll('[data-magazine-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openMagazine(); }));
 document.querySelectorAll('[data-vimos-close]').forEach((button) => button.addEventListener('click', closeVimos));
