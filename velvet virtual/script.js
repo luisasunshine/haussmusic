@@ -2,7 +2,7 @@
 document.querySelector('.vv-newsletter')?.remove();
 document.querySelectorAll('a[href="#newsletter"]').forEach((link) => link.remove());
 
-const CARGO_LABELS = { admin: 'Admin', staff: 'Staff', leitor: 'Leitor', podcast: 'Podcast', modelo: 'Modelo', influencer: 'Influencer', creators: 'Creators' };
+const CARGO_LABELS = { admin: 'Admin', staff: 'Staff', leitor: 'Leitor', podcast: 'Podcast', modelo: 'Modelo', influencer: 'Influencer', creators: 'Creators', high: 'HIGH', haven: 'HAVEN', qg_tarot: 'QG TAROT' };
 const formatCargos = (role) => String(role || '').split(',').map((value) => value.trim()).filter(Boolean).map((value) => CARGO_LABELS[value] || value).join(' · ') || 'Leitor';
 
 const searchButtons = document.querySelectorAll('[data-search-toggle]');
@@ -207,6 +207,9 @@ adminButtons.forEach((button) => button.addEventListener('click', () => {
   if (opening) profilePanel.hidden = true;
 }));
 
+// Abas que a conta pode ver no painel (null = todas, para admin).
+let adminAllowedTabs = null;
+const ADMIN_ROLE_TABS = [['qg_tarot', 'posts'], ['high', 'magazine-pages'], ['haven', 'vimos-voce']];
 document.querySelectorAll('[data-admin-tab]').forEach((tab) => tab.addEventListener('click', () => {
   const target = tab.dataset.adminTab;
   document.querySelectorAll('[data-admin-tab]').forEach((item) => item.classList.toggle('is-active', item === tab));
@@ -215,7 +218,7 @@ document.querySelectorAll('[data-admin-tab]').forEach((tab) => tab.addEventListe
   const naAbaVelvet = target === 'velvet';
   document.querySelectorAll('[data-velvet-only]').forEach((button) => { button.hidden = !naAbaVelvet; });
   const novaPostagem = document.querySelector('.vv-admin-header .vv-admin-add:not([data-live-create])');
-  if (novaPostagem) novaPostagem.hidden = naAbaVelvet;
+  if (novaPostagem) novaPostagem.hidden = naAbaVelvet || Boolean(adminAllowedTabs && !adminAllowedTabs.includes('posts'));
 }));
 
 function viewsLabel(post) { return `${Number(post.views || 0).toLocaleString('pt-BR')} visualizações`; }
@@ -1363,7 +1366,7 @@ function openEditor(resource, item = null) {
     'velvet-stories': [['title', 'Nome do anúncio', 'text'], ['image_url', 'Imagem, GIF ou vídeo do anúncio', 'url'], ['cover_url', 'Foto da bolinha (opcional, senão usa o anúncio)', 'url'], ['link_url', 'Link do anúncio (opcional)', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Anúncio ativo', 'checkbox']],
     'velvet-posts': [['caption', 'Descrição', 'textarea'], ['images', 'Imagens, GIFs ou vídeos (até 15)', 'gallery'], ['is_active', 'Post publicado', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
-    users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargos (pode marcar mais de um)', 'checkboxes', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
+    users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargos (pode marcar mais de um)', 'checkboxes', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators', 'high', 'haven', 'qg_tarot']]],
   };
   const fields = item && resource === 'users' ? [schemas.users[3]] : schemas[resource]; if (!fields) return;
   session.editor = { resource, item };
@@ -1740,9 +1743,14 @@ adminButtons.forEach((button) => button.addEventListener('click', () => {
         if (error.status === 401) { dropInvalidSession(); adminPanel.hidden = true; openAuth('Sua sessão expirou. Entre de novo para abrir o painel.'); return; }
       }
     }
-    const adminRole = String(session.user.role || '').split(',').map((value) => value.trim()).includes('admin');
-    if (!session.user.isAdmin && !adminRole) { adminPanel.hidden = true; alert('Esta conta não tem acesso administrativo.'); return; }
-    renderAdmin('overview');
+    const roles = String(session.user.role || '').split(',').map((value) => value.trim());
+    const acessoTotal = Boolean(session.user.isAdmin) || roles.includes('admin');
+    const abasDoCargo = ADMIN_ROLE_TABS.filter(([role]) => roles.includes(role)).map(([, tab]) => tab);
+    if (!acessoTotal && !abasDoCargo.length) { adminPanel.hidden = true; alert('Esta conta não tem acesso administrativo.'); return; }
+    adminAllowedTabs = acessoTotal ? null : abasDoCargo;
+    document.querySelectorAll('[data-admin-tab]').forEach((tab) => { tab.hidden = Boolean(adminAllowedTabs && !adminAllowedTabs.includes(tab.dataset.adminTab)); });
+    if (adminAllowedTabs) document.querySelector(`[data-admin-tab="${adminAllowedTabs[0]}"]`)?.click();
+    else renderAdmin('overview');
   }, 0);
 }));
 
@@ -1757,7 +1765,7 @@ const profileManageRoles = document.querySelector('.vv-roles-heading button');
 const profileRoleList = document.querySelector('.vv-role-list');
 
 function getRoleName(role) {
-  return ({ admin: 'Admin', staff: 'Staff', leitor: 'Leitor', podcast: 'Podcast', modelo: 'Modelo', influencer: 'Influencer', creators: 'Creators' })[role] || 'Leitor';
+  return ({ admin: 'Admin', staff: 'Staff', leitor: 'Leitor', podcast: 'Podcast', modelo: 'Modelo', influencer: 'Influencer', creators: 'Creators', high: 'HIGH', haven: 'HAVEN', qg_tarot: 'QG TAROT' })[role] || 'Leitor';
 }
 
 function updateProfileView() {
@@ -1781,8 +1789,9 @@ function updateProfileView() {
     const el = document.querySelector('[data-profile-read-count] b');
     if (el) el.textContent = data.count;
   }).catch(() => {});
-  profileAdminTab.hidden = !isAdmin;
-  profileAdminNote.hidden = !isAdmin;
+  const temAbaDoPainel = ['high', 'haven', 'qg_tarot'].some((role) => cargos.has(role));
+  profileAdminTab.hidden = !(isAdmin || temAbaDoPainel);
+  profileAdminNote.hidden = !(isAdmin || temAbaDoPainel);
   if (profileManageRoles) profileManageRoles.hidden = !isAdmin;
 
   profileRoleList.replaceChildren();
@@ -1792,7 +1801,7 @@ function updateProfileView() {
     const roleTitle = document.createElement('b');
     roleTitle.textContent = getRoleName(role).toUpperCase();
     const roleDescription = document.createElement('span');
-    roleDescription.textContent = role === 'admin' ? 'Acesso a toda a revista' : 'Sua conta na comunidade Velvet';
+    roleDescription.textContent = role === 'admin' ? 'Acesso a toda a revista' : ['high', 'haven', 'qg_tarot'].includes(role) ? `Acesso só à aba ${getRoleName(role)} do painel` : 'Sua conta na comunidade Velvet';
     roleCard.append(roleTitle, roleDescription);
     profileRoleList.append(roleCard);
   });

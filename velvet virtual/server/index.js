@@ -35,6 +35,12 @@ const readJson = (value) => { try { return JSON.parse(value); } catch { return v
 const normalizeCategoryIds = (value) => [...new Set((Array.isArray(value) ? value : String(value || '').split(',')).map((item) => String(item).trim()).filter(Boolean))];
 const PORTFOLIO_ROLES = ['modelo', 'influencer', 'creators'];
 const hasUserRole = (user, role) => String(user?.role || '').split(',').map((value) => value.trim()).includes(role);
+// Cargos de aba: quem tem HIGH, HAVEN ou QG TAROT só mexe na própria aba do painel.
+const SECTION_ROLE = { posts: 'qg_tarot', 'magazine-pages': 'high', 'vimos-voce': 'haven' };
+const denySection = (res) => res.status(403).json({ error: 'Seu cargo não dá acesso a esta aba.' });
+const requireSection = (section) => (req, res, next) => (isAdmin(req.user) || hasUserRole(req.user, SECTION_ROLE[section]) ? next() : denySection(res));
+const hasAnySection = (user) => Object.values(SECTION_ROLE).some((role) => hasUserRole(user, role));
+const requireAnySection = (req, res, next) => (isAdmin(req.user) || hasAnySection(req.user) ? next() : denySection(res));
 function attachPostCategories(rows) {
   if (!rows.length) return [];
   const grouped = new Map();
@@ -310,11 +316,14 @@ app.delete('/api/portfolio/posts/:id', requireAuth, (req, res) => {
 });
 
 function crud(resource, table, fields) {
-  app.get(`/api/admin/${resource}`, requireAdmin, (_req, res) => {
+  // Abas com cargo próprio (QG TAROT = posts, HIGH, HAVEN) aceitam quem tem o cargo; categorias podem ser lidas por QG TAROT; o resto é só admin.
+  const writeGuard = SECTION_ROLE[resource] ? requireSection(resource) : requireAdmin;
+  const readGuard = resource === 'categories' ? requireSection('posts') : writeGuard;
+  app.get(`/api/admin/${resource}`, readGuard, (_req, res) => {
     const rows = db.prepare(`SELECT * FROM ${table} ORDER BY ${table === 'categories' ? 'name COLLATE NOCASE' : 'updated_at DESC'}`).all();
     res.json(table === 'posts' ? attachPostCategories(rows) : rows.map(toCamel));
   });
-  app.post(`/api/admin/${resource}`, requireAdmin, (req, res) => {
+  app.post(`/api/admin/${resource}`, writeGuard, (req, res) => {
     const id = uuid(); const date = now(); const data = { ...req.body };
     if (table === 'categories') data.slug = slugify(data.slug || data.name);
     const categoryIds = table === 'posts' ? normalizeCategoryIds(data.category_ids ?? data.category_id) : [];
@@ -342,7 +351,7 @@ function crud(resource, table, fields) {
     const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id);
     res.status(201).json(table === 'posts' ? attachPostCategories([item])[0] : toCamel(item));
   });
-  app.patch(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => {
+  app.patch(`/api/admin/${resource}/:id`, writeGuard, (req, res) => {
     const allowed = fields.filter((field) => Object.hasOwn(req.body, field));
     if (!allowed.length) return res.status(400).json({ error: 'Nenhum campo válido para atualizar.' });
     const data = { ...req.body }; if (table === 'categories' && data.slug) data.slug = slugify(data.slug); if (table === 'posts' && data.slug) data.slug = slugify(data.slug);
@@ -357,7 +366,7 @@ function crud(resource, table, fields) {
     const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id);
     res.json(table === 'posts' ? attachPostCategories([item])[0] : toCamel(item));
   });
-  app.delete(`/api/admin/${resource}/:id`, requireAdmin, (req, res) => {
+  app.delete(`/api/admin/${resource}/:id`, writeGuard, (req, res) => {
     if (table === 'posts') {
       deletePost(req.params.id);
       return res.status(204).end();
@@ -416,7 +425,7 @@ crud('vimos-voce', 'vimos_voce', ['title', 'description', 'image_url', 'instagra
 crud('magazine-pages', 'magazine_pages', ['title', 'image_url', 'position', 'is_active']);
 
 app.get('/api/admin/users', requireAdmin, (_req, res) => res.json(db.prepare('SELECT id,email,display_name,avatar_url,role,created_at,updated_at FROM users ORDER BY created_at DESC').all().map(toCamel)));
-const ALLOWED_ROLES = ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators'];
+const ALLOWED_ROLES = ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators', 'high', 'haven', 'qg_tarot'];
 // A pessoa pode acumular vários cargos (ex.: staff + podcast), então role
 // é guardado como uma lista separada por vírgula em vez de um valor único.
 function parseRoles(value, fallback = 'leitor') {
@@ -448,8 +457,10 @@ app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
   res.status(204).end();
 });
 
-app.get('/api/admin/settings', requireAdmin, (_req, res) => res.json(Object.fromEntries(db.prepare('SELECT key,value FROM settings').all().map((item) => [item.key, readJson(item.value)]))));
-app.put('/api/admin/settings', requireAdmin, (req, res) => { const date = now(); const save = db.prepare('INSERT INTO settings (key,value,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at'); Object.entries(req.body).forEach(([key, value]) => save.run(key, JSON.stringify(value), date)); res.json({ ok: true }); });
+const MAGAZINE_SETTING = /^(magazine|ad\d)/;
+const requireSettings = (req, res, next) => (isAdmin(req.user) || hasUserRole(req.user, 'high') ? next() : denySection(res));
+app.get('/api/admin/settings', requireSettings, (req, res) => res.json(Object.fromEntries(db.prepare('SELECT key,value FROM settings').all().filter((item) => isAdmin(req.user) || MAGAZINE_SETTING.test(item.key)).map((item) => [item.key, readJson(item.value)]))));
+app.put('/api/admin/settings', requireSettings, (req, res) => { const date = now(); const save = db.prepare('INSERT INTO settings (key,value,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at'); Object.entries(req.body).filter(([key]) => isAdmin(req.user) || MAGAZINE_SETTING.test(key)).forEach(([key, value]) => save.run(key, JSON.stringify(value), date)); res.json({ ok: true }); });
 
 const storage = multer.diskStorage({ destination: uploadsDir, filename: (_req, file, done) => done(null, `${Date.now()}-${uuid()}${path.extname(file.originalname).toLowerCase()}`) });
 // Imagem parada até 12 MB; GIF e vídeo até 40 MB (o vídeo é limitado a 30 s no processamento).
@@ -461,7 +472,7 @@ const limitStillImages = (req, res, next) => {
   }
   next();
 };
-app.post('/api/admin/uploads', requireAdmin, upload.single('file'), limitStillImages, processMedia, (req, res) => { if (!req.file) return res.status(400).json({ error: 'Envie uma imagem, GIF ou vídeo.' }); const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`; res.status(201).json({ url: `${base}/uploads/${req.file.filename}`, notCropped: Boolean(req.mediaNotCropped) }); });
+app.post('/api/admin/uploads', requireAnySection, upload.single('file'), limitStillImages, processMedia, (req, res) => { if (!req.file) return res.status(400).json({ error: 'Envie uma imagem, GIF ou vídeo.' }); const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`; res.status(201).json({ url: `${base}/uploads/${req.file.filename}`, notCropped: Boolean(req.mediaNotCropped) }); });
 
 app.use((error, _req, res, _next) => res.status(error.status || 500).json({ error: error.message || 'Erro interno.' }));
 app.listen(port, () => console.log(`VELVET API on :${port}`));
