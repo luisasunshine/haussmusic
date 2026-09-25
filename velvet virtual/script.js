@@ -1153,7 +1153,7 @@ const editorForm = document.querySelector('[data-editor-form]');
 async function requestApi(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...(session.token ? { Authorization: `Bearer ${session.token}` } : {}), ...(options.headers || {}) } });
   const payload = response.status === 204 ? null : await response.json().catch(() => ({}));
-  if (!response.ok) { const error = new Error(payload.error || 'Não foi possível concluir a ação.'); error.status = response.status; throw error; }
+  if (!response.ok) { const error = new Error(payload.error || (response.status === 404 || response.status === 405 ? 'O servidor não reconheceu esta ação (erro 404). Se você acabou de atualizar o site, o servidor no Railway ainda não publicou a versão nova.' : `Não foi possível concluir a ação (erro ${response.status}).`)); error.status = response.status; throw error; }
   return payload;
 }
 
@@ -1686,6 +1686,9 @@ editorForm.addEventListener('submit', async (event) => {
     payload[cargoGroup.dataset.cargoGroup] = checked.join(',');
   }
   if (resource === 'users' && item && !payload.password) delete payload.password;
+  if (resource === 'velvet-stories' && !payload.image_url) { notify('Falta a imagem, GIF ou vídeo do anúncio (o primeiro campo de mídia).', 'error'); return; }
+  if (resource === 'velvet-stories' && !String(payload.title || '').trim()) { notify('Dê um nome ao anúncio.', 'error'); return; }
+  if (resource === 'velvet-posts') { let lista = []; try { lista = JSON.parse(payload.images || '[]'); } catch { lista = []; } if (!lista.length) { notify('Adicione pelo menos uma imagem, GIF ou vídeo ao post.', 'error'); return; } }
   try { await requestApi(`/api/admin/${resource}${item ? `/${item.id}` : ''}`, { method: item ? 'PATCH' : 'POST', body: JSON.stringify(payload) }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); }
 });
 document.querySelector('[data-editor-delete]').addEventListener('click', async () => { const { resource, item } = session.editor; if (!item || !await confirmAction('Este item será removido permanentemente.', { title: 'Apagar item?' })) return; try { await requestApi(`/api/admin/${resource}/${item.id}`, { method: 'DELETE' }); closeEditor(); renderAdmin(resource); } catch (error) { alert(error.message); } });
