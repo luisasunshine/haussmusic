@@ -226,9 +226,7 @@ function articleCard(post, large = false) {
   const image = document.createElement('div');
   image.className = `vv-news-card-image${post.coverUrl ? '' : ' no-cover'}`;
   if (post.coverUrl) {
-    const img = document.createElement('img');
-    img.src = post.coverUrl; img.alt = ''; img.loading = 'lazy';
-    image.append(img);
+    image.innerHTML = mediaHtml(post.coverUrl, '', 'loading="lazy"');
   }
   const category = document.createElement('p'); category.className = 'vv-label'; category.textContent = post.categoryName || 'VELVET';
   image.append(category);
@@ -248,11 +246,11 @@ function homeStory(post, kind = 'recent') {
   story.tabIndex = 0; story.setAttribute('role', 'button'); story.setAttribute('aria-label', `Ler matéria: ${post.title}`);
   if (kind === 'top') {
     story.style.backgroundImage = post.coverUrl ? `url('${post.coverUrl}')` : 'linear-gradient(135deg,#25232c,#0b0b0f)';
-    story.innerHTML = `<div class="vv-story-overlay"></div><div class="vv-story-content"><p class="vv-label vv-label-cyan">MAIS VISTA</p><h3>${escapeHtml(post.title)}</h3><p class="vv-story-byline"><span data-post-views>${viewsLabel(post)}</span> · ${escapeHtml(post.categoryName || 'VELVET')}</p></div>`;
+    story.innerHTML = `${bgInner(post.coverUrl)}<div class="vv-story-overlay"></div><div class="vv-story-content"><p class="vv-label vv-label-cyan">MAIS VISTA</p><h3>${escapeHtml(post.title)}</h3><p class="vv-story-byline"><span data-post-views>${viewsLabel(post)}</span> · ${escapeHtml(post.categoryName || 'VELVET')}</p></div>`;
   } else if (kind === 'liked') {
-    story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div><div class="vv-story-text"><p class="vv-label">MAIS CURTIDA</p><h3>${escapeHtml(post.title)}</h3><p>${Number(post.likes || 0).toLocaleString('pt-BR')} curtidas · ${escapeHtml(post.categoryName || 'Velvet')}</p></div>`;
+    story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}">${bgInner(post.coverUrl)}</div><div class="vv-story-text"><p class="vv-label">MAIS CURTIDA</p><h3>${escapeHtml(post.title)}</h3><p>${Number(post.likes || 0).toLocaleString('pt-BR')} curtidas · ${escapeHtml(post.categoryName || 'Velvet')}</p></div>`;
   } else {
-    story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div><div class="vv-story-text"><p class="vv-label">RECENTE</p><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.excerpt || `${post.categoryName || 'Velvet'} · nova matéria`)}</p></div>`;
+    story.innerHTML = `<div class="vv-story-image" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}">${bgInner(post.coverUrl)}</div><div class="vv-story-text"><p class="vv-label">RECENTE</p><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.excerpt || `${post.categoryName || 'Velvet'} · nova matéria`)}</p></div>`;
   }
   story.addEventListener('click', () => openPost(post));
   story.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPost(post); } });
@@ -281,7 +279,7 @@ async function loadHomeFeatured() {
 
 function vimosCard(item) {
   const article = document.createElement('article'); article.className = 'vv-vimos-card';
-  article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">TE VI POR AÍ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || 'Um momento escolhido pela Velvet.')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`;
+  article.innerHTML = `${item.imageUrl ? mediaHtml(item.imageUrl) : ''}<div><p class="vv-label">TE VI POR AÍ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || 'Um momento escolhido pela Velvet.')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`;
   return article;
 }
 
@@ -331,9 +329,23 @@ setInterval(syncVisibleViewCounts, 15000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) syncVisibleViewCounts(); });
 
 const readPage = document.querySelector('[data-read-page]');
+// Imagem, GIF e vídeo curto: vídeo vira <video> mudo em loop, o resto <img>.
+function mediaHtml(url, alt = '', extra = '') {
+  return isVideoUrl(url)
+    ? `<video src="${escapeHtml(url)}" autoplay muted loop playsinline preload="metadata" aria-label="${escapeHtml(alt)}"></video>`
+    : `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" ${extra}>`;
+}
+// Para blocos que usam background-image: quando a mídia é vídeo, entra um
+// <video> por cima (o background com URL de vídeo simplesmente não aparece).
+function bgInner(url) {
+  return isVideoUrl(url) ? `<video class="vv-bg-video" src="${escapeHtml(url)}" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>` : '';
+}
+
 function contentToHtml(content) {
   const renderInline = (text) => escapeHtml(text)
-    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="vv-inline-image" src="$2" alt="$1" loading="lazy">')
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, (_m, alt, url) => (isVideoUrl(url.replace(/&amp;/g, '&'))
+      ? `<video class="vv-inline-image" src="${url}" controls playsinline preload="metadata" aria-label="${alt}"></video>`
+      : `<img class="vv-inline-image" src="${url}" alt="${alt}" loading="lazy">`))
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1 ↗</a>');
   return String(content || '').split(/\n{2,}/).filter(Boolean).map((block) => `<p>${renderInline(block.trim()).replace(/\n/g, '<br>')}</p>`).join('');
 }
@@ -434,7 +446,7 @@ function openPost(post) {
   document.querySelector('[data-read-meta]').textContent = metaLine(post);
   const cover = document.querySelector('[data-read-cover]');
   cover.hidden = !post.coverUrl;
-  cover.innerHTML = post.coverUrl ? `<img src="${escapeHtml(post.coverUrl)}" alt="">` : '';
+  cover.innerHTML = post.coverUrl ? mediaHtml(post.coverUrl) : '';
   document.querySelector('[data-read-body]').innerHTML = contentToHtml(post.content) || '<p>Conteúdo em preparação.</p>';
   resetEngagementUI();
   readPage.hidden = false;
@@ -499,7 +511,7 @@ async function loadVimosVoce() {
   try {
     const response = await fetch(`${API_URL}/api/public/home`); if (!response.ok) throw new Error();
     const items = (await response.json()).vimosVoce || [];
-    items.forEach((item) => { const article = document.createElement('article'); article.className = 'vv-vimos-card'; article.innerHTML = `${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="">` : ''}<div><p class="vv-label">TE VI POR AÍ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || '')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`; vimosGrid.append(article); });
+    items.forEach((item) => { const article = document.createElement('article'); article.className = 'vv-vimos-card'; article.innerHTML = `${item.imageUrl ? mediaHtml(item.imageUrl) : ''}<div><p class="vv-label">TE VI POR AÍ</p><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.description || '')}</p>${item.instagramUrl ? `<a href="${escapeHtml(item.instagramUrl)}" target="_blank" rel="noreferrer">VER NO INSTAGRAM ↗</a>` : ''}</div>`; vimosGrid.append(article); });
     vimosEmpty.hidden = items.length > 0;
   } catch { vimosEmpty.hidden = false; }
 }
@@ -678,7 +690,7 @@ async function loadMagazine() {
     };
     Object.entries(magazineCopy).forEach(([selector, value]) => { const element = document.querySelector(selector); if (element) element.textContent = value; });
     renderMagazineAds(copy);
-    if (homeCover && pages[0]?.imageUrl) {
+    if (homeCover && pages[0]?.imageUrl && !isVideoUrl(pages[0].imageUrl)) {
       homeCover.style.backgroundImage = `linear-gradient(0deg,rgba(0,0,0,.4),rgba(0,0,0,.03)),url("${pages[0].imageUrl}")`;
       homeCover.classList.add('has-cover');
     }
@@ -687,7 +699,7 @@ async function loadMagazine() {
     const pageElements = pages.map((page, index) => {
       const card = document.createElement('article');
       card.className = 'vv-magazine-page';
-      card.innerHTML = `<div class="vv-magazine-face vv-magazine-front"><img src="${escapeHtml(page.imageUrl)}" alt="${escapeHtml(page.title || `Página ${index + 1}`)}" draggable="false"></div>`;
+      card.innerHTML = `<div class="vv-magazine-face vv-magazine-front">${mediaHtml(page.imageUrl, page.title || `Página ${index + 1}`, 'draggable="false"')}</div>`;
       book.append(card); return card;
     });
     let current = 0;
@@ -924,10 +936,11 @@ portfolioForm?.addEventListener('submit', async (event) => {
   if (!file) return;
   submit.disabled = true; message.textContent = 'Preparando mídia...';
   try {
-    if (!/^(image|video)\//.test(file.type)) throw new Error('Escolha uma imagem, GIF ou vídeo válido.');
-    if (file.type.startsWith('video/') && await getVideoDuration(file) > 30.05) throw new Error('O vídeo deve ter no máximo 30 segundos.');
+    const preparado = await prepareUpload(file);
+    if (!preparado) { message.textContent = ''; return; }
     message.textContent = 'Enviando mídia...';
-    const imageData = new FormData(); imageData.append('image', file);
+    const imageData = new FormData(); imageData.append('image', preparado.file);
+    if (preparado.crop) imageData.append('crop', JSON.stringify(preparado.crop));
     const uploadResponse = await fetch(`${API_URL}/api/portfolio/uploads`, { method: 'POST', headers: { Authorization: `Bearer ${session.token}` }, body: imageData });
     const upload = await uploadResponse.json().catch(() => ({}));
     if (!uploadResponse.ok) throw new Error(upload.error || 'Não foi possível enviar a imagem.');
@@ -966,7 +979,7 @@ socialForm?.addEventListener('submit', async (event) => {
 function openAuth(message = '') { authPanel.hidden = false; document.body.classList.add('is-locked'); document.querySelector('[data-auth-message]').textContent = message; }
 function closeAuth() { authPanel.hidden = true; document.body.classList.remove('is-locked'); }
 
-function uploadFile(fileObj, onProgress) {
+function uploadFile(fileObj, onProgress, crop = null) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_URL}/api/admin/uploads`);
@@ -975,11 +988,12 @@ function uploadFile(fileObj, onProgress) {
     xhr.onload = () => {
       try {
         const result = JSON.parse(xhr.responseText);
-        if (xhr.status >= 200 && xhr.status < 300) resolve(result.url); else reject(new Error(result.error || 'Falha ao enviar imagem.'));
+        if (xhr.status >= 200 && xhr.status < 300) { if (result.notCropped) notify('O servidor ainda não faz recorte de GIF/vídeo: a mídia foi enviada inteira.', 'error'); resolve(result.url); } else reject(new Error(result.error || 'Falha ao enviar imagem.'));
       } catch { reject(new Error('Falha ao enviar imagem.')); }
     };
     xhr.onerror = () => reject(new Error('Falha de conexão ao enviar imagem.'));
     const data = new FormData(); data.append('file', fileObj);
+    if (crop) data.append('crop', JSON.stringify(crop));
     xhr.send(data);
   });
 }
@@ -1000,8 +1014,24 @@ function isVideoUrl(url) {
   return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
 }
 
+// Passo comum a TODO envio de mídia: valida tipo/tamanho/duração e abre o
+// recorte. Imagem parada é recortada aqui (canvas → JPEG); GIF e vídeo seguem
+// originais com a área escolhida em `crop` (fração do quadro), e o servidor
+// faz o corte. Devolve { file, crop } ou null se a pessoa cancelar.
+async function prepareUpload(fileObj, cropOptions = { aspect: 16 / 9, aspectOptions: DROPZONE_ASPECT_OPTIONS }, { permitirVideo = true } = {}) {
+  const ehVideo = fileObj.type.startsWith('video/');
+  if (!/^(image|video)\//.test(fileObj.type) || (ehVideo && !permitirVideo)) throw new Error(permitirVideo ? 'Envie uma imagem, GIF ou vídeo.' : 'Envie uma imagem ou GIF.');
+  const limite = ehVideo ? 40 : 12;
+  if (fileObj.size > limite * 1024 * 1024) throw new Error(`Arquivo muito grande (máximo ${limite}MB).`);
+  if (ehVideo && await getVideoDuration(fileObj) > 30.05) throw new Error('O vídeo deve ter no máximo 30 segundos.');
+  const result = await requestCrop(fileObj, cropOptions);
+  if (!result) return null;
+  if (isMidiaAnimada(fileObj)) return { file: fileObj, crop: result.rect };
+  return { file: new File([result], 'imagem.jpg', { type: 'image/jpeg' }), crop: null };
+}
+
 function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, aspectOptions: DROPZONE_ASPECT_OPTIONS }, opcoes = {}) {
-  const aceitaMidia = !!opcoes.aceitaMidia;
+  const aceitaMidia = opcoes.aceitaMidia !== false;
   const palavra = aceitaMidia ? 'MÍDIA' : 'IMAGEM';
 
   const dropzone = document.createElement('div');
@@ -1018,9 +1048,9 @@ function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, 
   // Vídeo não aparece em background-image; precisa de um <video> de verdade
   // na prévia. A camada só é criada quando há vídeo para mostrar.
   let previewVideo = null;
-  function mostrarPrevia(url) {
+  function mostrarPrevia(url, forcarVideo = false) {
     if (previewVideo) { previewVideo.remove(); previewVideo = null; }
-    if (isVideoUrl(url)) {
+    if (forcarVideo || isVideoUrl(url)) {
       dropzone.style.backgroundImage = '';
       previewVideo = document.createElement('video');
       previewVideo.className = 'vv-dropzone-video';
@@ -1037,35 +1067,18 @@ function createDropzone(initialValue, onChange, cropOptions = { aspect: 16 / 9, 
   let currentValue = initialValue || '';
 
   async function handleFile(fileObj) {
-    const ehVideo = fileObj.type.startsWith('video/');
-    if (aceitaMidia) {
-      if (!/^(image|video)\//.test(fileObj.type)) { notify('Envie uma imagem, GIF ou vídeo.', 'error'); return; }
-    } else if (!fileObj.type.startsWith('image/')) {
-      notify('Envie um arquivo de imagem.', 'error'); return;
-    }
-
-    const limite = ehVideo ? 40 : 12;
-    if (fileObj.size > limite * 1024 * 1024) {
-      notify(`Arquivo muito grande (máximo ${limite}MB).`, 'error'); return;
-    }
-    if (ehVideo && await getVideoDuration(fileObj) > 30.05) {
-      notify('O vídeo deve ter no máximo 30 segundos.', 'error'); return;
-    }
-
-    // GIF e vídeo pulam o recorte: passar um GIF pelo canvas o devolve como
-    // JPEG estático, e vídeo não passa por canvas nenhum.
-    let arquivoFinal = fileObj;
-    if (!isMidiaAnimada(fileObj)) {
-      const blob = await requestCrop(fileObj, cropOptions);
-      if (!blob) return;
-      arquivoFinal = new File([blob], 'imagem.jpg', { type: 'image/jpeg' });
-    }
+    let preparado;
+    try { preparado = await prepareUpload(fileObj, cropOptions); }
+    catch (error) { notify(error.message, 'error'); return; }
+    if (!preparado) return;
+    const arquivoFinal = preparado.file;
+    const ehVideo = arquivoFinal.type.startsWith('video/');
 
     const localUrl = URL.createObjectURL(arquivoFinal);
-    mostrarPrevia(ehVideo ? localUrl : localUrl);
+    mostrarPrevia(localUrl, ehVideo);
     dropzone.classList.add('has-image'); remove.hidden = false;
     try {
-      const url = await uploadFile(arquivoFinal, (pct) => { label.textContent = `ENVIANDO ${pct}%`; });
+      const url = await uploadFile(arquivoFinal, (pct) => { label.textContent = `ENVIANDO ${pct}%`; }, preparado.crop);
       currentValue = url; onChange(url);
       mostrarPrevia(url); label.textContent = `TROCAR ${palavra}`;
     } catch (error) {
@@ -1140,8 +1153,7 @@ function openEditor(resource, item = null) {
     if (isMedia) {
       wrap.classList.add('vv-editor-media');
       const cropOptions = resource === 'magazine-pages' ? { aspect: 3 / 4, aspectOptions: [{ label: 'PÁGINA 3:4', value: 3 / 4 }, { label: 'PÁGINA A4', value: 1 / Math.SQRT2 }] } : undefined;
-      const aceitaMidia = resource === 'banners';
-      wrap.append(createDropzone(value, (url) => { input.value = url; }, cropOptions, { aceitaMidia }));
+      wrap.append(createDropzone(value, (url) => { input.value = url; }, cropOptions, { aceitaMidia: true }));
     }
     area.append(wrap);
   });
@@ -1160,7 +1172,7 @@ async function renderPostsAdmin(section) {
     <div class="vv-post-cards" data-post-cards></div>`;
 
   const cardHtml = (post) => `<div class="vv-post-card">
-    <div class="vv-post-card-cover" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}">${post.coverUrl ? '' : '▤'}</div>
+    <div class="vv-post-card-cover" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}">${post.coverUrl ? bgInner(post.coverUrl) : '▤'}</div>
     <div class="vv-post-card-body">
       <b>${escapeHtml(post.title)}</b>
       <div class="vv-post-card-meta">
@@ -1217,7 +1229,7 @@ async function openPostEditor(post, section) {
     <div class="vv-post-category-picker" data-post-categories>${categoryOptions || '<span class="vv-field-help">Nenhuma categoria cadastrada.</span>'}</div>
     <label>Resumo<textarea name="excerpt">${escapeHtml(post?.excerpt || '')}</textarea></label>
     <label>Conteúdo
-      <div class="vv-content-toolbar"><button type="button" data-content-link>↗ INSERIR LINK</button><button type="button" data-content-image>▧ INSERIR IMAGEM</button><input type="file" accept="image/*" hidden data-content-image-file></div>
+      <div class="vv-content-toolbar"><button type="button" data-content-link>↗ INSERIR LINK</button><button type="button" data-content-image>▧ INSERIR IMAGEM</button><input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" hidden data-content-image-file></div>
       <textarea name="content" required>${escapeHtml(post?.content || '')}</textarea>
       <span class="vv-content-help">Use os botões para inserir links e imagens entre os parágrafos.</span>
     </label>
@@ -1285,11 +1297,11 @@ async function openPostEditor(post, section) {
     const file = inlineImageInput.files?.[0];
     if (!file) return;
     try {
-      const blob = await requestCrop(file, { aspect: 16 / 9, aspectOptions: DROPZONE_ASPECT_OPTIONS });
-      if (!blob) return;
-      const url = await uploadFile(new File([blob], 'imagem-na-materia.jpg', { type: 'image/jpeg' }), () => {});
-      insertContent(`${contentField.value.trim() ? '\n\n' : ''}![Imagem da matéria](${url})`);
-      notify('Imagem inserida no conteúdo.');
+      const preparado = await prepareUpload(file);
+      if (!preparado) return;
+      const url = await uploadFile(preparado.file, () => {}, preparado.crop);
+      insertContent(`${contentField.value.trim() ? '\n\n' : ''}![Mídia da matéria](${url})`);
+      notify('Mídia inserida no conteúdo.');
     } catch (error) { notify(error.message || 'Não foi possível enviar a imagem.', 'error'); }
     finally { inlineImageInput.value = ''; }
   });
@@ -1360,9 +1372,9 @@ async function renderAdmin(resource) {
     };
     const toolbar = `<div class="vv-admin-toolbar"><p>${resource === 'banners' ? 'Escolha os destaques da página inicial.' : resource === 'magazine-pages' ? 'Monte a edição com páginas verticais na ordem desejada.' : resource === 'vimos-voce' ? 'Fotos e momentos da comunidade Velvet.' : resource === 'categories' ? 'Organize os assuntos da revista.' : 'Gerencie os acessos da comunidade.'}</p>${resource === 'users' ? '' : `<button class="vv-admin-add" data-live-create="${resource}">+ ${resource === 'vimos-voce' ? 'ADICIONAR FOTO' : resource === 'magazine-pages' ? 'NOVA PÁGINA' : 'CRIAR'}</button>`}</div>`;
     if (!items.length) { section.innerHTML = magazineCopyPanel + magazineAdsPanel + toolbar + adminEmpty(resource === 'banners' ? '▧' : resource === 'vimos-voce' ? '◉' : resource === 'categories' ? '◇' : '♙', 'Nada por aqui ainda.', 'Crie o primeiro item usando o botão acima.'); bindMagazineCopy(); return; }
-    if (resource === 'banners') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'ATIVO' : 'INATIVO'}</span> · ORDEM ${item.position || 0}</p></div><button data-live-edit="banners" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
-    if (resource === 'magazine-pages') section.innerHTML = magazineCopyPanel + magazineAdsPanel + toolbar + `<div class="vv-banner-list">${items.sort((a, b) => Number(a.position) - Number(b.position)).map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover;background-position:center` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'PUBLICADA' : 'OCULTA'}</span> · PÁGINA ${item.position || 0}</p></div><button data-live-edit="magazine-pages" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
-    if (resource === 'vimos-voce') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}"></div><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.description || 'Sem descrição')} · ORDEM ${item.position || 0}</p></div><button data-live-edit="vimos-voce" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
+    if (resource === 'banners') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}">${bgInner(item.imageUrl)}</div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'ATIVO' : 'INATIVO'}</span> · ORDEM ${item.position || 0}</p></div><button data-live-edit="banners" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
+    if (resource === 'magazine-pages') section.innerHTML = magazineCopyPanel + magazineAdsPanel + toolbar + `<div class="vv-banner-list">${items.sort((a, b) => Number(a.position) - Number(b.position)).map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover;background-position:center` : ''}">${bgInner(item.imageUrl)}</div><div><b>${escapeHtml(item.title)}</b><p><span class="vv-badge ${Number(item.isActive) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(item.isActive) ? 'PUBLICADA' : 'OCULTA'}</span> · PÁGINA ${item.position || 0}</p></div><button data-live-edit="magazine-pages" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
+    if (resource === 'vimos-voce') section.innerHTML = toolbar + `<div class="vv-banner-list">${items.map((item) => `<article><div class="vv-banner-thumb" style="${item.imageUrl ? `background-image:url('${escapeHtml(item.imageUrl)}');background-size:cover` : ''}">${bgInner(item.imageUrl)}</div><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.description || 'Sem descrição')} · ORDEM ${item.position || 0}</p></div><button data-live-edit="vimos-voce" data-id="${item.id}">EDITAR</button></article>`).join('')}</div>`;
     if (resource === 'categories') section.innerHTML = toolbar + `<div class="vv-category-admin">${items.map((item) => `<div><b>${escapeHtml(item.name)}</b><span>${escapeHtml(item.description || item.slug)}</span><button data-live-edit="categories" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
     if (resource === 'users') section.innerHTML = toolbar + `<div class="vv-admin-table"><div class="vv-admin-row is-head"><span>USUÁRIO</span><span>E-MAIL</span><span>CARGOS</span><span></span></div>${items.map((item) => `<div class="vv-admin-row"><b>${escapeHtml(item.displayName)}</b><span>${escapeHtml(item.email)}</span><i>${escapeHtml(formatCargos(item.role))}</i><button data-live-edit="users" data-id="${item.id}">EDITAR</button></div>`).join('')}</div>`;
     section.dataset.items = JSON.stringify(items);
@@ -1550,7 +1562,7 @@ function updateProfileView() {
 
 function savedItemHtml(post) {
   return `<button type="button" class="vv-saved-item" data-saved-open="${post.id}">
-    <div class="vv-saved-item-cover" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}"></div>
+    <div class="vv-saved-item-cover" style="${post.coverUrl ? `background-image:url('${escapeHtml(post.coverUrl)}')` : ''}">${bgInner(post.coverUrl)}</div>
     <div><b>${escapeHtml(post.title)}</b><span>${escapeHtml(post.categoryName || 'VELVET')}</span></div>
   </button>`;
 }
@@ -1632,6 +1644,8 @@ let cropDragging = false;
 let cropDragStart = { x: 0, y: 0 };
 let cropAspect = 1;
 let cropResolve = null;
+let cropAnimated = false;
+let cropRect = null;
 
 function cropExportSize() {
   return cropAspect >= 1
@@ -1648,13 +1662,23 @@ function drawCrop() {
   const drawW = cropImage.width * scale;
   const drawH = cropImage.height * scale;
   const ratio = w / CROP_DISPLAY_SIZE;
+  if (cropAnimated) {
+    // GIF/vídeo não podem ter borda vazia: o corte tem que caber no quadro.
+    const maxX = Math.max(0, (drawW - w) / 2) / ratio;
+    const maxY = Math.max(0, (drawH - h) / 2) / ratio;
+    cropOffset = { x: Math.min(maxX, Math.max(-maxX, cropOffset.x)), y: Math.min(maxY, Math.max(-maxY, cropOffset.y)) };
+  }
   const x = (w - drawW) / 2 + cropOffset.x * ratio;
   const y = (h - drawH) / 2 + cropOffset.y * ratio;
+  cropRect = {
+    x: Math.min(1, Math.max(0, -x / drawW)), y: Math.min(1, Math.max(0, -y / drawH)),
+    w: Math.min(1, w / drawW), h: Math.min(1, h / drawH),
+  };
   avatarCropCtx.clearRect(0, 0, w, h);
   avatarCropCtx.drawImage(cropImage, x, y, drawW, drawH);
 }
 function setCropZoom(value) {
-  cropZoom = Math.min(4, Math.max(0.5, value));
+  cropZoom = Math.min(4, Math.max(cropAnimated ? 1 : 0.5, value));
   avatarCropZoom.value = String(cropZoom);
   drawCrop();
 }
@@ -1688,11 +1712,15 @@ function finishCrop(blob) {
   if (cropSource) URL.revokeObjectURL(cropSource);
   cropSource = null;
   cropImage = null;
+  cropAnimated = false;
   const resolve = cropResolve; cropResolve = null;
   resolve?.(blob);
 }
 document.querySelectorAll('[data-avatar-crop-cancel]').forEach((button) => button.addEventListener('click', () => finishCrop(null)));
-document.querySelector('[data-avatar-crop-apply]').addEventListener('click', () => { avatarCropCanvas.toBlob((blob) => finishCrop(blob), 'image/jpeg', .92); });
+document.querySelector('[data-avatar-crop-apply]').addEventListener('click', () => {
+  if (cropAnimated) { finishCrop({ rect: { ...cropRect } }); return; }
+  avatarCropCanvas.toBlob((blob) => finishCrop(blob), 'image/jpeg', .92);
+});
 
 // Opens the shared cropper for `file`; resolves with the cropped JPEG Blob,
 // or null if the user cancels. `aspectOptions` (array of {label,value}) adds
@@ -1711,22 +1739,42 @@ function requestCrop(file, { aspect = 1, aspectOptions = null } = {}) {
       avatarCropAspects.innerHTML = '';
     }
     cropAspect = aspect;
+    cropAnimated = isMidiaAnimada(file);
+    avatarCropZoom.min = cropAnimated ? '1' : '0.5';
     avatarCropStage.style.aspectRatio = String(aspect);
     avatarCropLoading.dataset.visible = '';
     avatarCropper.hidden = false;
-    const img = new Image();
-    img.onload = () => {
-      cropImage = img;
+    const ready = (source) => {
+      cropImage = source;
       resetCrop();
       setCropAspect(aspect);
       delete avatarCropLoading.dataset.visible;
     };
-    img.onerror = () => { notify('Não foi possível abrir esta imagem. Tente uma foto em JPG ou PNG.', 'error'); finishCrop(null); };
+    const fail = () => { notify(cropAnimated ? 'Não foi possível abrir esta mídia. Tente MP4, WebM ou GIF.' : 'Não foi possível abrir esta imagem. Tente uma foto em JPG ou PNG.', 'error'); finishCrop(null); };
+    if (file.type.startsWith('video/')) {
+      // Vídeo: o recorte trabalha sobre um quadro do começo dele.
+      const video = document.createElement('video');
+      video.muted = true; video.playsInline = true; video.preload = 'auto';
+      video.onloadedmetadata = () => { video.currentTime = Math.min(0.1, (video.duration || 0) / 2); };
+      video.onseeked = () => {
+        const frame = document.createElement('canvas');
+        frame.width = video.videoWidth; frame.height = video.videoHeight;
+        frame.getContext('2d').drawImage(video, 0, 0);
+        ready(frame);
+      };
+      video.onerror = fail;
+      video.src = cropSource;
+      return;
+    }
+    const img = new Image();
+    img.onload = () => ready(img);
+    img.onerror = fail;
     img.src = cropSource;
   });
 }
 
 let croppedAvatarFile = null;
+let croppedAvatarCrop = null;
 function resetProfileAvatarUpload() {
   croppedAvatarFile = null;
   profileAvatarUpload.querySelector('b').textContent = 'ENVIAR NOVA FOTO';
@@ -1742,7 +1790,7 @@ profileEditToggle.addEventListener('click', () => {
 document.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { profileEditForm.hidden = true; profileEditForm.reset(); resetProfileAvatarUpload(); });
 profileEditForm.elements.avatar.addEventListener('change', () => {
   const file = profileEditForm.elements.avatar.files[0];
-  croppedAvatarFile = null;
+  croppedAvatarFile = null; croppedAvatarCrop = null;
   const title = profileAvatarUpload.querySelector('b');
   const hint = profileAvatarUpload.querySelector('small');
   title.textContent = file ? 'FOTO SELECIONADA' : 'ENVIAR NOVA FOTO';
@@ -1756,9 +1804,10 @@ profileEditForm.elements.avatar.addEventListener('change', async () => {
     profileEditForm.elements.avatar.value = '';
     return;
   }
-  const blob = await requestCrop(file, { aspect: 1 });
-  if (!blob) { profileEditForm.elements.avatar.value = ''; resetProfileAvatarUpload(); return; }
-  croppedAvatarFile = new File([blob], 'velvet-profile.jpg', { type: 'image/jpeg' });
+  const result = await requestCrop(file, { aspect: 1 });
+  if (!result) { profileEditForm.elements.avatar.value = ''; resetProfileAvatarUpload(); return; }
+  if (isMidiaAnimada(file)) { croppedAvatarFile = file; croppedAvatarCrop = result.rect; }
+  else { croppedAvatarFile = new File([result], 'velvet-profile.jpg', { type: 'image/jpeg' }); croppedAvatarCrop = null; }
   profileAvatarUpload.querySelector('b').textContent = 'FOTO RECORTADA';
   profileAvatarUpload.querySelector('small').textContent = 'Pronta para salvar no seu perfil';
 });
@@ -1775,6 +1824,7 @@ profileEditForm.addEventListener('submit', async (event) => {
     const image = croppedAvatarFile || form.elements.avatar.files[0];
     if (image) {
       const data = new FormData(); data.append('avatar', image);
+      if (croppedAvatarCrop && image === croppedAvatarFile) data.append('crop', JSON.stringify(croppedAvatarCrop));
       const uploadResponse = await fetch(`${API_URL}/api/profile/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${session.token}` }, body: data });
       const uploadData = await uploadResponse.json().catch(() => ({}));
       if (!uploadResponse.ok) throw new Error(uploadData.error || 'Não foi possível enviar a foto.');
@@ -1809,6 +1859,7 @@ function renderMagazineAds(settings = {}) {
     if (!active) return;
     shown += 1;
     card.querySelector('.vv-mag-ad-img').style.backgroundImage = image ? `url("${image.replace(/"/g, '%22')}")` : '';
+    card.querySelector('.vv-mag-ad-img').innerHTML = bgInner(image);
     card.querySelector('.vv-mag-ad-img').hidden = !image;
     card.querySelector('b').textContent = title;
     card.querySelector('span').textContent = text;
@@ -1824,9 +1875,9 @@ function magazineAdsPanelHtml(settings = {}) {
   const block = (n) => {
     const image = String(settings[`ad${n}Image`] || '');
     return `<fieldset class="vv-ad-edit"><legend>ANÚNCIO ${n}</legend>
-      <div class="vv-ad-edit-preview" data-ad-preview="${n}" style="${image ? `background-image:url('${escapeHtml(image)}')` : ''}"></div>
+      <div class="vv-ad-edit-preview" data-ad-preview="${n}" style="${image ? `background-image:url('${escapeHtml(image)}')` : ''}">${bgInner(image)}</div>
       <input type="hidden" name="ad${n}Image" value="${escapeHtml(image)}">
-      <label>Imagem<input type="file" accept="image/*" data-ad-file="${n}"></label>
+      <label>Imagem, GIF ou vídeo (até 30 s)<input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" data-ad-file="${n}"></label>
       <button type="button" class="vv-ad-clear" data-ad-clear="${n}">REMOVER IMAGEM</button>
       <label>Título<input name="ad${n}Title" maxlength="80" value="${escapeHtml(settings[`ad${n}Title`] || '')}"></label>
       <label>Texto<input name="ad${n}Text" maxlength="140" value="${escapeHtml(settings[`ad${n}Text`] || '')}"></label>
@@ -1841,16 +1892,29 @@ function bindMagazineAds(section) {
   const form = section.querySelector('[data-magazine-ads-settings]');
   if (!form || form.dataset.bound) return;
   form.dataset.bound = '1';
-  form.querySelectorAll('[data-ad-file]').forEach((input) => input.addEventListener('change', () => {
+  const adPreparado = {};
+  form.querySelectorAll('[data-ad-file]').forEach((input) => input.addEventListener('change', async () => {
     const file = input.files[0];
-    const preview = form.querySelector(`[data-ad-preview="${input.dataset.adFile}"]`);
-    if (file && preview) preview.style.backgroundImage = `url("${URL.createObjectURL(file)}")`;
+    const n = input.dataset.adFile;
+    const preview = form.querySelector(`[data-ad-preview="${n}"]`);
+    delete adPreparado[n];
+    if (!file) return;
+    try {
+      const preparado = await prepareUpload(file, { aspect: 16 / 7, aspectOptions: DROPZONE_ASPECT_OPTIONS });
+      if (!preparado) { input.value = ''; return; }
+      adPreparado[n] = preparado;
+      const local = URL.createObjectURL(preparado.file);
+      if (preparado.file.type.startsWith('video/')) { preview.style.backgroundImage = ''; preview.innerHTML = `<video class="vv-bg-video" src="${local}" autoplay muted loop playsinline></video>`; }
+      else { preview.innerHTML = ''; preview.style.backgroundImage = `url("${local}")`; }
+    } catch (error) { notify(error.message, 'error'); input.value = ''; }
   }));
   form.querySelectorAll('[data-ad-clear]').forEach((button) => button.addEventListener('click', () => {
     const n = button.dataset.adClear;
     form.elements[`ad${n}Image`].value = '';
     form.querySelector(`[data-ad-file="${n}"]`).value = '';
     form.querySelector(`[data-ad-preview="${n}"]`).style.backgroundImage = '';
+    form.querySelector(`[data-ad-preview="${n}"]`).innerHTML = '';
+    delete adPreparado[n];
   }));
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -1861,8 +1925,8 @@ function bindMagazineAds(section) {
     try {
       const values = {};
       for (const n of [1, 2, 3, 4]) {
-        const file = form.querySelector(`[data-ad-file="${n}"]`).files[0];
-        if (file) form.elements[`ad${n}Image`].value = await uploadFile(file, (progress) => { submit.textContent = `ENVIANDO ${progress}%`; });
+        const preparado = adPreparado[n];
+        if (preparado) form.elements[`ad${n}Image`].value = await uploadFile(preparado.file, (progress) => { submit.textContent = `ENVIANDO ${progress}%`; }, preparado.crop);
         ['Image', 'Title', 'Text', 'Link'].forEach((key) => { values[`ad${n}${key}`] = form.elements[`ad${n}${key}`].value.trim(); });
         values[`ad${n}Active`] = form.elements[`ad${n}Active`].checked ? '1' : '0';
       }

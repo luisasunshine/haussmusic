@@ -8,6 +8,7 @@ const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const { OAuth2Client } = require('google-auth-library');
 const { db, deletePost } = require('./db');
+const { processMedia } = require('./mediaProcess');
 const { signToken, isAdmin, attachUser, requireAuth, requireAdmin } = require('./auth');
 
 const app = express();
@@ -135,7 +136,7 @@ app.patch('/api/profile', requireAuth, (req, res) => {
   const user = db.prepare('SELECT id,email,display_name,avatar_url,role FROM users WHERE id = ?').get(req.user.id);
   res.json({ user: { ...publicUser(user), isAdmin: isAdmin(user) } });
 });
-app.post('/api/profile/avatar', requireAuth, profileUpload.single('avatar'), (req, res) => {
+app.post('/api/profile/avatar', requireAuth, profileUpload.single('avatar'), processMedia, (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Selecione uma imagem válida para o perfil.' });
   const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
   const avatarUrl = `${base}/uploads/${req.file.filename}`;
@@ -283,10 +284,10 @@ app.patch('/api/portfolio/socials', requireAuth, (req, res) => {
 app.post('/api/portfolio/uploads', requireAuth, (req, res, next) => {
   if (!PORTFOLIO_ROLES.some((role) => hasUserRole(req.user, role))) return res.status(403).json({ error: 'Seu cargo não permite publicar portfólios.' });
   next();
-}, portfolioUpload.single('image'), (req, res) => {
+}, portfolioUpload.single('image'), processMedia, (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Selecione uma foto, GIF ou vídeo.' });
   const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
-  res.status(201).json({ url: `${base}/uploads/${req.file.filename}` });
+  res.status(201).json({ url: `${base}/uploads/${req.file.filename}`, notCropped: Boolean(req.mediaNotCropped) });
 });
 
 app.post('/api/portfolio/posts', requireAuth, (req, res) => {
@@ -407,8 +408,16 @@ app.get('/api/admin/settings', requireAdmin, (_req, res) => res.json(Object.from
 app.put('/api/admin/settings', requireAdmin, (req, res) => { const date = now(); const save = db.prepare('INSERT INTO settings (key,value,updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at'); Object.entries(req.body).forEach(([key, value]) => save.run(key, JSON.stringify(value), date)); res.json({ ok: true }); });
 
 const storage = multer.diskStorage({ destination: uploadsDir, filename: (_req, file, done) => done(null, `${Date.now()}-${uuid()}${path.extname(file.originalname).toLowerCase()}`) });
-const upload = multer({ storage, limits: { fileSize: 12 * 1024 * 1024 } });
-app.post('/api/admin/uploads', requireAdmin, upload.single('file'), (req, res) => { if (!req.file) return res.status(400).json({ error: 'Arquivo obrigatório.' }); const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`; res.status(201).json({ url: `${base}/uploads/${req.file.filename}` }); });
+// Imagem parada até 12 MB; GIF e vídeo até 40 MB (o vídeo é limitado a 30 s no processamento).
+const upload = multer({ storage, limits: { fileSize: 40 * 1024 * 1024 }, fileFilter: (_req, file, done) => done(null, /^(image|video)\//.test(file.mimetype)) });
+const limitStillImages = (req, res, next) => {
+  if (req.file && /^image\//.test(req.file.mimetype) && req.file.mimetype !== 'image/gif' && req.file.size > 12 * 1024 * 1024) {
+    fs.unlink(req.file.path, () => {});
+    return res.status(413).json({ error: 'Imagem muito grande (máximo 12MB).' });
+  }
+  next();
+};
+app.post('/api/admin/uploads', requireAdmin, upload.single('file'), limitStillImages, processMedia, (req, res) => { if (!req.file) return res.status(400).json({ error: 'Envie uma imagem, GIF ou vídeo.' }); const base = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`; res.status(201).json({ url: `${base}/uploads/${req.file.filename}`, notCropped: Boolean(req.mediaNotCropped) }); });
 
 app.use((error, _req, res, _next) => res.status(error.status || 500).json({ error: error.message || 'Erro interno.' }));
 app.listen(port, () => console.log(`VELVET API on :${port}`));
