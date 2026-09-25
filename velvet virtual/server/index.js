@@ -332,6 +332,8 @@ function crud(resource, table, fields) {
       if (table === 'banners' && name === 'duration') return 6;
       if (table === 'vimos_voce' && name === 'is_active') return 1;
       if (table === 'vimos_voce' && name === 'position') return 0;
+      if ((table === 'velvet_stories' || table === 'velvet_posts') && name === 'is_active') return 1;
+      if (table === 'velvet_stories' && name === 'position') return 0;
       if (table === 'magazine_pages' && name === 'is_active') return 1;
       if (table === 'magazine_pages' && name === 'position') return 0;
       return null;
@@ -365,6 +367,48 @@ function crud(resource, table, fields) {
     res.status(204).end();
   });
 }
+// ---- Aba VELVET: bolinhas (anúncios em formato de story) e feed de posts ----
+const MAX_VELVET_STORIES = 10;
+const MAX_VELVET_IMAGES = 15;
+app.post('/api/admin/velvet-stories', requireAdmin, (req, res, next) => {
+  if (db.prepare('SELECT COUNT(*) AS total FROM velvet_stories').get().total >= MAX_VELVET_STORIES) return res.status(400).json({ error: `O limite é de ${MAX_VELVET_STORIES} bolinhas. Apague uma para criar outra.` });
+  if (!String(req.body.title || '').trim() || !req.body.image_url) return res.status(400).json({ error: 'Informe o nome da bolinha e o anúncio.' });
+  next();
+});
+const normalizeVelvetImages = (req, res, next) => {
+  if (!['POST', 'PATCH'].includes(req.method) || !Object.hasOwn(req.body || {}, 'images')) return next();
+  let list = req.body.images;
+  if (typeof list === 'string') { try { list = JSON.parse(list); } catch { list = []; } }
+  list = (Array.isArray(list) ? list : []).filter((url) => typeof url === 'string' && url.trim());
+  if (list.length > MAX_VELVET_IMAGES) return res.status(400).json({ error: `Cada post aceita no máximo ${MAX_VELVET_IMAGES} imagens.` });
+  if (!list.length) return res.status(400).json({ error: 'Adicione pelo menos uma imagem ao post.' });
+  req.body.images = JSON.stringify(list);
+  next();
+};
+app.use('/api/admin/velvet-posts', requireAdmin, normalizeVelvetImages);
+app.delete('/api/admin/velvet-posts/:id', requireAdmin, (req, _res, next) => { db.prepare('DELETE FROM velvet_post_likes WHERE post_id = ?').run(req.params.id); next(); });
+crud('velvet-stories', 'velvet_stories', ['title', 'cover_url', 'image_url', 'link_url', 'position', 'is_active']);
+crud('velvet-posts', 'velvet_posts', ['caption', 'images', 'is_active']);
+
+app.get('/api/public/velvet', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  const stories = db.prepare('SELECT * FROM velvet_stories WHERE is_active = 1 ORDER BY position, created_at LIMIT ?').all(MAX_VELVET_STORIES).map(toCamel);
+  const posts = db.prepare(`SELECT velvet_posts.*, (SELECT COUNT(*) FROM velvet_post_likes WHERE post_id = velvet_posts.id) AS likes
+    FROM velvet_posts WHERE is_active = 1 ORDER BY created_at DESC LIMIT 100`).all().map((row) => {
+    let images = []; try { images = JSON.parse(row.images || '[]'); } catch { images = []; }
+    const liked = req.user ? Boolean(db.prepare('SELECT 1 FROM velvet_post_likes WHERE post_id = ? AND user_id = ?').get(row.id, req.user.id)) : false;
+    return { ...toCamel(row), images, likes: Number(row.likes || 0), liked };
+  });
+  res.json({ stories, posts });
+});
+app.post('/api/public/velvet/posts/:id/like', requireAuth, (req, res) => {
+  if (!db.prepare('SELECT 1 FROM velvet_posts WHERE id = ? AND is_active = 1').get(req.params.id)) return res.status(404).json({ error: 'Post não encontrado.' });
+  const existing = db.prepare('SELECT 1 FROM velvet_post_likes WHERE post_id = ? AND user_id = ?').get(req.params.id, req.user.id);
+  if (existing) db.prepare('DELETE FROM velvet_post_likes WHERE post_id = ? AND user_id = ?').run(req.params.id, req.user.id);
+  else db.prepare('INSERT INTO velvet_post_likes (post_id,user_id,created_at) VALUES (?,?,?)').run(req.params.id, req.user.id, now());
+  res.json({ liked: !existing, likes: db.prepare('SELECT COUNT(*) AS total FROM velvet_post_likes WHERE post_id = ?').get(req.params.id).total });
+});
+
 crud('categories', 'categories', ['name', 'slug', 'description']);
 crud('posts', 'posts', ['title', 'slug', 'excerpt', 'content', 'cover_url', 'category_id', 'category_ids', 'status', 'published_at', 'views', 'is_featured']);
 crud('banners', 'banners', ['title', 'subtitle', 'image_url', 'cta_label', 'cta_url', 'position', 'duration', 'is_active']);

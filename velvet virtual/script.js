@@ -39,7 +39,7 @@ function syncActiveNav(selector) {
 }
 function goHome(event) {
   event?.preventDefault();
-  searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true;
+  searchPanel.hidden = true; newsPage.hidden = true; vimosPage.hidden = true; velvetPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true;
   document.querySelector('[data-read-page]').hidden = true;
   if (profilePanel) profilePanel.hidden = true;
   document.body.classList.remove('is-locked');
@@ -496,7 +496,7 @@ async function loadNews() {
   }
 }
 
-function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; syncActiveNav('[data-week-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
+function openNews(category = null, weekOnly = false, targetHash = 'noticias') { activeNewsCategory = category; newsWeekOnly = weekOnly; newsPage.classList.toggle('is-week-page', weekOnly); vimosPage.hidden = true; velvetPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; newsPage.hidden = false; syncActiveNav('[data-week-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', `#${targetHash}`); loadNews(); }
 function closeNews() { activeNewsCategory = null; newsWeekOnly = false; newsPage.classList.remove('is-week-page'); newsPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-news-open]').forEach((button) => button.addEventListener('click', () => openNews()));
 document.querySelectorAll('[data-revista-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openNews(); }));
@@ -515,18 +515,255 @@ async function loadVimosVoce() {
     vimosEmpty.hidden = items.length > 0;
   } catch { vimosEmpty.hidden = false; }
 }
-function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; syncActiveNav('[data-vimos-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
-function closeVimos() { vimosPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
+function openVimos() { newsPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; vimosPage.hidden = false; velvetPage.hidden = true; syncActiveNav('[data-vimos-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#vimos-voce'); loadVimosVoce(); }
+function closeVimos() { vimosPage.hidden = true; velvetPage.hidden = true; document.body.classList.remove('is-locked'); window.history.replaceState(null, '', '#top'); }
 document.querySelectorAll('[data-vimos-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openVimos(); }));
 document.querySelectorAll('[data-ticker-podcast]').forEach((button) => button.addEventListener('click', () => { document.querySelector('#podcast')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
-// VELVET: aba nova, conteúdo ainda a definir.
-document.querySelectorAll('[data-velvet-open]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); event.stopImmediatePropagation(); }));
-function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; syncActiveNav('[data-magazine-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
+document.querySelectorAll('[data-velvet-open]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); openVelvet(); }));
+
+// ================= ABA VELVET =================
+// Bolinhas (até 10, cada uma abre UM anúncio em formato de story) + feed no
+// estilo Instagram (até 15 mídias por post, legenda e curtir).
+const velvetPage = document.querySelector('[data-velvet-page]');
+const storyViewer = document.querySelector('[data-story-viewer]');
+let velvetData = { stories: [], posts: [] };
+const seenStories = (() => { try { return new Set(JSON.parse(localStorage.getItem('vv_seen_stories') || '[]')); } catch { return new Set(); } })();
+function markStorySeen(id) { seenStories.add(id); try { localStorage.setItem('vv_seen_stories', JSON.stringify([...seenStories])); } catch { /* sem storage */ } }
+
+function openVelvet() {
+  newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true;
+  document.querySelector('[data-read-page]').hidden = true;
+  velvetPage.hidden = false; velvetPage.scrollTop = 0;
+  syncActiveNav('[data-velvet-open]');
+  document.body.classList.add('is-locked');
+  window.history.replaceState(null, '', '#velvet');
+  loadVelvet();
+}
+
+async function loadVelvet() {
+  try {
+    const response = await fetch(`${API_URL}/api/public/velvet`, { cache: 'no-store', headers: session.token ? { Authorization: `Bearer ${session.token}` } : {} });
+    if (!response.ok) throw new Error();
+    velvetData = await response.json();
+  } catch { velvetData = { stories: [], posts: [] }; }
+  renderVelvetStories();
+  renderVelvetFeed();
+  velvetPage.querySelector('[data-velvet-empty]').hidden = velvetData.stories.length > 0 || velvetData.posts.length > 0;
+}
+
+function renderVelvetStories() {
+  const row = velvetPage.querySelector('[data-velvet-stories]');
+  row.replaceChildren();
+  row.hidden = !velvetData.stories.length;
+  velvetData.stories.slice(0, 10).forEach((story, index) => {
+    const cover = story.coverUrl || story.imageUrl;
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = `vv-hl${seenStories.has(story.id) ? ' is-seen' : ''}`; button.dataset.storyId = story.id;
+    button.innerHTML = `<span class="vv-hl-ring"><span class="vv-hl-cover" style="${cover && !isVideoUrl(cover) ? `background-image:url('${escapeHtml(cover)}')` : ''}">${bgInner(cover)}</span></span><b>${escapeHtml(story.title)}</b>`;
+    button.addEventListener('click', () => showStory(index));
+    row.append(button);
+  });
+}
+
+let storyIndex = 0;
+let storyRaf = 0;
+function stopStory() {
+  cancelAnimationFrame(storyRaf);
+  const media = storyViewer.querySelector('[data-story-media]');
+  media.querySelectorAll('video').forEach((video) => video.pause());
+  media.replaceChildren();
+}
+function closeStory() { stopStory(); storyViewer.hidden = true; }
+function showStory(index) {
+  const list = velvetData.stories.slice(0, 10);
+  if (index < 0 || index >= list.length) { closeStory(); return; }
+  stopStory();
+  storyIndex = index;
+  const story = list[index];
+  markStorySeen(story.id);
+  velvetPage.querySelector(`[data-story-id="${story.id}"]`)?.classList.add('is-seen');
+  storyViewer.hidden = false;
+  const cover = story.coverUrl || story.imageUrl;
+  const avatar = storyViewer.querySelector('[data-story-avatar]');
+  avatar.style.backgroundImage = cover && !isVideoUrl(cover) ? `url("${cover}")` : '';
+  avatar.innerHTML = bgInner(cover);
+  storyViewer.querySelector('[data-story-title]').textContent = story.title;
+  const cta = storyViewer.querySelector('[data-story-cta]');
+  cta.hidden = !story.linkUrl; if (story.linkUrl) cta.href = story.linkUrl;
+  storyViewer.querySelector('[data-story-prev]').hidden = index === 0;
+  const bar = storyViewer.querySelector('[data-story-bar]');
+  bar.style.width = '0%';
+  const media = storyViewer.querySelector('[data-story-media]');
+  let video = null;
+  if (isVideoUrl(story.imageUrl)) {
+    video = document.createElement('video');
+    video.src = story.imageUrl; video.playsInline = true; video.autoplay = true;
+    video.onerror = () => showStory(index + 1);
+    media.append(video);
+    video.play().catch(() => { video.muted = true; video.play().catch(() => {}); });
+  } else {
+    const img = document.createElement('img'); img.src = story.imageUrl; img.alt = story.title; img.draggable = false; media.append(img);
+  }
+  const started = performance.now();
+  const tick = (now) => {
+    const progress = video ? (video.duration ? video.currentTime / video.duration : 0) : (now - started) / 6000;
+    bar.style.width = `${Math.min(100, progress * 100)}%`;
+    if (progress >= 1 || (video && video.ended)) { showStory(index + 1); return; }
+    storyRaf = requestAnimationFrame(tick);
+  };
+  storyRaf = requestAnimationFrame(tick);
+}
+storyViewer.querySelector('[data-story-close]').addEventListener('click', closeStory);
+storyViewer.querySelector('[data-story-prev]').addEventListener('click', () => showStory(storyIndex - 1));
+storyViewer.querySelector('[data-story-next]').addEventListener('click', () => showStory(storyIndex + 1));
+storyViewer.addEventListener('click', (event) => { if (event.target === storyViewer) closeStory(); });
+document.addEventListener('keydown', (event) => {
+  if (storyViewer.hidden) return;
+  if (event.key === 'Escape') closeStory();
+  else if (event.key === 'ArrowRight') showStory(storyIndex + 1);
+  else if (event.key === 'ArrowLeft') showStory(storyIndex - 1);
+});
+
+function timeAgo(iso) {
+  const seconds = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (!Number.isFinite(seconds)) return '';
+  if (seconds < 3600) return `há ${Math.max(1, Math.floor(seconds / 60))} min`;
+  if (seconds < 86400) return `há ${Math.floor(seconds / 3600)} h`;
+  if (seconds < 86400 * 7) return `há ${Math.floor(seconds / 86400)} d`;
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+}
+const likesLabel = (n) => `${Number(n || 0).toLocaleString('pt-BR')} ${Number(n) === 1 ? 'curtida' : 'curtidas'}`;
+const feedMedia = (url) => (isVideoUrl(url)
+  ? `<video src="${escapeHtml(url)}" controls muted loop playsinline preload="metadata"></video>`
+  : `<img src="${escapeHtml(url)}" alt="" loading="lazy" draggable="false">`);
+
+function renderVelvetFeed() {
+  const feed = velvetPage.querySelector('[data-velvet-feed]');
+  feed.replaceChildren();
+  velvetData.posts.forEach((post) => feed.append(velvetPostElement(post)));
+}
+function velvetPostElement(post) {
+  const images = post.images || [];
+  const el = document.createElement('article');
+  el.className = 'vv-ig-post';
+  el.innerHTML = `<header class="vv-ig-head"><span class="vv-ig-avatar"><img src="assets/logo2.png" alt=""></span><div><b>velvet</b><span>${escapeHtml(timeAgo(post.createdAt))}</span></div></header>
+    <div class="vv-ig-media">
+      <div class="vv-ig-track" data-ig-track>${images.map((url) => `<div class="vv-ig-slide">${feedMedia(url)}</div>`).join('')}</div>
+      ${images.length > 1 ? `<button type="button" class="vv-ig-nav vv-ig-prev" data-ig-prev hidden aria-label="Anterior">‹</button><button type="button" class="vv-ig-nav vv-ig-next" data-ig-next aria-label="Próxima">›</button><span class="vv-ig-count" data-ig-count>1/${images.length}</span>` : ''}
+      <span class="vv-ig-heart" aria-hidden="true">♥</span>
+    </div>
+    ${images.length > 1 ? `<div class="vv-ig-dots" data-ig-dots>${images.map((_, i) => `<i${i === 0 ? ' class="is-active"' : ''}></i>`).join('')}</div>` : ''}
+    <div class="vv-ig-actions"><button type="button" class="vv-ig-like${post.liked ? ' is-liked' : ''}" data-ig-like aria-label="Curtir">${post.liked ? '♥' : '♡'}</button><button type="button" data-ig-share aria-label="Compartilhar">↗</button></div>
+    <p class="vv-ig-likes" data-ig-likes>${likesLabel(post.likes)}</p>
+    ${post.caption ? `<p class="vv-ig-caption"><b>velvet</b> ${escapeHtml(post.caption).replace(/\n/g, '<br>')}</p>` : ''}`;
+
+  const track = el.querySelector('[data-ig-track]');
+  const sync = () => {
+    const index = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+    el.querySelectorAll('[data-ig-dots] i').forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+    const count = el.querySelector('[data-ig-count]'); if (count) count.textContent = `${index + 1}/${images.length}`;
+    const prev = el.querySelector('[data-ig-prev]'); if (prev) prev.hidden = index === 0;
+    const next = el.querySelector('[data-ig-next]'); if (next) next.hidden = index >= images.length - 1;
+  };
+  track.addEventListener('scroll', sync, { passive: true });
+  el.querySelector('[data-ig-prev]')?.addEventListener('click', () => track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }));
+  el.querySelector('[data-ig-next]')?.addEventListener('click', () => track.scrollBy({ left: track.clientWidth, behavior: 'smooth' }));
+
+  const likeButton = el.querySelector('[data-ig-like]');
+  const toggleLike = async () => {
+    if (!session.user) { openAuth('Entre na sua conta para curtir.'); return; }
+    try {
+      const result = await requestApi(`/api/public/velvet/posts/${post.id}/like`, { method: 'POST' });
+      post.liked = result.liked; post.likes = result.likes;
+      likeButton.classList.toggle('is-liked', result.liked); likeButton.textContent = result.liked ? '♥' : '♡';
+      el.querySelector('[data-ig-likes]').textContent = likesLabel(result.likes);
+    } catch (error) { notify(error.message, 'error'); }
+  };
+  likeButton.addEventListener('click', toggleLike);
+  el.querySelector('.vv-ig-media').addEventListener('dblclick', () => {
+    const heart = el.querySelector('.vv-ig-heart');
+    heart.classList.remove('is-pop'); void heart.offsetWidth; heart.classList.add('is-pop');
+    if (!post.liked) toggleLike();
+  });
+  el.querySelector('[data-ig-share]').addEventListener('click', async () => {
+    const url = `${window.location.origin}${window.location.pathname}#velvet`;
+    try { if (navigator.share) await navigator.share({ title: 'Velvet', url }); else { await navigator.clipboard.writeText(url); notify('Link copiado.'); } } catch { /* cancelado */ }
+  });
+  return el;
+}
+
+// ---- Admin da aba VELVET ----
+const GALLERY_ASPECTS = [{ label: 'RETRATO 4:5', value: 4 / 5 }, { label: 'QUADRADO', value: 1 }, { label: 'PAISAGEM', value: 16 / 9 }];
+function createGallery(initial, onChange, max = 15) {
+  let list = [...initial];
+  const box = document.createElement('div'); box.className = 'vv-gallery';
+  const grid = document.createElement('div'); grid.className = 'vv-gallery-grid';
+  const add = document.createElement('button'); add.type = 'button'; add.className = 'vv-gallery-add';
+  const file = document.createElement('input'); file.type = 'file'; file.multiple = true; file.hidden = true;
+  file.accept = 'image/*,video/mp4,video/webm,video/quicktime';
+  function paint() {
+    grid.replaceChildren();
+    list.forEach((url, i) => {
+      const cell = document.createElement('div'); cell.className = 'vv-gallery-cell';
+      if (!isVideoUrl(url)) cell.style.backgroundImage = `url("${url}")`;
+      cell.innerHTML = `${bgInner(url)}<b>${i + 1}</b><span><button type="button" data-g="left" aria-label="Mover para trás">‹</button><button type="button" data-g="right" aria-label="Mover para frente">›</button><button type="button" data-g="del" aria-label="Remover">✕</button></span>`;
+      cell.addEventListener('click', (event) => {
+        const action = event.target.closest('[data-g]')?.dataset.g; if (!action) return;
+        if (action === 'del') list.splice(i, 1);
+        if (action === 'left' && i > 0) [list[i - 1], list[i]] = [list[i], list[i - 1]];
+        if (action === 'right' && i < list.length - 1) [list[i + 1], list[i]] = [list[i], list[i + 1]];
+        paint();
+      });
+      grid.append(cell);
+    });
+    add.disabled = list.length >= max;
+    add.textContent = list.length >= max ? `LIMITE DE ${max} MÍDIAS` : `+ ADICIONAR IMAGEM, GIF OU VÍDEO (${list.length}/${max})`;
+    onChange(list);
+  }
+  add.addEventListener('click', () => file.click());
+  file.addEventListener('change', async () => {
+    const files = [...file.files]; file.value = '';
+    for (const chosen of files) {
+      if (list.length >= max) { notify(`Máximo de ${max} mídias por post.`, 'error'); break; }
+      try {
+        const preparado = await prepareUpload(chosen, { aspect: 4 / 5, aspectOptions: GALLERY_ASPECTS });
+        if (!preparado) continue;
+        add.disabled = true;
+        const url = await uploadFile(preparado.file, (pct) => { add.textContent = `ENVIANDO ${pct}%`; }, preparado.crop);
+        list.push(url);
+      } catch (error) { notify(error.message || 'Erro ao enviar a mídia.', 'error'); }
+      paint();
+    }
+  });
+  box.append(grid, add, file);
+  paint();
+  return box;
+}
+
+async function renderVelvetAdmin() {
+  const root = document.querySelector('[data-admin-section="velvet"]');
+  if (!root) return;
+  try {
+    const [stories, posts] = await Promise.all([requestApi('/api/admin/velvet-stories'), requestApi('/api/admin/velvet-posts')]);
+    const thumb = (url) => `<div class="vv-banner-thumb" style="${url && !isVideoUrl(url) ? `background-image:url('${escapeHtml(url)}');background-size:cover;background-position:center` : ''}">${bgInner(url)}</div>`;
+    const badge = (on) => `<span class="vv-badge ${Number(on) ? 'vv-badge-published' : 'vv-badge-inactive'}">${Number(on) ? 'ATIVO' : 'OCULTO'}</span>`;
+    const storyRows = [...stories].sort((a, b) => Number(a.position) - Number(b.position)).map((item) => `<article>${thumb(item.coverUrl || item.imageUrl)}<div><b>${escapeHtml(item.title)}</b><p>${badge(item.isActive)} · ORDEM ${item.position || 0}</p></div><button data-live-edit="velvet-stories" data-id="${item.id}">EDITAR</button></article>`).join('');
+    const postRows = posts.map((item) => { let images = []; try { images = JSON.parse(item.images || '[]'); } catch { /* vazio */ } return `<article>${thumb(images[0])}<div><b>${escapeHtml((item.caption || 'Sem legenda').slice(0, 70))}</b><p>${badge(item.isActive)} · ${images.length} ${images.length === 1 ? 'MÍDIA' : 'MÍDIAS'}</p></div><button data-live-edit="velvet-posts" data-id="${item.id}">EDITAR</button></article>`; }).join('');
+    root.innerHTML = `<div class="vv-admin-toolbar"><p>Bolinhas do topo da aba (até 10). Cada uma abre um anúncio em tela cheia.</p><button class="vv-admin-add" data-live-create="velvet-stories" ${stories.length >= 10 ? 'disabled' : ''}>+ NOVA BOLINHA (${stories.length}/10)</button></div>
+      <div class="vv-banner-list" data-admin-section="velvet-stories">${storyRows || adminEmpty('◎', 'Nenhuma bolinha ainda.', 'Crie a primeira com o botão acima.')}</div>
+      <div class="vv-admin-toolbar vv-velvet-admin-gap"><p>Posts do feed, com legenda e até 15 imagens, GIFs ou vídeos cada.</p><button class="vv-admin-add" data-live-create="velvet-posts">+ NOVO POST</button></div>
+      <div class="vv-banner-list" data-admin-section="velvet-posts">${postRows || adminEmpty('▦', 'Nenhum post ainda.', 'Crie o primeiro com o botão acima.')}</div>`;
+    root.querySelector('[data-admin-section="velvet-stories"]').dataset.items = JSON.stringify(stories);
+    root.querySelector('[data-admin-section="velvet-posts"]').dataset.items = JSON.stringify(posts);
+  } catch (error) { root.innerHTML = adminEmpty('!', 'Não foi possível carregar.', error.message); }
+}
+
+function openMagazine() { newsPage.hidden = true; vimosPage.hidden = true; velvetPage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true; magazinePage.hidden = false; syncActiveNav('[data-magazine-open]'); document.body.classList.add('is-locked'); window.history.replaceState(null, '', '#revista'); magazinePage.scrollTop = 0; }
 document.querySelectorAll('[data-magazine-open]').forEach((button) => button.addEventListener('click', (event) => { event.preventDefault(); openMagazine(); }));
 document.querySelectorAll('[data-vimos-close]').forEach((button) => button.addEventListener('click', closeVimos));
 document.querySelectorAll('[data-section-nav]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
-  newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
+  newsPage.hidden = true; vimosPage.hidden = true; velvetPage.hidden = true; magazinePage.hidden = true; creatorsPage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
   document.body.classList.remove('is-locked');
   const target = document.querySelector(`#${link.dataset.sectionNav}`); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   syncActiveNav(`[href="#${link.dataset.sectionNav}"]`);
@@ -541,6 +778,7 @@ magazinePage?.querySelector('.vv-overlay-nav')?.addEventListener('click', (event
   if (link.hasAttribute('data-magazine-open')) return;
   if (link.hasAttribute('data-week-open')) { openNews(null, false, 'novas'); return; }
   if (link.hasAttribute('data-vimos-open')) { openVimos(); return; }
+  if (link.hasAttribute('data-velvet-open')) { openVelvet(); return; }
   const sectionId = link.dataset.sectionNav;
   if (sectionId) {
     magazinePage.hidden = true; document.body.classList.remove('is-locked');
@@ -550,6 +788,7 @@ magazinePage?.querySelector('.vv-overlay-nav')?.addEventListener('click', (event
   }
 }, true);
 if (window.location.hash === '#vimos-voce') openVimos();
+if (window.location.hash === '#velvet') openVelvet();
 if (window.location.hash === '#revista') openMagazine();
 
 const creatorRoleMeta = {
@@ -614,7 +853,7 @@ document.querySelector('[data-creators-search]')?.addEventListener('input', rend
 function openCreators(role = 'modelo') {
   if (!creatorRoleMeta[role]) role = 'modelo';
   activeCreatorRole = role; activeCreatorId = null;
-  newsPage.hidden = true; vimosPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
+  newsPage.hidden = true; vimosPage.hidden = true; velvetPage.hidden = true; magazinePage.hidden = true; document.querySelector('[data-read-page]').hidden = true;
   creatorsPage.hidden = false; document.body.classList.add('is-locked'); creatorsPage.scrollTop = 0;
   window.history.replaceState(null, '', `#${role}`); loadCreatorDirectory(role);
 }
@@ -1114,6 +1353,8 @@ function openEditor(resource, item = null) {
     banners: [['title', 'Título', 'text'], ['subtitle', 'Subtítulo', 'text'], ['image_url', 'Imagem, GIF ou vídeo do banner', 'url'], ['cta_label', 'Texto do botão', 'text'], ['cta_url', 'Link do botão', 'url'], ['position', 'Ordem', 'number'], ['duration', 'Tempo na tela (segundos)', 'number'], ['is_active', 'Banner ativo', 'checkbox']],
     'magazine-pages': [['title', 'Título da página', 'text'], ['image_url', 'Arte da página', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Página publicada', 'checkbox']],
     'vimos-voce': [['title', 'Título', 'text'], ['description', 'Descrição', 'textarea'], ['image_url', 'Foto', 'url'], ['instagram_url', 'Link do Instagram', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Publicação ativa', 'checkbox']],
+    'velvet-stories': [['title', 'Nome da bolinha', 'text'], ['cover_url', 'Foto da bolinha (redonda)', 'url'], ['image_url', 'Anúncio (imagem, GIF ou vídeo)', 'url'], ['link_url', 'Link do anúncio (opcional)', 'url'], ['position', 'Ordem', 'number'], ['is_active', 'Bolinha ativa', 'checkbox']],
+    'velvet-posts': [['caption', 'Legenda', 'textarea'], ['images', 'Imagens, GIFs ou vídeos (até 15)', 'gallery'], ['is_active', 'Post publicado', 'checkbox']],
     categories: [['name', 'Nome', 'text'], ['slug', 'Slug (opcional)', 'text'], ['description', 'Descrição', 'textarea']],
     users: [['displayName', 'Nome', 'text'], ['email', 'E-mail', 'email'], ['password', 'Senha', 'password'], ['role', 'Cargos (pode marcar mais de um)', 'checkboxes', ['admin', 'staff', 'leitor', 'podcast', 'modelo', 'influencer', 'creators']]],
   };
@@ -1126,6 +1367,14 @@ function openEditor(resource, item = null) {
     const wrap = document.createElement('label'); wrap.className = `vv-editor-field vv-editor-field-${name}`; wrap.textContent = label;
     const camel = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
     const value = item?.[name] ?? item?.[camel] ?? (name === 'position' ? 0 : '');
+    if (type === 'gallery') {
+      let urls = []; try { urls = JSON.parse(value || '[]'); } catch { urls = []; }
+      const hidden = document.createElement('input'); hidden.type = 'hidden'; hidden.name = name; hidden.value = JSON.stringify(urls);
+      wrap.classList.add('vv-editor-gallery');
+      wrap.append(hidden, createGallery(urls, (list) => { hidden.value = JSON.stringify(list); }));
+      area.append(wrap);
+      return;
+    }
     if (type === 'checkboxes') {
       const current = String(value || '').split(',').map((role) => role.trim());
       const group = document.createElement('div');
@@ -1152,7 +1401,7 @@ function openEditor(resource, item = null) {
     if (type !== 'checkbox') wrap.append(input);
     if (isMedia) {
       wrap.classList.add('vv-editor-media');
-      const cropOptions = resource === 'magazine-pages' ? { aspect: 3 / 4, aspectOptions: [{ label: 'PÁGINA 3:4', value: 3 / 4 }, { label: 'PÁGINA A4', value: 1 / Math.SQRT2 }] } : undefined;
+      const cropOptions = resource === 'velvet-stories' ? (name === 'cover_url' ? { aspect: 1 } : { aspect: 9 / 16, aspectOptions: [{ label: 'STORY 9:16', value: 9 / 16 }, { label: 'RETRATO 4:5', value: 4 / 5 }, { label: 'QUADRADO', value: 1 }] }) : resource === 'magazine-pages' ? { aspect: 3 / 4, aspectOptions: [{ label: 'PÁGINA 3:4', value: 3 / 4 }, { label: 'PÁGINA A4', value: 1 / Math.SQRT2 }] } : undefined;
       wrap.append(createDropzone(value, (url) => { input.value = url; }, cropOptions, { aceitaMidia: true }));
     }
     area.append(wrap);
@@ -1334,6 +1583,7 @@ async function openPostEditor(post, section) {
 }
 
 async function renderAdmin(resource) {
+  if (['velvet', 'velvet-stories', 'velvet-posts'].includes(resource)) return renderVelvetAdmin();
   const section = document.querySelector(`[data-admin-section="${resource}"]`); if (!section) return;
   if (resource === 'posts') return renderPostsAdmin(section);
   try {

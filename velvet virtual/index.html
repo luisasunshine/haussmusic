@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=20260924b" />
+    <link rel="stylesheet" href="styles.css?v=20260924c" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
@@ -180,6 +180,27 @@
       <main class="vv-vimos-main"><div class="vv-news-heading"><div><p class="vv-eyebrow">TE VI POR AÍ</p><h1>Você faz parte<br /><i>da cena.</i></h1></div><p>Registros, pessoas e momentos escolhidos pela redação Velvet.</p></div><div class="vv-vimos-grid" data-vimos-grid></div><div class="vv-news-empty" data-vimos-empty><span>✦</span><h2>Em breve, a gente vê você por aqui.</h2><p>Os próximos registros selecionados pela redação aparecerão nesta página.</p></div></main>
     </section>
 
+    <section class="vv-velvet-page" data-velvet-page hidden aria-label="Velvet">
+      <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top" aria-label="Velvet, início"><img class="vv-brand-logo" src="assets/logo.png" alt="VELVET" /></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">INÍCIO</a><a class="is-active" data-velvet-open data-nav-link href="#velvet">VELVET</a><a data-magazine-open data-nav-link href="#revista">HIGH</a><a data-week-open data-nav-link href="#novas">QG TAROT</a><a data-vimos-open data-nav-link href="#vimos-voce">HAVEN</a></nav></header>
+      <main class="vv-velvet-main">
+        <div class="vv-hl-row" data-velvet-stories aria-label="Destaques"></div>
+        <div class="vv-ig-feed" data-velvet-feed></div>
+        <div class="vv-news-empty" data-velvet-empty hidden><span>✦</span><h2>Em breve por aqui.</h2><p>Os anúncios e posts da Velvet aparecerão nesta aba.</p></div>
+      </main>
+    </section>
+
+    <div class="vv-sv" data-story-viewer hidden role="dialog" aria-modal="true" aria-label="Anúncio">
+      <button type="button" class="vv-sv-close" data-story-close aria-label="Fechar">×</button>
+      <button type="button" class="vv-sv-arrow vv-sv-prev" data-story-prev aria-label="Anterior">‹</button>
+      <div class="vv-sv-card">
+        <div class="vv-sv-progress"><i data-story-bar></i></div>
+        <div class="vv-sv-head"><span class="vv-sv-avatar" data-story-avatar></span><b data-story-title></b></div>
+        <div class="vv-sv-media" data-story-media></div>
+        <a class="vv-sv-cta" data-story-cta hidden target="_blank" rel="noreferrer">VER MAIS ↗</a>
+      </div>
+      <button type="button" class="vv-sv-arrow vv-sv-next" data-story-next aria-label="Próximo">›</button>
+    </div>
+
     <section class="vv-read-page" data-read-page hidden aria-label="Leitura da matéria">
       <header class="vv-news-header vv-page-nav"><a class="vv-brand" data-home-link href="#top" aria-label="Velvet, início"><img class="vv-brand-logo" src="assets/logo.png" alt="VELVET" /></a><nav class="vv-nav vv-overlay-nav" aria-label="Navegação da revista"><a data-home-link data-nav-link href="#top">INÍCIO</a><a data-velvet-open data-nav-link href="#velvet">VELVET</a><a data-magazine-open data-nav-link href="#revista">HIGH</a><a class="is-active" data-week-open data-nav-link href="#novas">QG TAROT</a><a data-vimos-open data-nav-link href="#vimos-voce">HAVEN</a></nav></header>
       <main class="vv-read-main">
@@ -273,6 +294,7 @@
           <button data-admin-tab="posts">▤ Postagens</button>
           <button data-admin-tab="banners">▧ Banners de início</button>
           <button data-admin-tab="magazine-pages">▤ Revista Velvet</button>
+          <button data-admin-tab="velvet">✦ Velvet</button>
           <button data-admin-tab="users">♙ Usuários</button>
           <button data-admin-tab="vimos-voce">◉ Te vi por aí</button>
           <button data-admin-tab="settings">⚙ Configurações</button>
@@ -289,6 +311,7 @@
           <section class="vv-admin-section" data-admin-section="posts"><div class="vv-admin-toolbar"><input placeholder="Buscar postagens..." /><button class="vv-admin-add">+ NOVA POSTAGEM</button></div><div class="vv-admin-empty"><span>▤</span><h3>Nenhuma postagem criada.</h3><p>Use “Nova postagem” para publicar o primeiro conteúdo.</p></div></section>
           <section class="vv-admin-section" data-admin-section="banners"><div class="vv-admin-toolbar"><p>Escolha o que aparece no topo da página inicial.</p><button class="vv-admin-add">+ NOVO BANNER</button></div><div class="vv-admin-empty"><span>▧</span><h3>Nenhum banner ativo.</h3><p>Crie o destaque que irá aparecer no início da revista.</p></div></section>
           <section class="vv-admin-section" data-admin-section="magazine-pages"><div class="vv-admin-toolbar"><p>Monte a edição adicionando quantas páginas quiser.</p><button class="vv-admin-add" data-live-create="magazine-pages">+ NOVA PÁGINA</button></div><div class="vv-admin-empty"><span>▤</span><h3>Nenhuma página criada.</h3><p>Envie a capa e as páginas na ordem desejada.</p></div></section>
+          <section class="vv-admin-section" data-admin-section="velvet"><div class="vv-admin-empty"><span>✦</span><h3>Carregando...</h3></div></section>
           <section class="vv-admin-section" data-admin-section="users"><div class="vv-admin-toolbar"><input placeholder="Buscar usuários..." /></div><div class="vv-admin-empty"><span>♙</span><h3>Nenhum usuário cadastrado.</h3><p>Os usuários aparecerão aqui quando criarem suas contas.</p></div></section>
           <section class="vv-admin-section" data-admin-section="vimos-voce"><div class="vv-admin-toolbar"><p>Fotos e momentos da comunidade Velvet.</p><button class="vv-admin-add">+ ADICIONAR FOTO</button></div><div class="vv-admin-empty"><span>◉</span><h3>Nenhum momento publicado.</h3><p>Adicione uma foto, título, descrição e o link do Instagram.</p></div></section>
           <section class="vv-admin-section" data-admin-section="settings"><div class="vv-settings"><label>Nome da revista<input value="Velvet" /></label><label>Link do Discord<input value="https://discord.com" /></label><label>Link do Velvet Music<input value="https://velvtmusic.vercel.app" /></label><button class="vv-admin-add">SALVAR CONFIGURAÇÕES</button></div></section>
@@ -402,6 +425,6 @@
   </style>
   <script src="starfield.js?v=1" defer></script>
   <script src="intro.js?v=1"></script>
-  <script src="script.js?v=20260924b"></script>
+  <script src="script.js?v=20260924c"></script>
   </body>
 </html>
