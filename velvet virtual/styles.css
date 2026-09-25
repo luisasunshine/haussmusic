@@ -279,7 +279,7 @@ video.vv-inline-image{background:#000}
 
 /* ===== Aba VELVET: bolinhas, visualizador de anúncio e feed ===== */
 .vv-velvet-page{position:fixed;z-index:65;inset:0;overflow:auto;background:#090909;color:#fff}
-.vv-velvet-main{max-width:640px;margin:0 auto;padding:28px 0 90px}
+.vv-velvet-main{max-width:1400px;width:100%;margin:0 auto;padding:28px clamp(8px,3vw,40px) 90px}
 .vv-hl-row{display:flex;gap:18px;overflow-x:auto;padding:8px 18px 22px;scrollbar-width:none}
 .vv-hl-row::-webkit-scrollbar{display:none}
 .vv-hl{flex:0 0 auto;width:84px;display:grid;justify-items:center;gap:9px;background:none;border:0;color:#e9e6ee;cursor:pointer;font:500 11px 'DM Mono',monospace}
@@ -355,3 +355,6 @@ video.vv-inline-image{background:#000}
 .vv-ig-modal-box .vv-ig-post{border-top:0}
 .vv-ig-modal-close{position:fixed;top:12px;right:16px;width:40px;height:40px;border:0;background:none;color:#fff;font-size:32px;cursor:pointer;z-index:10000}
 @media (max-width:520px){.vv-ig-feed{gap:2px}}
+
+.vv-hl-row{justify-content:center}.vv-velvet-main .vv-hl-row{padding-left:0;padding-right:0}
+@media (min-width:900px){.vv-ig-feed{gap:8px}}
