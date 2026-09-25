@@ -647,7 +647,33 @@ const feedMedia = (url) => (isVideoUrl(url)
 function renderVelvetFeed() {
   const feed = velvetPage.querySelector('[data-velvet-feed]');
   feed.replaceChildren();
-  velvetData.posts.forEach((post) => feed.append(velvetPostElement(post)));
+  velvetData.posts.forEach((post) => {
+    const images = post.images || [];
+    const tile = document.createElement('button');
+    tile.type = 'button'; tile.className = 'vv-ig-tile'; tile.setAttribute('aria-label', 'Abrir post');
+    tile.innerHTML = `${images[0] ? feedMedia(images[0]).replace(' controls', '').replace('preload="metadata"', 'autoplay preload="metadata"') : ''}${images.length > 1 ? '<span class="vv-ig-tile-badge" aria-hidden="true">❐</span>' : (isVideoUrl(images[0]) ? '<span class="vv-ig-tile-badge" aria-hidden="true">▶</span>' : '')}<span class="vv-ig-tile-likes" aria-hidden="true">♥ ${Number(post.likes || 0)}</span>`;
+    tile.addEventListener('click', () => openVelvetPost(post, tile));
+    feed.append(tile);
+  });
+}
+function openVelvetPost(post, tile) {
+  const layer = document.createElement('div');
+  layer.className = 'vv-ig-modal';
+  layer.setAttribute('role', 'dialog'); layer.setAttribute('aria-modal', 'true');
+  const box = document.createElement('div'); box.className = 'vv-ig-modal-box';
+  const close = document.createElement('button');
+  close.type = 'button'; close.className = 'vv-ig-modal-close'; close.setAttribute('aria-label', 'Fechar'); close.textContent = '×';
+  box.append(velvetPostElement(post)); layer.append(close, box);
+  const done = () => {
+    document.removeEventListener('keydown', onKey); layer.remove(); document.body.style.overflow = '';
+    const likes = tile.querySelector('.vv-ig-tile-likes'); if (likes) likes.textContent = `♥ ${Number(post.likes || 0)}`;
+  };
+  const onKey = (e) => { if (e.key === 'Escape') done(); };
+  close.addEventListener('click', done);
+  layer.addEventListener('click', (e) => { if (e.target === layer) done(); });
+  document.addEventListener('keydown', onKey);
+  document.body.style.overflow = 'hidden';
+  document.body.append(layer);
 }
 function velvetPostElement(post) {
   const images = post.images || [];
