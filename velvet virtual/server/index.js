@@ -8,7 +8,7 @@ const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const { OAuth2Client } = require('google-auth-library');
 const { db, deletePost } = require('./db');
-const { processMedia } = require('./mediaProcess');
+const { processMedia, hasFfmpeg } = require('./mediaProcess');
 const { signToken, isAdmin, attachUser, requireAuth, requireAdmin } = require('./auth');
 
 const app = express();
@@ -400,7 +400,7 @@ crud('velvet-stories', 'velvet_stories', ['title', 'cover_url', 'image_url', 'li
 crud('velvet-posts', 'velvet_posts', ['caption', 'images', 'is_active']);
 
 // Confere qual versão do servidor está no ar: abra /api/health no navegador.
-app.get('/api/health', (_req, res) => res.json({ ok: true, build: '2026-09-25-velvet-roles', features: ['velvet-stories', 'velvet-posts', 'section-roles', 'media-crop'] }));
+app.get('/api/health', async (_req, res) => res.json({ ok: true, build: '2026-09-25-velvet-roles', ffmpeg: await hasFfmpeg(), features: ['velvet-stories', 'velvet-posts', 'section-roles', 'media-crop'] }));
 app.get('/api/public/velvet', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const stories = db.prepare('SELECT * FROM velvet_stories WHERE is_active = 1 ORDER BY position, created_at LIMIT ?').all(MAX_VELVET_STORIES).map(toCamel);

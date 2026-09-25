@@ -86,4 +86,12 @@ const processMedia = (req, _res, next) => {
   processAnimated(req).then(() => next(), next);
 };
 
-module.exports = { processMedia, processAnimated };
+// Diz se o ffmpeg existe neste servidor (usado em /api/health).
+let ffmpegChecked = null;
+function hasFfmpeg() {
+  if (ffmpegChecked) return ffmpegChecked;
+  ffmpegChecked = new Promise((resolve) => execFile(FFMPEG, ['-version'], { timeout: 8000 }, (error) => resolve(!error)));
+  return ffmpegChecked;
+}
+
+module.exports = { processMedia, processAnimated, hasFfmpeg };
